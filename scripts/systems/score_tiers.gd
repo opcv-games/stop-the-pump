@@ -13,6 +13,11 @@ const MISS := "Miss"
 @export var good_window := 0.50
 @export var ok_window := 1.00
 
+## Points each tier pays before the combo multiplier.
+@export var perfect_points := 100
+@export var good_points := 50
+@export var ok_points := 10
+
 
 func evaluate(final_amount: float, target: float) -> String:
 	var distance := absf(final_amount - target)
@@ -24,3 +29,19 @@ func evaluate(final_amount: float, target: float) -> String:
 	if distance <= ok_window + 0.0001:
 		return OK
 	return MISS
+
+
+func points_for(tier: String) -> int:
+	match tier:
+		PERFECT:
+			return perfect_points
+		GOOD:
+			return good_points
+		OK:
+			return ok_points
+	return 0
+
+
+## Good or better keeps a combo alive.
+func extends_combo(tier: String) -> bool:
+	return tier == PERFECT or tier == GOOD

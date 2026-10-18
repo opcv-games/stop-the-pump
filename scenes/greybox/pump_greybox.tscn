@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scenes/greybox/pump_greybox.gd" id="1_grey"]
 [ext_resource type="Script" path="res://scripts/components/pump_component.gd" id="2_pump"]
+[ext_resource type="Script" path="res://scripts/components/combo_component.gd" id="3_combo"]
+[ext_resource type="Script" path="res://scripts/components/sound_feedback.gd" id="4_sound"]
 
 [node name="PumpGreybox" type="Control"]
 layout_mode = 3
@@ -12,3 +14,9 @@ script = ExtResource("1_grey")
 
 [node name="PumpComponent" type="Node" parent="."]
 script = ExtResource("2_pump")
+
+[node name="ComboComponent" type="Node" parent="."]
+script = ExtResource("3_combo")
+
+[node name="SoundFeedback" type="Node" parent="."]
+script = ExtResource("4_sound")
