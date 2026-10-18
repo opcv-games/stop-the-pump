@@ -5,10 +5,11 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[innovation]` **Pour and stop on a target (one pump)** (#1)
-  As a player, I want to hold a key to pour fuel and release it on a target amount so that I feel skillful (serves: Mastery).
-  - Given a customer asks for $20.00 and the pump is idle, When I hold the pour key, Then the displayed amount climbs continuously.
-  - Given the amount is climbing, When I release the key, Then the pump stops and the result is scored as Perfect, Good, OK or Miss by distance from the target.
+- [ ] `[innovation]` **Combo multiplier and placeholder sound** (#7)
+  As a player, I want consecutive good stops to build a multiplier so that every stop carries stakes (serves: Mastery).
+  - Given a combo of x1, When I stop with Good or Perfect, Then the multiplier goes up by one (capped).
+  - Given a combo above x1, When I stop with OK or Miss, Then the multiplier resets to x1.
+  - Given sound is on, When I press M, Then all sound stops.
 - [ ] `[innovation]` **Rusty lever delay** (#2)
   As a player, I want the pump to keep pouring briefly after I release so that I must anticipate the stop (serves: Mastery).
   - Given the lever delay is 0.4 s, When I release at $19.50, Then the final amount is higher than $19.50 by the fuel poured during the delay.
@@ -29,7 +30,7 @@
   - Given a bot with fixed reaction time, When it plays 100 rounds, Then the run produces a report of income, rent paid and failures.
 
 ## Next (likely, not committed)
-- [ ] Rent and round structure (8–10 rounds)
+- [ ] Rent and round structure (8–10 rounds). Candidate round limiter: **tank size as stamina**, the round ends when the tank runs dry (like stamina in Bills Must Be Paid)
 - [ ] Fire risk from overshoots
 - [ ] Upgrade shop with downsides
 - [ ] Customer queue and patience timer
@@ -50,6 +51,7 @@
 - Police callback, Rich Guy, other special customers
 - Fuel types (ethanol, diesel, premium)
 - Mobile version
+- Experience as a second currency earned from chains (revisit after the economy is proven)
 
 ## Done
--
+- [x] Pour and stop on a target (one pump) (#1), playtest 2026-10-18: core loop alive

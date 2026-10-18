@@ -112,3 +112,5 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-18 | Tiered scoring (Perfect/Good/OK/Miss) | Readable at a glance; easy for procs | Phase 1 interview |
 | 2026-10-18 | Economy = fuel margin + tips − restock − rent; overshoot is eaten by player | Rewards volume and precision | Phase 1 interview |
 | 2026-10-18 | Run length ~15 minutes | Player preference | Phase 1 interview |
+| 2026-10-18 | Keep flow rate at $4/s and tier windows ±0.10/0.50/1.00 | Misses felt readable; slower would be boring | Playtest 1 (#1) |
+| 2026-10-18 | Grey one-pump loop kept | Player wanted another go to hit more Perfects | Playtest 1 (#1) |
