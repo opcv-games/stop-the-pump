@@ -1,6 +1,6 @@
 # STOP. THE. PUMP. — Design Document
 
-> **Current phase:** 2 — GDD & Backlog
+> **Current phase:** 3 — Ugly Prototype
 > **Last updated:** 2026-10-18
 > This file is the Committee's memory. Read it before every Godot or Blender action. Update it after every approved decision.
 
