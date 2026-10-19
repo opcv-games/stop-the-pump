@@ -169,3 +169,4 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Endless mode after day 10; auto on/off per pump | Designer request | Playtest 16 (#20) |
 | 2026-10-19 | Phase 3 complete; Phase 4 begins | Core loop fun (playtests 8–17); slice mechanics in grey | Playtest 17 |
 | 2026-10-19 | Endless mode parked until balance | Designer: later | Playtest 17 (#20) |
+| 2026-10-19 | Look test approved: Hopper kit, isometric composition and mood | Designer review of docs/art/look_test_*.png | #21 |

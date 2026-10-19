@@ -5,8 +5,9 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[art]` **Look test: Hopper station kit in Blender, isometric renders at morning, afternoon, night** (#21, Phase 4 step 1, awaiting designer review: docs/art/look_test_*.png)
-- [ ] `[art]` **Look test in Godot: isometric 3D station behind the HUD, painterly shader, light from the day clock, rain** (Phase 4 step 2, after the designer approves step 1)
+- [x] `[art]` **Look test: Hopper station kit in Blender, isometric renders at morning, afternoon, night** (#21, approved)
+- [ ] `[art]` **Look test in Godot: isometric 3D station behind the HUD, painterly shader, light from the day clock, rain** (#22, Phase 4 step 2)
+- [ ] `[art]` **Step 3: 3D pumps match the game's pumps (labels anchored to them, globes glow when pouring), cars per customer drive in from the road**
 - [x] `[standard]` **Endless mode and auto on/off per pump** (#20, v0.19.0, kept; endless parked until balance)
   - Given day 10 is survived, When I press E, Then the run keeps going (endless) with rising rent.
   - Given pump 1 has Self-service, When I press Shift+1, Then it switches to manual (and back).
