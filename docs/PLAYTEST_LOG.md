@@ -2,6 +2,15 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.6.0 A full day: tank, clock, cash + XP  (#8)
+Hypothesis: If the day has hard limits (400 L tank, 7am–11pm in 3 minutes) and costs land at day end, then overshoots become visibly costly and each day becomes a unit of progress, increasing Advancement.
+Variable: v0.5 per-stop economy → v0.6 full day
+Sessions: 1 (self: 1, others: 0), several days
+Observed: Tank and clock ran out at about the same time (good). Survived and "thrived" on day 1. XP climbing was noticed. Overshoot still does not feel costly enough. Separate cash and tank gauges hide the trade-off.
+Biggest weakness: overshoot is not costly enough.
+Decision: KEPT. Next: car-cleaning delay (C toggles it), one merged fuel-to-cash gauge, an octave per combo step.
+Ideas raised: merged gauge (Now), tips as a personal currency (Parked), upgrades: bigger tank and faster pour (Later, shop).
+
 ## 2026-10-19 — Fuel economy, first draft  (#3)
 Hypothesis: If each stop earns money (margin on fuel + combo-multiplied tips, overshoot fuel given away), then precision and volume both pay, increasing Advancement.
 Variable: score → cash (v0.5)

@@ -5,11 +5,6 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[standard]` **A full day: tank, clock, end-of-day costs, cash + XP** (#8, continues #3)
-  As a player, I want each day to end when my tank or the clock runs out and then pay my costs so that every day feels like progress (serves: Advancement).
-  - Given the tank runs empty mid-pour, Then the pour stops at once.
-  - Given the clock reaches 11pm or the tank is empty, When all pumps are idle, Then the end-of-day screen shows earnings, refill cost, rent and net cash.
-  - Given a Perfect at combo x3, Then cash gets the sale + $5 tip and XP gets 100 x 3.
 - [ ] `[innovation]` **Overshoot cleaning delay** (next hypothesis, judged against #8)
   As a player, I want an overshoot to lock the pump for a few seconds while I clean the car so that overshooting costs time (serves: Comedy, Mastery).
   - Given I overshoot by more than the OK window, When the pump stops, Then that pump is out of service for a few seconds.
@@ -35,6 +30,7 @@
 - Ten-pump ladder tuning
 - Between-day costs: inspections, pump calibration
 - Spending XP on permanent upgrades
+- Shop upgrade ideas: bigger tank (downside: bigger refill bill), faster pour (built-in downside: harder to stop precisely)
 - Gas price variation
 - On-release procs
 
@@ -47,8 +43,10 @@
 - Mobile version
 - Visible per-pump quirks (e.g. a pump labeled "sticky" with a shown delay): the only fair way a release delay could return
 - Bribing a government inspector between days (comedy)
+- Tips as a third, personal currency for the attendant's own things (company money vs. personal money)
 
 ## Done
+- [x] A full day: tank, clock, end-of-day costs, cash + XP (#8, #3), v0.6.0, playtest 2026-10-19: kept
 - [x] Second pump with shared combo (#4), playtest 2026-10-19: strategy emerged, kept
 - [x] ~~Rusty lever delay (#2)~~, cut after playtest 2026-10-18
 - [x] Combo multiplier and placeholder sound (#7), playtest 2026-10-18: both clear improvements
