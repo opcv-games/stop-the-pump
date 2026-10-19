@@ -135,3 +135,5 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Random arrivals (1–5 s) kept | Rhythm can't be memorized; simultaneous cars are fine | Playtest 8 (#10) |
 | 2026-10-19 | Core loop declared genuinely fun (Phase 3 gate) | Player: "clearly becoming more and more fun"; playtests 1–8 | Playtest 8 |
 | 2026-10-19 | Game renamed Gas Bar Blues; music is a 12-bar blues | The blues gives the game its mood and ties the chord progression to the theme | Playtest 8 |
+| 2026-10-19 | Cash buys run upgrades every night (random offers, Balatro); XP buys permanent upgrades between runs (tree, Bills) | Random offers give run variety; a tree gives long-term goals | Designer decision |
+| 2026-10-19 | First cash upgrades: bigger tank, turbo nozzle, flyers, extra pump, squeegee, tip jar, bluesy radio, each with a downside | Design rule 1 | Designer decision (#14) |

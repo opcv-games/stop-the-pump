@@ -5,10 +5,6 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[tech]` **Designer tools: dev mode, tuning panel, on-the-beat clicks** (#13, v0.11.0)
-  As the designer, I want to force outcomes and tune every number myself so that I can test ideas without waiting for a build.
-  - Given dev mode is on (F1), When I press W, Then the next waiting pump stops with a Perfect.
-  - Given the tuning panel is open (F2), When I move a slider, Then the value applies and is still set next session.
 - [ ] `[standard]` **Upgrade shop between days** (next, needs designer decisions on currency, offers and the first upgrades)
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
@@ -54,6 +50,7 @@
 - Tips as a third, personal currency for the attendant's own things (company money vs. personal money)
 
 ## Done
+- [x] Designer tools: dev mode, tuning panel, on-the-beat clicks, audio inbox (#13), v0.11.0
 - [x] Super Perfect tier and backing band (#12), v0.10.0, playtest 2026-10-19: kept
 - [x] Gas Bar Blues rename and 12-bar blues (#11), v0.9.0, playtest 2026-10-19: kept
 - [x] Random car arrivals and chord progression (#10), v0.8.0, playtest 2026-10-19: kept; core loop declared fun
