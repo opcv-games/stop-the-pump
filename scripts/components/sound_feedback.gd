@@ -107,6 +107,11 @@ func watch_pump(pump: PumpComponent, index := 0) -> void:
 	pump.stopped.connect(func(_final: float) -> void: hum.stop())
 
 
+## A pump was removed (new run after eviction): stop following it.
+func unwatch_pump(pump: PumpComponent) -> void:
+	_pumps.erase(pump)
+
+
 ## Plays this stop's melody notes in the chord the band is on right now.
 func play_tier(tier: String) -> void:
 	if not TIER_NOTES.has(tier):

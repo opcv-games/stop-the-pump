@@ -31,6 +31,10 @@ class Receipt:
 ## Added to the rent every new day of a run.
 @export var rent_growth := 40.0
 
+## Set by run upgrades (#14), reset on a new run.
+var rent_extra := 0.0  ## Bigger tank and extra pumps raise the rent.
+var tip_bonus := 0.0   ## Tip jar: added to Good-or-better tips, taken off OK and Miss.
+
 
 func settle(final_amount: float, target: float, tier: String) -> Receipt:
 	var r := Receipt.new()
@@ -38,8 +42,14 @@ func settle(final_amount: float, target: float, tier: String) -> Receipt:
 	r.overshoot = maxf(0.0, final_amount - target)
 	r.short = final_amount < target and tier != ScoreTiers.PERFECT and tier != ScoreTiers.SUPER_PERFECT
 	r.tip = 0.0 if r.short else tip_for(tier)
+	if tip_bonus != 0.0 and not r.short:
+		r.tip += tip_bonus if tiers_keep_combo(tier) else -tip_bonus
 	r.earned = r.sale + r.tip
 	return r
+
+
+func tiers_keep_combo(tier: String) -> bool:
+	return tier == ScoreTiers.SUPER_PERFECT or tier == ScoreTiers.PERFECT or tier == ScoreTiers.GOOD
 
 
 func tip_for(tier: String) -> float:
@@ -73,4 +83,4 @@ func refill_cost(liters: float) -> float:
 
 
 func rent_for(day: int) -> float:
-	return rent_base + rent_growth * (day - 1)
+	return rent_base + rent_growth * (day - 1) + rent_extra

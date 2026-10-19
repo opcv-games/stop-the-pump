@@ -120,12 +120,15 @@ func _refresh() -> void:
 
 func _on_slider(value: float, key: String) -> void:
 	Tuning.set_value(_station, key, value)
+	_station.note_tuned(key)
 	_values[key].text = _fmt(Tuning.get_value(_station, key))
 	_save()
 
 
 func _on_reset() -> void:
 	Tuning.apply_snapshot(_station, _defaults)
+	for key in _defaults:
+		_station.note_tuned(key)
 	_refresh()
 	_save()
 	_status.text = "Defaults restored"

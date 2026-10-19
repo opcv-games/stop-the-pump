@@ -68,5 +68,3 @@ func test_given_tuning_then_copy_text_lists_every_value() -> void:
 	assert_string_contains(text, "economy/rent_base")
 
 
-func test_given_station_then_version_is_0_11() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.11")

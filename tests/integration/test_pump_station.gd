@@ -145,11 +145,12 @@ func test_given_tank_runs_dry_mid_pour_then_pour_stops_and_day_ends() -> void:
 	assert_string_contains(station.summary_label.text, "Out of fuel")
 
 
-func test_given_summary_when_continue_then_day_2_starts_with_full_tank() -> void:
+func test_given_summary_when_continue_past_the_shop_then_day_2_starts_with_full_tank() -> void:
 	station.wallet.add(1000.0)
 	_stop_exactly_on_target(0)
 	_end_day_by_clock()
-	station.continue_pressed()
+	station.continue_pressed()  # summary -> night shop
+	station.continue_pressed()  # night shop -> day 2
 	assert_eq(station.day, 2)
 	assert_eq(station.state, station.State.OPEN)
 	assert_eq(station.tank.liters, station.tank.capacity_liters)

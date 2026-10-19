@@ -16,6 +16,8 @@ var pump: PumpComponent
 var waiting := true
 var result_label: Label
 var target_label: Label
+## Turbo nozzle (#14) multiplies this pump's pour speed.
+var flow_multiplier := 1.0
 ## Out of service while the attendant cleans an overshoot off the car (#9).
 var cleaning := false
 
@@ -23,6 +25,7 @@ var _cleaning_left := 0.0
 
 var amount_label: Label
 var _light: ColorRect
+var _key_label: Label
 
 
 func setup(bay_index: int, flow_rate: float) -> void:
@@ -101,6 +104,11 @@ func release() -> void:
 	pump.stop_pour()
 
 
+func set_turbo(multiplier: float) -> void:
+	flow_multiplier = multiplier
+	_key_label.text = "[ %d ]  TURBO" % ((index + 1) % 10) if multiplier != 1.0 else "[ %d ]" % ((index + 1) % 10)
+
+
 ## Super Perfect: the display shows the exact target ("on the dot").
 func show_amount(amount: float) -> void:
 	amount_label.text = "$%.2f" % amount
@@ -139,7 +147,7 @@ func _build() -> void:
 	_light.size = Vector2(50, 50)
 	body.add_child(_light)
 
-	var key := Greybox.label(body, "[ %d ]" % ((index + 1) % 10), 26, Vector2(0, 225), Vector2(250, 40))
-	key.add_theme_color_override("font_color", Color(0.15, 0.15, 0.17))
+	_key_label = Greybox.label(body, "[ %d ]" % ((index + 1) % 10), 26, Vector2(0, 225), Vector2(250, 40))
+	_key_label.add_theme_color_override("font_color", Color(0.15, 0.15, 0.17))
 
 	result_label = Greybox.label(self, "", 21, Vector2(-10, 368), Vector2(SIZE.x + 20, 100))

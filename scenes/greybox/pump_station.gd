@@ -4,9 +4,10 @@ extends Control
 ## Kept: #8 a full day (7am-11pm in 3 minutes), cash at the pump, XP from combos, costs at day end.
 ## Kept: #9 car-cleaning delay after a big overshoot (C toggles it), one fuel-to-cash gauge.
 ## Kept: #10 random car arrivals, #11 the blues.
-## Testing: #12 Super Perfect tier; backing band with stops as melody (M toggles sound).
+## Kept: #12 Super Perfect tier; backing band with stops as melody (M toggles sound). #13 designer tools.
+## Testing: #14 night shop, 3 random cash upgrades between days.
 
-enum State { OPEN, CLOSING, SUMMARY }
+enum State { OPEN, CLOSING, SUMMARY, SHOP }
 
 ## How many pumps the station runs. The difficulty ladder (1 to 10) is this one number.
 @export_range(1, 10) var pump_count := 2
@@ -27,6 +28,10 @@ enum State { OPEN, CLOSING, SUMMARY }
 @export var tuning_file := "user://tuning.cfg"
 ## Cash the player starts a run with.
 @export var starting_cash := 50.0
+## Night shop (#14): cost of rolling 3 new offers, and a multiplier on every upgrade price.
+@export var reroll_cost := 20.0
+@export var shop_price_scale := 1.0
+@export var offers_per_night := 3
 @export var economy: FuelEconomy = FuelEconomy.new()
 
 const TIER_COLORS := {
@@ -53,6 +58,15 @@ const DEV_KEYS := {
 
 var bays: Array[PumpBay] = []
 var dev_mode := false
+## Run upgrades bought so far: id -> how many. Wiped on eviction.
+var owned := {}
+var shop_offers: Array[String] = []
+## Squeegee: cash charged each time a car is cleaned.
+var cleaning_fee := 0.0
+var _sold: Array[bool] = []
+## Numbers at the start of a run (after the designer's tuning), restored when a new run starts.
+var _base := {}
+var _base_targets: Array[float] = []
 var state := State.OPEN
 var day := 0
 var evicted := false
@@ -75,6 +89,11 @@ var _tank_label: Label
 var _overlay: Control
 var _dev_label: Label
 var _tuning_panel: TuningPanel
+var _shop: Control
+var _bg: ColorRect
+var _shop_title: Label
+var _shop_cards: Array[Label] = []
+var _shop_footer: Label
 var summary_label: Label
 
 
@@ -91,6 +110,8 @@ func _ready() -> void:
 	tank.emptied.connect(_close_day)
 	clock.time_changed.connect(_on_time_changed)
 	clock.closed.connect(_close_day)
+	_base = Tuning.snapshot(self)
+	_base_targets = possible_targets.duplicate()
 	start_run()
 
 
@@ -117,6 +138,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == State.SUMMARY:
 		if event.is_action_pressed("continue"):
+			continue_pressed()
+		return
+	if state == State.SHOP:
+		if event is InputEventKey and event.pressed:
+			if event.physical_keycode >= KEY_1 and event.physical_keycode < KEY_1 + offers_per_night:
+				buy(event.physical_keycode - KEY_1)
+				return
+			if event.physical_keycode == KEY_R:
+				reroll()
+				return
+		if event.is_action_pressed("continue") and not (event is InputEventKey and event.physical_keycode == KEY_SPACE):
 			continue_pressed()
 		return
 	for i in bays.size():
@@ -147,12 +179,18 @@ func dev_force(result: String) -> void:
 func apply_tuning() -> void:
 	tank.price_per_liter = economy.price_per_liter
 	for bay in bays:
-		bay.pump.flow_rate = flow_rate
+		bay.pump.flow_rate = flow_rate * bay.flow_multiplier
 	sound.apply_tuning()
+
+
+## The tuning panel changed a number: it becomes part of the run's starting setup too.
+func note_tuned(key: String) -> void:
+	_base[key] = Tuning.get_value(self, key)
 
 
 ## A new run: starting cash, day 1. XP is kept (it is the run-to-run currency).
 func start_run() -> void:
+	_reset_run_upgrades()
 	evicted = false
 	day = 0
 	wallet.add(starting_cash - wallet.cash)
@@ -167,6 +205,8 @@ func start_next_day() -> void:
 	combo.reset()  # every day starts at x1
 	_start_fuel_value = tank.remaining_value()
 	_overlay.visible = false
+	if _shop:
+		_shop.visible = false
 	state = State.OPEN
 	clock.start()
 	for bay in bays:
@@ -174,15 +214,123 @@ func start_next_day() -> void:
 		bay.result_label.text = ""
 		_customer_after(bay, randf_range(0.0, second_customer_offset * bay.index))
 	_update_gauges()
+	_update_hint()
 
 
 func continue_pressed() -> void:
-	if state != State.SUMMARY:
+	match state:
+		State.SUMMARY:
+			if evicted:
+				start_run()
+			else:
+				open_shop()
+		State.SHOP:
+			start_next_day()
+
+
+# --- Night shop (#14) ---------------------------------------------------------
+
+func open_shop() -> void:
+	state = State.SHOP
+	_overlay.visible = false
+	_roll_offers()
+	_shop.visible = true
+	_update_hint()
+
+
+func set_offers(ids: Array) -> void:
+	shop_offers.assign(ids)
+	_sold.assign(ids.map(func(_i): return false))
+	_refresh_shop()
+
+
+func buy(slot: int) -> bool:
+	if state != State.SHOP or slot >= shop_offers.size() or _sold[slot]:
+		return false
+	var id := shop_offers[slot]
+	var price := Upgrades.price(self, id)
+	if wallet.cash < price:
+		_shop_footer.text = "Not enough cash for the %s." % Upgrades.info(id).name
+		return false
+	wallet.add(-price)
+	owned[id] = owned.get(id, 0) + 1
+	Upgrades.apply(self, id)
+	_sold[slot] = true
+	_refresh_shop()
+	return true
+
+
+func reroll() -> bool:
+	if state != State.SHOP or wallet.cash < reroll_cost:
+		return false
+	wallet.add(-reroll_cost)
+	_roll_offers()
+	return true
+
+
+func shop_card_text(slot: int) -> String:
+	return _shop_cards[slot].text
+
+
+func _roll_offers() -> void:
+	var pool := Upgrades.available(self)
+	pool.shuffle()
+	set_offers(pool.slice(0, offers_per_night))
+
+
+func _refresh_shop() -> void:
+	if not _shop:
 		return
-	if evicted:
-		start_run()
-	else:
-		start_next_day()
+	_shop_title.text = "NIGHT SHOP   after day %d      cash $%.0f" % [day, wallet.cash]
+	for i in _shop_cards.size():
+		var card := _shop_cards[i]
+		if i >= shop_offers.size():
+			card.text = ""
+			continue
+		var u := Upgrades.info(shop_offers[i])
+		var price := Upgrades.price(self, u.id)
+		if _sold[i]:
+			card.text = "[%d]\n%s\n\nSOLD" % [i + 1, u.name.to_upper()]
+			card.modulate = Color(1, 1, 1, 0.4)
+		else:
+			card.text = "[%d]\n%s\n\n%s\n\nbut: %s\n\n$%.0f%s" % [
+				i + 1, u.name.to_upper(), u.helps, u.downside, price,
+				"" if wallet.cash >= price else "  (can't afford)"]
+			card.modulate = Color.WHITE if wallet.cash >= price else Color(1, 1, 1, 0.55)
+	var have := []
+	for id in owned:
+		have.append("%s x%d" % [Upgrades.info(id).name, owned[id]])
+	_shop_footer.text = "Owned: %s\n1–%d buy     R reroll ($%.0f)     ENTER open the station for day %d  (rent $%.0f)" % [
+		", ".join(have) if have else "nothing yet", shop_offers.size(), reroll_cost, day + 1, economy.rent_for(day + 1)]
+
+
+## Eviction: the run's upgrades are gone; the station goes back to its starting setup.
+func _reset_run_upgrades() -> void:
+	if _base.is_empty():
+		return
+	Tuning.apply_snapshot(self, _base)
+	possible_targets.assign(_base_targets)
+	economy.rent_extra = 0.0
+	economy.tip_bonus = 0.0
+	cleaning_fee = 0.0
+	owned.clear()
+	while bays.size() > pump_count:
+		var bay: PumpBay = bays.pop_back()
+		sound.unwatch_pump(bay.pump)
+		bay.queue_free()
+	while bays.size() < pump_count:
+		_add_bay(bays.size())
+	for bay in bays:
+		bay.set_turbo(1.0)
+	_layout_bays()
+	apply_tuning()
+
+
+## Extra pump upgrade: one more bay, laid out with the others.
+func add_pump() -> void:
+	pump_count += 1
+	_add_bay(bays.size())
+	_layout_bays()
 
 
 func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
@@ -205,6 +353,9 @@ func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
 		_counts[ScoreTiers.OK], _counts[ScoreTiers.MISS], _best_combo]
 	if cleaning_enabled and receipt.overshoot > combo.tiers.ok_window:
 		bay.start_cleaning(cleaning_seconds)  # the next customer comes when cleaning finishes
+		if cleaning_fee > 0.0:
+			wallet.add(-cleaning_fee)
+			_day_earned -= cleaning_fee
 	elif state == State.OPEN:
 		_customer_after(bay, next_arrival_delay())
 	if state != State.OPEN:
@@ -221,6 +372,8 @@ func _receipt_text(tier: String, diff: float, r: FuelEconomy.Receipt, xp: int, p
 		text += "  wasted %.1f L" % (r.overshoot / economy.price_per_liter)
 	elif r.tip > 0.0:
 		text += "  incl. tip $%.0f" % r.tip
+	elif r.tip < 0.0:
+		text += "  tip jar -$%.0f" % -r.tip
 	if lost:
 		text += "\nCOMBO LOST  x%d" % lost
 	elif xp > 0:
@@ -283,7 +436,7 @@ func _settle_day() -> void:
 		"",
 		"Cash   %s$%.2f        XP   %d" % ["-" if wallet.cash < 0 else "", absf(wallet.cash), wallet.xp],
 		"",
-		"Press ENTER to start a new run" if evicted else "Press ENTER for day %d  (rent $%.0f)" % [day + 1, economy.rent_for(day + 1)],
+		"Press ENTER to start a new run" if evicted else "Press ENTER for the night shop",
 	])
 	summary_label.add_theme_color_override("font_color", TIER_COLORS[ScoreTiers.MISS] if evicted else Color.WHITE)
 	_overlay.visible = true
@@ -317,6 +470,9 @@ func _update_hint() -> void:
 	if state == State.SUMMARY:
 		_hint_label.text = "ENTER to continue.     M: sound %s" % ("ON" if sound.enabled else "OFF")
 		return
+	if state == State.SHOP:
+		_hint_label.text = "1–%d buy     R reroll     ENTER open the station" % shop_offers.size()
+		return
 	var keys := "1" if bays.size() == 1 else "1–%d" % mini(bays.size(), 9)
 	_hint_label.text = "Hold %s to pour.  Release to stop.    M sound %s    C cleaning %s    F1 dev    F2 tuning" % [
 		keys, "ON" if sound.enabled else "OFF", "ON" if cleaning_enabled else "OFF"]
@@ -338,12 +494,38 @@ func _ensure_input_actions() -> void:
 			InputMap.action_add_event(action, ev)
 
 
+func _add_bay(i: int) -> void:
+	var bay := PumpBay.new()
+	bay.name = "Bay%d" % (i + 1)
+	add_child(bay)
+	move_child(bay, _bg.get_index() + 1)  # in front of the background, behind the overlays
+	bay.setup(i, flow_rate)
+	bay.pump.tank = tank
+	bay.pump_stopped.connect(_on_bay_stopped)
+	bay.cleaning_finished.connect(func(b: PumpBay) -> void: _customer_after(b, next_arrival_delay()))
+	sound.watch_pump(bay.pump, i)
+	bays.append(bay)
+
+
+## Bays side by side between the gauge (left) and the combo (right), shrinking to fit.
+func _layout_bays() -> void:
+	var area_left := 200.0
+	var area_width := 1152.0 - 400.0
+	var gap := 20.0
+	var n := bays.size()
+	var scale_factor := minf(1.0, (area_width - gap * (n - 1)) / (PumpBay.SIZE.x * n))
+	var row_width := (PumpBay.SIZE.x * scale_factor + gap) * n - gap
+	for i in n:
+		bays[i].scale = Vector2.ONE * scale_factor
+		bays[i].position = Vector2(area_left + (area_width - row_width) / 2.0 + i * (PumpBay.SIZE.x * scale_factor + gap), 62)
+
+
 func _build_station() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	var bg := ColorRect.new()
-	bg.color = Color(0.18, 0.18, 0.2)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	_bg = ColorRect.new()
+	_bg.color = Color(0.18, 0.18, 0.2)
+	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_bg)
 
 	# Day clock across the top.
 	_clock_label = Greybox.label(self, "", 26, Vector2(0, 4), Vector2(1152, 36))
@@ -358,24 +540,9 @@ func _build_station() -> void:
 	_day_bar.size = Vector2(0, 8)
 	add_child(_day_bar)
 
-	# Bays side by side between the gauges (left) and the combo (right).
-	var area_left := 200.0
-	var area_width := 1152.0 - 400.0
-	var gap := 20.0
-	var scale_factor := minf(1.0, (area_width - gap * (pump_count - 1)) / (PumpBay.SIZE.x * pump_count))
-	var row_width := (PumpBay.SIZE.x * scale_factor + gap) * pump_count - gap
 	for i in pump_count:
-		var bay := PumpBay.new()
-		bay.name = "Bay%d" % (i + 1)
-		add_child(bay)
-		bay.setup(i, flow_rate)
-		bay.pump.tank = tank
-		bay.scale = Vector2.ONE * scale_factor
-		bay.position = Vector2(area_left + (area_width - row_width) / 2.0 + i * (PumpBay.SIZE.x * scale_factor + gap), 62)
-		bay.pump_stopped.connect(_on_bay_stopped)
-		bay.cleaning_finished.connect(func(b: PumpBay) -> void: _customer_after(b, next_arrival_delay()))
-		sound.watch_pump(bay.pump, i)
-		bays.append(bay)
+		_add_bay(i)
+	_layout_bays()
 
 	# Left: one gauge where fuel (orange) turns into today's cash (green), plus the bank balance.
 	_day_gauge = DayGauge.new()
@@ -416,6 +583,28 @@ func _build_station() -> void:
 	summary_label = Greybox.label(panel, "", 26, Vector2(0, 20), Vector2(640, 380))
 	summary_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_overlay.visible = false
+
+	# Night shop screen (#14).
+	_shop = Control.new()
+	_shop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_shop)
+	var shop_dim := ColorRect.new()
+	shop_dim.color = Color(0.08, 0.08, 0.1, 0.94)
+	shop_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_shop.add_child(shop_dim)
+	_shop_title = Greybox.label(_shop, "", 30, Vector2(0, 40), Vector2(1152, 44))
+	for i in offers_per_night:
+		var card_bg := ColorRect.new()
+		card_bg.color = Color(0.16, 0.16, 0.19)
+		card_bg.position = Vector2(96 + i * 330, 110)
+		card_bg.size = Vector2(300, 330)
+		_shop.add_child(card_bg)
+		var card := Greybox.label(card_bg, "", 22, Vector2(10, 10), Vector2(280, 310))
+		card.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_shop_cards.append(card)
+	_shop_footer = Greybox.label(_shop, "", 20, Vector2(0, 470), Vector2(1152, 80))
+	_shop.visible = false
 
 	_dev_label = Greybox.label(self, "DEV   Q super   W perfect   E good   R ok   T -$10   Y +$10", 16, Vector2(8, 6), Vector2(400, 24))
 	_dev_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT

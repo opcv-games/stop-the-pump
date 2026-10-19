@@ -11,6 +11,8 @@ const PARAMS := [
 	{"key": "station/arrival_max", "label": "Car arrives after, max (s)", "min": 0.0, "max": 15.0, "step": 0.25},
 	{"key": "station/cleaning_seconds", "label": "Car cleaning (s)", "min": 0.0, "max": 10.0, "step": 0.5},
 	{"key": "station/starting_cash", "label": "Starting cash ($)", "min": 0.0, "max": 500.0, "step": 10.0, "restart": true},
+	{"key": "station/shop_price_scale", "label": "Shop prices (x)", "min": 0.25, "max": 3.0, "step": 0.05},
+	{"key": "station/reroll_cost", "label": "Shop reroll ($)", "min": 0.0, "max": 100.0, "step": 5.0},
 	{"key": "clock/day_seconds", "label": "Day length (s)", "min": 30.0, "max": 600.0, "step": 10.0},
 	{"key": "tank/capacity_liters", "label": "Tank size (L, next day)", "min": 50.0, "max": 1000.0, "step": 10.0},
 	{"key": "tiers/super_window", "label": "Super Perfect window ($)", "min": 0.0, "max": 0.2, "step": 0.005},

@@ -5,7 +5,9 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[standard]` **Upgrade shop between days** (next, needs designer decisions on currency, offers and the first upgrades)
+- [ ] `[standard]` **Night shop: 3 random cash upgrades between days** (#14, v0.12.0, awaiting playtest)
+  - Given the day ends and I'm not evicted, When I press Enter, Then the night shop offers 3 different upgrades.
+  - Given I'm evicted, Then the new run starts with no upgrades.
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.
@@ -27,7 +29,7 @@
 - Permanent upgrades between runs
 - Ten-pump ladder tuning
 - Between-day costs: inspections, pump calibration
-- Spending XP on permanent upgrades
+- XP upgrade tree between runs (Bills-style), bought on the eviction screen
 - Marketing upgrade branch: more cars at once; shorter min–max wait between cars
 - Rethink the gauge: the player has no time to watch it mid-day (playtest 7)
 - Shop upgrade ideas: bigger tank (downside: bigger refill bill), faster pour (built-in downside: harder to stop precisely)
