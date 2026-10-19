@@ -24,6 +24,12 @@ godot --headless --import
 godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
 ```
 
+## Designer tools (in game)
+- **F1 dev mode:** Q Super Perfect, W Perfect, E Good, R OK, T miss $10 under, Y miss $10 over (next waiting pump).
+- **F2 tuning panel:** every number in `scripts/systems/tuning.gd`, saved to `user://tuning.cfg`. When the designer pastes "Copy values", treat it as their preferred tuning and fold it into the defaults when asked.
+- **Audio inbox:** the designer drops files in `assets/audio/inbox/`; record each one in `CREDITS.md`.
+- Bump `config/version` in `project.godot` every build the designer plays (shown bottom right).
+
 ## Operating rules
 - Read the docs → write tests/code → update the docs. Every cycle ends with a commit.
 - Never run Godot and Blender actions in the same step. One logical chunk, then wait for the user's validation.

@@ -27,11 +27,16 @@ const TIER_NOTES := {
 ## Each extra pump hums and clicks a little higher so pumps can be told apart by ear.
 @export var pitch_step_per_pump := 0.12
 @export var backing_volume_db := -9.0
+## Click mode: false = a click per dollar poured; true = a shaker on the band's swung eighths while pouring (#13).
+@export var tick_on_beat := false
 
 var _players := {}
 var _loop: AudioStreamWAV
 var _tick: AudioStream
 var _backing: AudioStreamPlayer
+var _pumps: Array[PumpComponent] = []
+var _shaker: AudioStreamPlayer
+var _last_eighth := -1
 
 
 func _ready() -> void:
@@ -53,6 +58,29 @@ func _ready() -> void:
 	_backing.volume_db = backing_volume_db
 	add_child(_backing)
 	_backing.play()
+	_shaker = AudioStreamPlayer.new()
+	_shaker.stream = _tick
+	_shaker.volume_db = -4.0
+	add_child(_shaker)
+
+
+func _process(_delta: float) -> void:
+	if not tick_on_beat or not _backing.playing:
+		return
+	var eighth := eighth_index(_backing.get_playback_position())
+	if eighth == _last_eighth:
+		return
+	_last_eighth = eighth
+	for pump in _pumps:
+		if pump.is_pouring:
+			_shaker.play()
+			return
+
+
+## Re-applies tuned values that live on child players.
+func apply_tuning() -> void:
+	if _backing:
+		_backing.volume_db = backing_volume_db
 
 
 ## Gives a pump its own hum and click players. index sets its pitch.
@@ -67,12 +95,13 @@ func watch_pump(pump: PumpComponent, index := 0) -> void:
 	tick.stream = _tick
 	tick.pitch_scale = pitch
 	add_child(tick)
+	_pumps.append(pump)
 	var state := {"last_dollar": 0}
 	pump.amount_changed.connect(func(amount: float) -> void:
 		if pump.is_pouring and not hum.playing:
 			hum.play()
 		var dollar := int(amount)
-		if tick_every_dollar and dollar > state.last_dollar:
+		if tick_every_dollar and not tick_on_beat and dollar > state.last_dollar:
 			tick.play()
 		state.last_dollar = dollar)
 	pump.stopped.connect(func(_final: float) -> void: hum.stop())
@@ -108,3 +137,11 @@ static func note_count(tier: String) -> int:
 		ScoreTiers.GOOD:
 			return 1
 	return 0
+
+
+## Which swung eighth note of the band `seconds` falls in: the beat, then two-thirds through it.
+static func eighth_index(seconds: float) -> int:
+	var beat := 60.0 / BPM
+	var beats := floori(seconds / beat)
+	var frac := seconds / beat - beats
+	return beats * 2 + (1 if frac >= 2.0 / 3.0 else 0)

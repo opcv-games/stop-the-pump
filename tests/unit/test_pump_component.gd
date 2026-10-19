@@ -78,3 +78,10 @@ func test_given_tank_with_1_litre_when_pouring_past_it_then_pump_stops_at_2_doll
 	assert_almost_eq(pump.amount, 2.0, 0.001)
 	assert_true(pump.is_done)
 	assert_signal_emitted_with_parameters(pump, "stopped", [2.0])
+
+
+func test_given_customer_when_finished_at_20_then_pump_stops_at_20() -> void:
+	watch_signals(pump)
+	pump.finish_at(20.0)
+	assert_signal_emitted_with_parameters(pump, "stopped", [20.0])
+	assert_true(pump.is_done)

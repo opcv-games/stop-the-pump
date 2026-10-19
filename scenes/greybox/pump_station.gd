@@ -23,6 +23,8 @@ enum State { OPEN, CLOSING, SUMMARY }
 @export var cleaning_seconds := 4.0
 ## Playtest switch (C) so the cleaning delay can be judged on its own.
 @export var cleaning_enabled := true
+## Where the tuning panel saves the designer's numbers ("" = don't load or save, used by tests).
+@export var tuning_file := "user://tuning.cfg"
 ## Cash the player starts a run with.
 @export var starting_cash := 50.0
 @export var economy: FuelEconomy = FuelEconomy.new()
@@ -41,7 +43,16 @@ const TIER_COLORS := {
 @onready var tank: TankComponent = $TankComponent
 @onready var clock: DayClock = $DayClock
 
+## Dev mode (F1): force stop results with Q W E R T Y. Distances from the target, in dollars.
+const DEV_RESULTS := {
+	"super": 0.0, "perfect": 0.07, "good": 0.3, "ok": 0.8, "miss_under": -10.0, "miss_over": 10.0,
+}
+const DEV_KEYS := {
+	KEY_Q: "super", KEY_W: "perfect", KEY_E: "good", KEY_R: "ok", KEY_T: "miss_under", KEY_Y: "miss_over",
+}
+
 var bays: Array[PumpBay] = []
+var dev_mode := false
 var state := State.OPEN
 var day := 0
 var evicted := false
@@ -62,10 +73,14 @@ var _day_gauge: DayGauge
 var _cash_label: Label
 var _tank_label: Label
 var _overlay: Control
+var _dev_label: Label
+var _tuning_panel: TuningPanel
 var summary_label: Label
 
 
 func _ready() -> void:
+	if tuning_file != "":
+		Tuning.load_into(self, tuning_file)
 	tank.price_per_liter = economy.price_per_liter
 	_ensure_input_actions()
 	_build_station()
@@ -85,6 +100,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_sound"):
 		sound.enabled = not sound.enabled
 		_update_hint()
+		return
+	if event.is_action_pressed("toggle_dev"):
+		dev_mode = not dev_mode
+		_dev_label.visible = dev_mode
+		return
+	if event.is_action_pressed("toggle_tuning"):
+		_tuning_panel.toggle()
+		return
+	if dev_mode and state == State.OPEN and event is InputEventKey and event.pressed and DEV_KEYS.has(event.physical_keycode):
+		dev_force(DEV_KEYS[event.physical_keycode])
 		return
 	if event.is_action_pressed("toggle_cleaning"):
 		cleaning_enabled = not cleaning_enabled
@@ -108,6 +133,22 @@ func press(i: int) -> void:
 
 func release(i: int) -> void:
 	bays[i].release()
+
+
+## Dev mode: the first pump with a customer stops at a chosen distance from its target.
+func dev_force(result: String) -> void:
+	for bay in bays:
+		if not bay.waiting and not bay.pump.is_done:
+			bay.pump.finish_at(maxf(0.0, bay.pump.target + DEV_RESULTS[result]))
+			return
+
+
+## Pushes tuned numbers out to the pieces that copy them (called by Tuning after any change).
+func apply_tuning() -> void:
+	tank.price_per_liter = economy.price_per_liter
+	for bay in bays:
+		bay.pump.flow_rate = flow_rate
+	sound.apply_tuning()
 
 
 ## A new run: starting cash, day 1. XP is kept (it is the run-to-run currency).
@@ -277,13 +318,13 @@ func _update_hint() -> void:
 		_hint_label.text = "ENTER to continue.     M: sound %s" % ("ON" if sound.enabled else "OFF")
 		return
 	var keys := "1" if bays.size() == 1 else "1–%d" % mini(bays.size(), 9)
-	_hint_label.text = "Hold keys %s to pour each pump.  Release to stop.     M: sound %s     C: cleaning %s" % [
+	_hint_label.text = "Hold %s to pour.  Release to stop.    M sound %s    C cleaning %s    F1 dev    F2 tuning" % [
 		keys, "ON" if sound.enabled else "OFF", "ON" if cleaning_enabled else "OFF"]
 
 
 ## Greybox input, done in code; moves to the Input Map later. Keys 1..9 then 0 for pump 10.
 func _ensure_input_actions() -> void:
-	var bindings := {"toggle_sound": [KEY_M], "toggle_cleaning": [KEY_C], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
+	var bindings := {"toggle_sound": [KEY_M], "toggle_cleaning": [KEY_C], "toggle_dev": [KEY_F1], "toggle_tuning": [KEY_F2], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
 	for i in 10:
 		bindings["pour_%d" % (i + 1)] = [KEY_1 + i if i < 9 else KEY_0]
 	bindings["pour_1"].append(KEY_SPACE)
@@ -375,4 +416,12 @@ func _build_station() -> void:
 	summary_label = Greybox.label(panel, "", 26, Vector2(0, 20), Vector2(640, 380))
 	summary_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_overlay.visible = false
+
+	_dev_label = Greybox.label(self, "DEV   Q super   W perfect   E good   R ok   T -$10   Y +$10", 16, Vector2(8, 6), Vector2(400, 24))
+	_dev_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_dev_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.8))
+	_dev_label.visible = false
+	_tuning_panel = TuningPanel.new()
+	add_child(_tuning_panel)
+	_tuning_panel.setup(self)
 	_update_hint()

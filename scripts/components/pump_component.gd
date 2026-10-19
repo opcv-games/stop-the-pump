@@ -49,6 +49,19 @@ func stop_pour() -> void:
 	stopped.emit(amount)
 
 
+## Dev mode: jumps the pump straight to `final_amount` and stops it (fuel still comes from the tank).
+func finish_at(final_amount: float) -> void:
+	if is_done:
+		return
+	var extra := final_amount - amount
+	if tank and extra > 0.0:
+		extra = tank.draw(extra)
+	amount += extra
+	amount_changed.emit(amount)
+	is_pouring = true
+	stop_pour()
+
+
 ## Readies the pump for the next customer.
 func reset(new_target: float) -> void:
 	amount = 0.0

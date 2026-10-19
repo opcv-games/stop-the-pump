@@ -9,6 +9,7 @@ var station: Control
 
 func before_each() -> void:
 	station = SCENE.instantiate()
+	station.tuning_file = ""
 	station.pump_count = 2
 	station.arrival_min = 60.0  # keep results on screen for the assertions
 	station.arrival_max = 60.0
@@ -191,10 +192,6 @@ func test_given_cleaning_switched_off_when_big_overshoot_then_bay_is_not_cleanin
 	station.cleaning_enabled = false
 	_overshoot(0, 3.0)
 	assert_false(station.bays[0].cleaning)
-
-
-func test_given_station_then_version_is_0_10() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.10")
 
 
 # --- Super Perfect (#12) ---

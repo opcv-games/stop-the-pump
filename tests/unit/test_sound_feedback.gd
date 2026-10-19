@@ -19,3 +19,11 @@ func test_given_tiers_then_note_counts_are_3_2_1_0() -> void:
 	assert_eq(SoundFeedback.note_count(ScoreTiers.PERFECT), 2)
 	assert_eq(SoundFeedback.note_count(ScoreTiers.GOOD), 1)
 	assert_eq(SoundFeedback.note_count(ScoreTiers.OK), 0)
+
+
+func test_given_swing_then_eighth_notes_fall_on_the_beat_and_two_thirds_through() -> void:
+	var beat := 60.0 / SoundFeedback.BPM
+	assert_eq(SoundFeedback.eighth_index(0.0), 0)
+	assert_eq(SoundFeedback.eighth_index(beat * 0.5), 0)
+	assert_eq(SoundFeedback.eighth_index(beat * 0.7), 1)
+	assert_eq(SoundFeedback.eighth_index(beat * 1.01), 2)
