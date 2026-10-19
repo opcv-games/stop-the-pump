@@ -5,11 +5,6 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[innovation]` **Combo multiplier and placeholder sound** (#7)
-  As a player, I want consecutive good stops to build a multiplier so that every stop carries stakes (serves: Mastery).
-  - Given a combo of x1, When I stop with Good or Perfect, Then the multiplier goes up by one (capped).
-  - Given a combo above x1, When I stop with OK or Miss, Then the multiplier resets to x1.
-  - Given sound is on, When I press M, Then all sound stops.
 - [ ] `[innovation]` **Rusty lever delay** (#2)
   As a player, I want the pump to keep pouring briefly after I release so that I must anticipate the stop (serves: Mastery).
   - Given the lever delay is 0.4 s, When I release at $19.50, Then the final amount is higher than $19.50 by the fuel poured during the delay.
@@ -36,6 +31,7 @@
 - [ ] Customer queue and patience timer
 - [ ] Impatient Businessman (time pressure) and $20 Guy (costly overshoot)
 - [ ] Tutorial first 5 minutes
+- [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (changes timing cues, so test as its own hypothesis)
 
 ## Later (deliberately vague)
 - Permanent upgrades between runs
@@ -54,4 +50,5 @@
 - Experience as a second currency earned from chains (revisit after the economy is proven)
 
 ## Done
+- [x] Combo multiplier and placeholder sound (#7), playtest 2026-10-18: both clear improvements
 - [x] Pour and stop on a target (one pump) (#1), playtest 2026-10-18: core loop alive

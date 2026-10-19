@@ -2,6 +2,15 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-18 — Combo multiplier + placeholder sound  (#7)
+Hypothesis: If chained Good-or-better stops build a multiplier that resets on OK/Miss, then every stop carries stakes, increasing Mastery. Sound tested in the same cycle behind a mute toggle.
+Variable: combo off → on (x1–x5); sound off → on
+Sessions: 1 (self: 1, others: 0), with and without sound
+Observed: Both clear improvements, each on its own. Strong pressure when holding x5, then missing. Dollar clicks are great for timing.
+Biggest weakness: none blocking; next is depth of the skill itself (rusty lever, #2).
+Decision: KEPT both.
+Ideas raised: musical clicks with an accent every 4th dollar (Next, juice).
+
 ## 2026-10-18 — Pour and stop, one pump  (#1)
 Hypothesis: If a climbing number and Perfect/Good/OK/Miss scoring are shown, then a single stop feels skillful on its own, increasing Mastery.
 Variable: baseline (flow $4/s, windows ±0.10 / ±0.50 / ±1.00)

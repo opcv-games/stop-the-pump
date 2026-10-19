@@ -114,3 +114,5 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-18 | Run length ~15 minutes | Player preference | Phase 1 interview |
 | 2026-10-18 | Keep flow rate at $4/s and tier windows ±0.10/0.50/1.00 | Misses felt readable; slower would be boring | Playtest 1 (#1) |
 | 2026-10-18 | Grey one-pump loop kept | Player wanted another go to hit more Perfects | Playtest 1 (#1) |
+| 2026-10-18 | Combo multiplier (x1–x5, resets on OK/Miss) kept | Losing a x5 combo created real pressure; each stop now has stakes | Playtest 2 (#7) |
+| 2026-10-18 | Placeholder sound kept, incl. a click per dollar | Clicks help timing; sound and combo each improved the loop on their own | Playtest 2 (#7) |
