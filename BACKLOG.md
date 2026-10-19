@@ -5,10 +5,14 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[standard]` **Fuel economy for one customer** (#3)
-  As a player, I want to earn the fuel price plus a tip so that precision and volume both pay (serves: Advancement).
-  - Given I overshoot the target, When the customer pays, Then they pay only for the requested amount and I absorb the extra fuel cost.
-  - Given I undershoot the target, When the customer pays, Then I earn for the amount sold, no tip, and the customer asks for a top-up.
+- [ ] `[standard]` **A full day: tank, clock, end-of-day costs, cash + XP** (#8, continues #3)
+  As a player, I want each day to end when my tank or the clock runs out and then pay my costs so that every day feels like progress (serves: Advancement).
+  - Given the tank runs empty mid-pour, Then the pour stops at once.
+  - Given the clock reaches 11pm or the tank is empty, When all pumps are idle, Then the end-of-day screen shows earnings, refill cost, rent and net cash.
+  - Given a Perfect at combo x3, Then cash gets the sale + $5 tip and XP gets 100 x 3.
+- [ ] `[innovation]` **Overshoot cleaning delay** (next hypothesis, judged against #8)
+  As a player, I want an overshoot to lock the pump for a few seconds while I clean the car so that overshooting costs time (serves: Comedy, Mastery).
+  - Given I overshoot by more than the OK window, When the pump stops, Then that pump is out of service for a few seconds.
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.
@@ -17,7 +21,8 @@
   - Given a bot with fixed reaction time, When it plays 100 rounds, Then the run produces a report of income, rent paid and failures.
 
 ## Next (likely, not committed)
-- [ ] Rent and round structure (8–10 rounds). Candidate round limiter: **tank size as stamina**, the round ends when the tank runs dry (like stamina in Bills Must Be Paid)
+- [ ] Run structure: 8–10 days with rising rent
+- [ ] `[juice]` Combo gauge catches fire at high combos
 - [ ] Fire risk from overshoots
 - [ ] Upgrade shop with downsides
 - [ ] Customer queue and patience timer
@@ -28,7 +33,8 @@
 ## Later (deliberately vague)
 - Permanent upgrades between runs
 - Ten-pump ladder tuning
-- Calibration and inspections
+- Between-day costs: inspections, pump calibration
+- Spending XP on permanent upgrades
 - Gas price variation
 - On-release procs
 
@@ -40,7 +46,7 @@
 - Fuel types (ethanol, diesel, premium)
 - Mobile version
 - Visible per-pump quirks (e.g. a pump labeled "sticky" with a shown delay): the only fair way a release delay could return
-- Experience as a second currency earned from chains (revisit after the economy is proven)
+- Bribing a government inspector between days (comedy)
 
 ## Done
 - [x] Second pump with shared combo (#4), playtest 2026-10-19: strategy emerged, kept

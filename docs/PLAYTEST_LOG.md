@@ -2,6 +2,15 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — Fuel economy, first draft  (#3)
+Hypothesis: If each stop earns money (margin on fuel + combo-multiplied tips, overshoot fuel given away), then precision and volume both pay, increasing Advancement.
+Variable: score → cash (v0.5)
+Sessions: 1 (self: 1, others: 0)
+Observed: Money changed play: excited to finish the turn to spend it. But combo-multiplied tips make no sense in the fiction, and per-stop fuel costs hid the real cost of overshooting (still not painful). UI text too small to read.
+Biggest weakness: overshoot cost is invisible and too forgiving.
+Decision: REWORKED into #8: two currencies (cash + XP), full payout at the pump, costs between days, shared tank, day clock, gauges, bigger UI, version number. Cleaning delay queued as the next single-variable test.
+Ideas raised: car-cleaning delay after overshoot (Now, next), combo fire animation (Next), inspections, calibration, bribes (Later / Parked).
+
 ## 2026-10-19 — Second pump, shared combo  (#4)
 Hypothesis: If two pumps run at once (keys 1 and 2) with their own customers and one shared combo, then splitting attention creates depth a single pump cannot, increasing Mastery.
 Variable: pump_count 1 → 2

@@ -38,12 +38,15 @@
 - **Meta (between runs):** permanent upgrades (e.g. calibrated pumps, an extra starting pump).
 - **How macro feeds back into micro:** upgrades add pumps and change how each pump feels (precision, drift, procs), so the same micro action is played differently each run.
 
-### Economy
-- **Money in:** fuel sold (amount × pump price) + tips (by accuracy tier).
-- **Money out:** fuel restock after each round (wholesale price varies), rent each round, overshoot losses, fire costs.
-- **Overshoot:** the customer pays only for the amount requested. The extra fuel is the player's loss and builds fire risk.
-- **Undershoot:** the player sells less, gets no tip, and the customer may ask for a top-up, which eats patience time.
-- **Scoring tiers:** Perfect / Good / OK / Miss. Thresholds are tunable values (starting guess: ±$0.10 / ±$0.50 / ±$1.00).
+### Economy (revised after playtest 5)
+Two currencies, kept separate so the fiction holds (a customer doesn't pay more because the previous one got a Perfect):
+- **Cash, earned at the pump:** the full sale (never more than the customer asked for) + a tip by tier (Perfect $5, Good $2, OK/Miss $0). The combo does **not** change cash.
+- **XP, earned from skill:** tier points (Perfect 100, Good 50, OK 10) × the combo multiplier. Kept across days and runs; spent on permanent upgrades (later).
+- **Money out, between days only:** refill the fuel used at wholesale (80% of the $2/L pump price) and pay rent (grows each day). Later: inspections, pump calibration, bribing an inspector.
+- **The day:** the station is open 7am–11pm, which runs for 3 real minutes. One shared tank (400 L) feeds every pump. The day ends when the clock runs out or the tank is empty. If cash is below zero after costs, the run ends (evicted).
+- **Overshoot:** the customer pays only for the amount requested; the extra fuel drains the tank (less fuel left to sell) and is paid for at refill. Next hypothesis: a car-cleaning delay as an extra time penalty.
+- **Undershoot:** the player sells less and gets no tip unless the stop is Perfect. The top-up request waits for customer patience.
+- **Scoring tiers:** Perfect / Good / OK / Miss. Thresholds are tunable values (±$0.10 / ±$0.50 / ±$1.00).
 
 ## 4. Genre, Mood & Audience
 - **Genre / comparables:** short-run roguelite with a number-go-up build layer. Balatro, Bills Must Be Paid, 9 Kings, Ball x Pit, sports management games.
@@ -72,6 +75,8 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 | Upgrades with built-in downsides | Innovation | Mastery, Advancement | e.g. "let it run" drifts and loses precision |
 | Overshoot builds fire risk | Innovation | Comedy, Advancement | |
 | On-release procs | Innovation | Advancement | |
+| XP from combos (second currency) | Innovation | Advancement | For permanent upgrades; added after playtest 5 |
+| Shared tank + day clock as round limits | Standard | Advancement | Tank works like stamina in Bills Must Be Paid |
 
 **Later:** calibration and inspections, police callback, special customers (Rich Guy), fuel types (ethanol, diesel, premium).
 **Parked:** pump as a character, receipts and invoices, hiring attendants, mobile.
@@ -85,7 +90,7 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 5. The combo is global: one chain for the whole station, so a miss on any pump breaks it.
 
 ## 7. Pacing
-Each run rises from one calm pump to a chaotic multi-pump peak. Within a round: calm start, rising customer pressure, a rush at the end, then a rest at the shop. Target run: ~15 minutes. Slice: two runs, ~30 minutes.
+Each run rises from one calm pump to a chaotic multi-pump peak. A round is one day (7am–11pm, 3 real minutes): calm start, rising customer pressure, a rush as the tank or the clock runs low, then a rest on the end-of-day screen (and later the shop). Target run: ~15 minutes. Slice: two runs, ~30 minutes.
 
 ## 8. Onboarding
 Teach by doing, first 5 minutes:
@@ -121,3 +126,6 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-18 | Placeholder sound kept, incl. a click per dollar | Clicks help timing; sound and combo each improved the loop on their own | Playtest 2 (#7) |
 | 2026-10-18 | Rusty lever cut | Fixed delay = constant offset, learned once; random delay = unfair. Depth must come from juggling pumps and customer modifiers | Playtest 3 (#2) |
 | 2026-10-19 | Second pump kept; combo stays global across pumps | Juggling produced a strategy (start both, stop smallest target first), which is a new skill; more demanding but more rewarding | Playtest 4 (#4) |
+| 2026-10-19 | Two currencies: cash (sale + tier tip) and XP (tier points × combo) | Combo-boosted tips broke the fiction; XP gives combos a purpose (permanent upgrades) | Playtest 5 (#3) |
+| 2026-10-19 | Costs land between days (refill + rent), not per stop | Payout at the pump should be the full amount; spending happens at day end | Playtest 5 (#3) |
+| 2026-10-19 | A day is 7am–11pm in 3 minutes; ends on clock or empty tank (400 L) | Gives each round a shape and makes overshoot visible as wasted tank | Playtest 5 (#8) |
