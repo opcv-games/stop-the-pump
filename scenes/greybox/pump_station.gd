@@ -4,8 +4,9 @@ extends Control
 ## Kept: #8 a full day (7am-11pm in 3 minutes), cash at the pump, XP from combos, costs at day end.
 ## Kept: #9 car-cleaning delay after a big overshoot (C toggles it), one fuel-to-cash gauge.
 ## Kept: #10 random car arrivals, #11 the blues.
-## Kept: #12 Super Perfect tier; backing band with stops as melody (M toggles sound). #13 designer tools.
-## Testing: #15 cash upgrade tree between days (Bills-style, cost only); real backing track.
+## Kept: #12 Super Perfect tier (M toggles sound). #13 designer tools.
+## Kept: #15 cash upgrade tree between days (Bills-style, cost only).
+## Testing: #16 plain SFX + background music (Roadside At Two).
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP }
 
@@ -106,6 +107,7 @@ func _ready() -> void:
 	tank.emptied.connect(_close_day)
 	clock.time_changed.connect(_on_time_changed)
 	clock.closed.connect(_close_day)
+	sound.watch_combo(combo)
 	_base = Tuning.snapshot(self)
 	_base_targets = possible_targets.duplicate()
 	start_run()

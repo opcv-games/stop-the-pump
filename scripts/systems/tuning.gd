@@ -31,9 +31,7 @@ const PARAMS := [
 	{"key": "economy/wholesale_ratio", "label": "Refill cost (share of price)", "min": 0.0, "max": 1.0, "step": 0.01},
 	{"key": "economy/rent_base", "label": "Rent, day 1 ($)", "min": 0.0, "max": 500.0, "step": 10.0},
 	{"key": "economy/rent_growth", "label": "Rent added per day ($)", "min": 0.0, "max": 200.0, "step": 5.0},
-	{"key": "sound/track", "label": "Music (0 placeholder band, 1 Roadside At Two)", "min": 0, "max": 1, "step": 1},
-	{"key": "sound/backing_volume_db", "label": "Band volume (dB)", "min": -40.0, "max": 0.0, "step": 1.0},
-	{"key": "sound/tick_on_beat", "label": "Clicks on the beat (0 off, 1 on)", "min": 0, "max": 1, "step": 1},
+	{"key": "sound/music_volume_db", "label": "Music volume (dB)", "min": -40.0, "max": 0.0, "step": 1.0},
 	{"key": "sound/pitch_step_per_pump", "label": "Pitch step per pump", "min": 0.0, "max": 0.5, "step": 0.01},
 ]
 

@@ -1,4 +1,4 @@
-Feature: Random car arrivals and the chord progression
+Feature: Random car arrivals
   # Hypothesis #10: an unpredictable arrival rhythm keeps the player alert (Mastery).
 
   Scenario: Cars arrive after a random wait

@@ -20,8 +20,3 @@ Feature: Designer tools
     When the designer sets the flow rate to $6/s
     Then every pump pours at $6/s
     And the value is still $6/s next session
-
-  Scenario: Clicks can follow the band
-    Given the click mode is "on the beat"
-    When a pump is pouring
-    Then a shaker plays on the band's swung eighth notes

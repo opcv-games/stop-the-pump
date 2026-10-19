@@ -161,5 +161,5 @@ func test_given_day_2_after_shop_then_every_bay_is_drawn_in_front_of_the_backgro
 		assert_lt(bay.get_index(), station._overlay.get_index())
 
 
-func test_given_station_then_version_is_0_13() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.13")
+func test_given_station_then_version_is_0_14() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.14")

@@ -28,7 +28,7 @@ def note(n):  # MIDI note number to Hz
 
 
 def keys(freqs, dur=0.8, vol=0.45):
-    """Soft electric-piano-ish tone: sine + a little 2nd harmonic, quick attack, slow decay."""
+    """Soft bell-ish tone: sine + a little 2nd harmonic, quick attack, slow decay."""
     n = int(RATE * dur)
     out = []
     for i in range(n):
@@ -48,10 +48,8 @@ write("pour_loop.wav", [0.25 * (math.sin(2 * math.pi * 90 * i / RATE) + 0.5 * ma
                         for i in range(RATE)])
 write("tick.wav", [0.6 * env(i, 900, attack=0.0005, release=0.9) * random.uniform(-1, 1) for i in range(900)])
 
-# --- Melody: the player's stops, on top of the band (#12) ----------------------
-# Gas Bar Blues is a 12-bar blues in A: three dominant-7th chords, A7, D7, E7.
-# Super Perfect: 3 notes strummed. Perfect: 2. Good: 1. Miss: two clashing notes. OK plays nothing.
-def strum(midis, gap=0.025, dur=0.9, vol=0.5):
+# --- Tier sound effects (#16): plain SFX, not tied to the music ----------------
+def chime(midis, gap=0.06, dur=0.5, vol=0.45):
     n = int(RATE * (dur + gap * len(midis)))
     out = [0.0] * n
     for k, m in enumerate(midis):
@@ -62,71 +60,18 @@ def strum(midis, gap=0.025, dur=0.9, vol=0.5):
     return out
 
 
-# Each entry: the notes for Good, Perfect, Super Perfect and Miss (MIDI numbers).
-# A7/D7/E7 follow the placeholder band's 12-bar. "Roadside" sits over the whole "Roadside At Two"
-# track (B-flat major / D minor, bass rocking between E-flat and F): B-flat, D and F fit both.
-MELODY = {}
-for name, root in {"A7": 69, "D7": 62, "E7": 64}.items():
-    MELODY[name] = {"good": [root], "perfect": [root, root + 7], "super": [root, root + 4, root + 10], "bad": [root + 1, root + 6]}
-MELODY["Roadside"] = {"good": [70], "perfect": [70, 77], "super": [70, 74, 77], "bad": [71, 76]}
-
-for name, sets in MELODY.items():
-    write("note_%s_good.wav" % name, strum(sets["good"]))
-    write("note_%s_perfect.wav" % name, strum(sets["perfect"]))
-    write("note_%s_super.wav" % name, strum(sets["super"]))
-    bad = []
-    for i in range(int(RATE * 0.5)):
-        t = i / RATE
-        e = min(1, t / 0.005) * math.exp(-5 * t)
-        bad.append(0.3 * e * sum(square(2 * math.pi * note(m) * t) for m in sets["bad"]) / len(sets["bad"]))
-    write("note_%s_bad.wav" % name, bad)
-
-# --- Backing band: one 12-bar chorus in A at 90 BPM, shuffle feel, loops seamlessly ----
-BPM = 90
-BEAT = 60.0 / BPM
-BAR = BEAT * 4
-TWELVE_BAR = ["A7", "A7", "A7", "A7", "D7", "D7", "A7", "A7", "E7", "D7", "A7", "E7"]
-BASS_ROOTS = {"A7": 45, "D7": 50, "E7": 52}
-BOOGIE = [0, 4, 7, 9, 10, 9, 7, 4]  # classic walking boogie bass, one note per swung eighth
-mix = [0.0] * int(RATE * BAR * 12)
-
-
-def add(at, samples):
-    off = int(at * RATE)
-    for i, v in enumerate(samples):
-        if off + i < len(mix):
-            mix[off + i] += v
-
-
-def bass(midi, dur):
-    f = note(midi)
-    return [0.5 * min(1, (i / RATE) / 0.005) * math.exp(-4 * i / RATE)
-            * (math.sin(2 * math.pi * f * i / RATE) + 0.5 * math.sin(4 * math.pi * f * i / RATE)
-               + 0.25 * math.sin(6 * math.pi * f * i / RATE)) / 1.75 for i in range(int(RATE * dur))]
-
-
-def noise(dur, vol, decay):
-    return [vol * math.exp(-decay * i / RATE) * random.uniform(-1, 1) for i in range(int(RATE * dur))]
-
-
-def kick():
-    out, ph = [], 0.0
-    for i in range(int(RATE * 0.15)):
-        t = i / RATE
-        ph += 2 * math.pi * (50 + 70 * math.exp(-30 * t)) / RATE
-        out.append(0.55 * math.exp(-18 * t) * math.sin(ph))
-    return out
-
-
-for b, chord in enumerate(TWELVE_BAR):
-    for beat in range(4):
-        on = b * BAR + beat * BEAT
-        off = on + BEAT * 2 / 3  # swung eighth
-        add(on, bass(BASS_ROOTS[chord] + BOOGIE[beat * 2], BEAT * 2 / 3))
-        add(off, bass(BASS_ROOTS[chord] + BOOGIE[beat * 2 + 1], BEAT / 3))
-        add(off, noise(0.04, 0.07, 90))
-        add(on, noise(0.03, 0.05, 120))
-        add(on, kick() if beat in (0, 2) else noise(0.12, 0.14, 30))
-peak = max(abs(v) for v in mix)
-write("backing_12bar.wav", [v * 0.6 / peak for v in mix])
+write("sfx_super_perfect.wav", chime([84, 88, 91, 96], gap=0.05))  # bright rising "ka-ching" run
+write("sfx_perfect.wav", chime([84, 91]))
+write("sfx_good.wav", chime([79]))
+write("sfx_ok.wav", [0.4 * min(1, (i / RATE) / 0.003) * math.exp(-22 * i / RATE) * math.sin(2 * math.pi * 180 * i / RATE)
+                     for i in range(int(RATE * 0.2))])  # dull thunk
+write("sfx_miss.wav", [0.3 * min(1, (i / RATE) / 0.005) * math.exp(-5 * i / RATE)
+                       * (square(2 * math.pi * 98 * i / RATE) + square(2 * math.pi * 104 * i / RATE)) / 2
+                       for i in range(int(RATE * 0.45))])  # buzzer
+out, ph = [], 0.0
+for i in range(int(RATE * 0.6)):  # combo break: a sagging "wah-wah"
+    t = i / RATE
+    ph += 2 * math.pi * (330 * (1 - 0.45 * t / 0.6)) / RATE
+    out.append(0.35 * min(1, t / 0.01) * math.exp(-3 * t) * (0.6 * square(ph) + 0.4 * math.sin(ph)))
+write("sfx_combo_break.wav", out)
 print("ok")
