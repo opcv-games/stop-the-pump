@@ -162,7 +162,3 @@ func test_given_self_service_customer_paying_when_toggled_then_refused() -> void
 		ss.tick(0.1)
 	assert_false(station.toggle_auto(0))
 	assert_true(bay.self_service)
-
-
-func test_given_station_then_version_is_0_19() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.19")

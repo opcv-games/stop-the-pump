@@ -11,7 +11,8 @@ extends Control
 ## Kept: #18 an upgrade tree per pump (shop page 2, Tab).
 ## Kept: #5 customers with rules (Grandpa, Businessman), grey car + speech bubble.
 ## Kept: #19 run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed.
-## Testing: #20 endless mode after day 10; auto on/off per pump (Shift + number).
+## Kept: #20 endless mode after day 10; auto on/off per pump (Shift + number).
+## Phase 4 (#22): the painted 3D station world sits behind this HUD, lit by the clock, with rain.
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP }
 enum ShopPage { STATION, PUMPS }
@@ -111,6 +112,8 @@ var _dev_label: Label
 var _tuning_panel: TuningPanel
 var _shop: Control
 var _bg: ColorRect
+## The painted 3D station behind the HUD (#22).
+var world_view: WorldView
 var _speed_buttons: Array[Button] = []
 var _shop_title: Label
 var _shop_cards: Array[Label] = []
@@ -150,6 +153,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("toggle_tuning"):
 		_tuning_panel.toggle()
+		return
+	if event.is_action_pressed("dev_rain"):
+		toggle_rain()
 		return
 	if event.is_action_pressed("cycle_speed"):
 		cycle_speed()
@@ -279,6 +285,11 @@ func toggle_auto(i: int) -> bool:
 	return true
 
 
+## Dev (F5): start or stop rain now (#22).
+func toggle_rain() -> void:
+	world_view.world.weather.toggle()
+
+
 ## Endless mode (#20): keep the run going past the last day.
 func go_endless() -> void:
 	if not run_complete:
@@ -323,6 +334,7 @@ func start_next_day() -> void:
 	if _shop:
 		_shop.visible = false
 	state = State.OPEN
+	world_view.world.weather.begin_day()
 	clock.start()
 	for bay in bays:
 		bay.show_empty()
@@ -671,7 +683,9 @@ func _settle_day() -> void:
 	_update_hint()
 
 
-func _on_time_changed(_hour: float) -> void:
+func _on_time_changed(hour: float) -> void:
+	if world_view and world_view.world:
+		world_view.world.set_hour(hour)
 	var day_text := "DAY %d (endless)" % day if endless else "DAY %d/%d" % [day, run_days]
 	_clock_label.text = "%s     %s" % [day_text, clock.label()]
 	_day_bar.size.x = 400.0 * clock.progress()
@@ -718,7 +732,7 @@ func _update_hint() -> void:
 
 ## Greybox input, done in code; moves to the Input Map later. Keys 1..9 then 0 for pump 10.
 func _ensure_input_actions() -> void:
-	var bindings := {"toggle_sound": [KEY_M], "toggle_cleaning": [KEY_C], "cycle_speed": [KEY_S], "toggle_dev": [KEY_F1], "toggle_tuning": [KEY_F2], "dev_end_day": [KEY_F3], "dev_add_cash": [KEY_F4], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
+	var bindings := {"toggle_sound": [KEY_M], "toggle_cleaning": [KEY_C], "cycle_speed": [KEY_S], "toggle_dev": [KEY_F1], "toggle_tuning": [KEY_F2], "dev_end_day": [KEY_F3], "dev_add_cash": [KEY_F4], "dev_rain": [KEY_F5], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
 	for i in 10:
 		bindings["pour_%d" % (i + 1)] = [KEY_1 + i if i < 9 else KEY_0]
 	bindings["pour_1"].append(KEY_SPACE)
@@ -736,7 +750,7 @@ func _add_bay(i: int) -> void:
 	var bay := PumpBay.new()
 	bay.name = "Bay%d" % (i + 1)
 	add_child(bay)
-	move_child(bay, _bg.get_index() + 1)  # in front of the background, behind the overlays
+	move_child(bay, world_view.get_index() + 1)  # in front of the world, behind the overlays
 	bay.setup(i, flow_rate)
 	bay.pump.tank = tank
 	bay.pump_stopped.connect(_on_bay_stopped)
@@ -768,6 +782,9 @@ func _build_station() -> void:
 	_bg.color = Color(0.18, 0.18, 0.2)
 	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_bg)
+	world_view = WorldView.new()
+	world_view.name = "WorldView"
+	add_child(world_view)
 
 	# Day clock across the top.
 	_clock_label = Greybox.label(self, "", 26, Vector2(0, 4), Vector2(1152, 36))

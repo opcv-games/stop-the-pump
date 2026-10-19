@@ -284,7 +284,7 @@ func _build() -> void:
 	_bubble_label.add_theme_color_override("font_color", Color(0.1, 0.1, 0.12))
 
 	var body := ColorRect.new()
-	body.color = Color(0.55, 0.55, 0.58)
+	body.color = Color(0.55, 0.55, 0.58, 0.55)  # see-through: the painted world shows behind (#22)
 	body.position = Vector2(25, 114)
 	body.size = Vector2(250, 214)
 	add_child(body)
