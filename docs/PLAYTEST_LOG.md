@@ -2,6 +2,15 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.13.0 Upgrade tree, cash-only costs, Roadside At Two  (#15)
+Hypothesis: A Bills-style tree with cash-only upgrades gives the player a plan across days (Advancement).
+Variable: random 3-offer shop → 5-branch tree; no gameplay downsides; real backing track
+Sessions: 1 (self: 1, others: 0)
+Observed: "The tree def gives you a plan, you start building the just one more turn logic." Turbo nozzle makes combos harder the faster it gets. Balance is out of scope for now. The music engineering (tier notes, chord tracking, beat-synced clicks) should go: just SFX + background music.
+Biggest weakness: Turbo works against Mastery; the music system is complexity the designer doesn't want.
+Decision: KEPT the tree. v0.14 removes the music engineering (SFX + BGM only). Next candidate: self-service pumps replacing Turbo.
+Ideas raised: self-service pumps (card fee 3%, slower pumping, slow customers; upgrades: speed, lower card fee).
+
 ## 2026-10-19 — v0.12.0 Night shop, random offers  (#14)
 Hypothesis: 3 random cash upgrades each night, each with a gameplay downside, make each run's station different (Advancement).
 Variable: no shop → random 3-offer shop

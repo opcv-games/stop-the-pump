@@ -140,3 +140,6 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Upgrades cost cash only, no gameplay downside; rule 1 rewritten | Downsides felt like punishments; Bills-style pure upgrades, with difficulty from rising rent | Playtest 11 (#14) |
 | 2026-10-19 | Cash shop becomes a 5-branch upgrade tree (Marketing, Pumps, Tank, Service, Vibe) | Designer prefers a Bills-style tree: a plan to work toward | Playtest 11 (#15) |
 | 2026-10-19 | Backing track "Roadside At Two" (92 BPM, 46 bars, B♭/D minor); stops play B♭–D–F | Real music; notes chosen to sit over the whole track | Designer asset (#15) |
+| 2026-10-19 | Upgrade tree kept | "Just one more turn" planning across days | Playtest 12 (#15) |
+| 2026-10-19 | Music is plain background music + SFX; no tier notes, chord tracking or beat-synced clicks | Designer: the music engineering isn't wanted | Playtest 12 (#16) |
+| 2026-10-19 | Balance is out of scope until the slice's systems exist | Designer decision | Playtest 12 |
