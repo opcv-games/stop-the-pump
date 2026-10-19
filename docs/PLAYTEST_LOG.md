@@ -2,6 +2,15 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.10.0 Super Perfect, backing band  (#12)
+Hypothesis: A Super Perfect tier gives the best players a ceiling; a backing band with stops as melody keeps the song going between stops.
+Variable: new tier (±$0.03, display snaps to target); backing band + per-tier melody notes
+Sessions: 1 (self: 1, others: 0)
+Observed: Super Perfect count visible; the 60 fps fix is invisible to players (fine). The dollar clicks don't follow the band's tempo. The placeholder loop feels like it restarts after under 10 s (it is 32 s, but the bass repeats every bar). Notes still feel isolated, not like playing over the band.
+Biggest weakness: the designer can't test outcomes or tune numbers without asking Claude.
+Decision: KEPT. Next (v0.11): dev mode (forced outcomes), tuning panel, on-the-beat click option. Real backing track to come from the designer.
+Ideas raised: riffs that grow with the tier (Parked until real audio), Tony Hawk-style combo chains (Parked), clicks on the beat (Now).
+
 ## 2026-10-19 — v0.9.0 Gas Bar Blues: 12-bar blues on good stops  (#11)
 Hypothesis: If good stops walk a 12-bar blues, the music carries the theme and a chain feels like playing the song.
 Variable: pop chord loop → 12-bar blues in A

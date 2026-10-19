@@ -5,9 +5,11 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[innovation]` **Super Perfect tier and backing band** (#12, v0.10.0, awaiting playtest)
-  - Given a target of $20.00, When the pump stops at $20.03, Then the tier is Super Perfect and the display shows $20.00.
-  - Given the band is on bar 5, When I stop with a Good, Then one note of D7 plays.
+- [ ] `[tech]` **Designer tools: dev mode, tuning panel, on-the-beat clicks** (#13, v0.11.0)
+  As the designer, I want to force outcomes and tune every number myself so that I can test ideas without waiting for a build.
+  - Given dev mode is on (F1), When I press W, Then the next waiting pump stops with a Perfect.
+  - Given the tuning panel is open (F2), When I move a slider, Then the value applies and is still set next session.
+- [ ] `[standard]` **Upgrade shop between days** (next, needs designer decisions on currency, offers and the first upgrades)
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.
@@ -44,12 +46,15 @@
 - Fuel types (ethanol, diesel, premium)
 - Mobile version
 - Bonus for completing a full 12-bar blues chorus (12 good stops in a row)
+- Riffs that grow with the tier (OK 2 notes ... Super Perfect a hot lick), played in time with the band. Do it with the real backing track (audio phase)
+- Tony Hawk-style combo chains (variety and timing windows feed the chain)
 - `[art]` Cars drive in from the end of the street (Phase 4 animation)
 - Visible per-pump quirks (e.g. a pump labeled "sticky" with a shown delay): the only fair way a release delay could return
 - Bribing a government inspector between days (comedy)
 - Tips as a third, personal currency for the attendant's own things (company money vs. personal money)
 
 ## Done
+- [x] Super Perfect tier and backing band (#12), v0.10.0, playtest 2026-10-19: kept
 - [x] Gas Bar Blues rename and 12-bar blues (#11), v0.9.0, playtest 2026-10-19: kept
 - [x] Random car arrivals and chord progression (#10), v0.8.0, playtest 2026-10-19: kept; core loop declared fun
 - [x] Car-cleaning delay, merged gauge (#9), v0.7.0, playtest 2026-10-19: kept
