@@ -13,6 +13,7 @@ extends Control
 ## Kept: #19 run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed.
 ## Kept: #20 endless mode after day 10; auto on/off per pump (Shift + number).
 ## #25: each pump's card is pinned to its 3D lane (no grey panels, no 2D cars).
+## #26 juice: pour streams, Perfect sparkles, cash pops, cars from the road, world shake (F2 switches).
 ## Phase 4 (#22, #24): the 3D station sits behind this HUD: one lane per pump, cars come and go,
 ## lit by the clock, with rain. The player names the station at the start of a run.
 
@@ -46,6 +47,11 @@ enum ShopPage { STATION, PUMPS }
 ## Impatient Businessman waits for the pour to start.
 @export_range(0.0, 1.0) var special_customer_chance := 0.45
 @export var businessman_patience := 4.0
+## Juice (#26): each effect can be switched off in the tuning panel to judge it on its own.
+@export var juice_streams := true
+@export var juice_sparkles := true
+@export var juice_cash_pops := true
+@export_range(0.0, 1.5) var shake_strength := 0.6
 ## Upgrade tree (#15): a multiplier on every upgrade price.
 @export var shop_price_scale := 1.0
 ## Self-service pumps (#17): share of the normal pour speed, and the card fee taken from each sale.
@@ -126,6 +132,9 @@ var _bg: ColorRect
 ## The painted 3D station behind the HUD (#22).
 var world_view: WorldView
 var _speed_buttons: Array[Button] = []
+## Floating "+$" labels (#26): each rises and fades, then is freed.
+var cash_pops: Array[Label] = []
+var _pop_layer: Control
 var _shop_title: Label
 var _shop_cards: Array[Label] = []
 var _shop_footer: Label
@@ -269,6 +278,11 @@ func dev_add_cash() -> void:
 ## Pushes tuned numbers out to the pieces that copy them (called by Tuning after any change).
 func apply_tuning() -> void:
 	tank.price_per_liter = economy.price_per_liter
+	if world_view and world_view.world and world_view.world.is_node_ready():
+		var w := world_view.world
+		w.streams_enabled = juice_streams
+		w.sparkles_enabled = juice_sparkles
+		w.shake_strength = shake_strength
 	for bay in bays:
 		bay.flow_multiplier = 1.0
 		if bay.self_service:
@@ -591,6 +605,7 @@ func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
 	if pocket > 0.0:
 		text = text.insert(text.find("\n"), "  out of your pocket -$%.2f" % pocket)
 	bay.show_result(text, TIER_COLORS[tier])
+	_juice_for_stop(bay, tier, receipt.earned - pocket, lost)
 	bay.say(Customers.reaction(customer_type if customer_type != "" else "regular", tier, receipt.overshoot))
 	_stats_label.text = "Super %d   Perfect %d   Good %d   OK %d   Miss %d   |   Best combo x%d" % [
 		_counts[ScoreTiers.SUPER_PERFECT], _counts[ScoreTiers.PERFECT], _counts[ScoreTiers.GOOD],
@@ -631,6 +646,7 @@ func _on_self_service_paid(bay: PumpBay, amount: float) -> void:
 	_day_earned += earned
 	wallet.add(earned)
 	bay.show_result("SELF-SERVE  $%.2f\n+$%.2f  card fee -$%.2f" % [amount, earned, fee], Color(0.45, 0.6, 1.0))
+	cash_pop(bay, earned)
 	bay.waiting = true
 	bay.car_leaves()
 	if state == State.OPEN:
@@ -640,9 +656,48 @@ func _on_self_service_paid(bay: PumpBay, amount: float) -> void:
 		_check_day_over()
 
 
+## Juice for one stop (#26): sparkle on Perfect/Super Perfect, a cash pop, and a shake on a Miss or a
+## broken combo. Purely cosmetic: rules are settled before this runs.
+func _juice_for_stop(bay: PumpBay, tier: String, earned: float, lost: int) -> void:
+	var w := world_view.world
+	if tier == ScoreTiers.SUPER_PERFECT:
+		w.sparkle(bay.index, StationWorld.SPARKLE_SUPER)
+	elif tier == ScoreTiers.PERFECT:
+		w.sparkle(bay.index, StationWorld.SPARKLE_PERFECT)
+	if tier == ScoreTiers.MISS or lost > 1:
+		w.shake(1.0 if lost > 1 else 0.7)
+	cash_pop(bay, earned)
+
+
+## "+$25" rises from a pump's card and fades (red for a loss).
+func cash_pop(bay: PumpBay, amount: float) -> void:
+	if not juice_cash_pops or is_zero_approx(amount):
+		return
+	var l := Greybox.label(_pop_layer, "%s$%.0f" % ["+" if amount > 0 else "-", absf(amount)], 20,
+		bay.position + Vector2(PumpBay.SIZE.x - 70, -22), Vector2(70, 26))
+	l.add_theme_color_override("font_color", TIER_COLORS[ScoreTiers.PERFECT] if amount > 0 else TIER_COLORS[ScoreTiers.MISS])
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	l.add_theme_constant_override("outline_size", 4)
+	l.set_meta("life", 1.2)
+	cash_pops.append(l)
+
+
+## Kept separate from _process so tests control time.
+func tick_pops(delta: float) -> void:
+	for l in cash_pops.duplicate():
+		var life: float = l.get_meta("life") - delta
+		l.set_meta("life", life)
+		l.position.y -= 30.0 * delta
+		l.modulate.a = clampf(life / 0.5, 0.0, 1.0)
+		if life <= 0.0:
+			cash_pops.erase(l)
+			l.queue_free()
+
+
 ## The Impatient Businessman gave up (#5): no sale, and the chain breaks like a miss.
 func _on_customer_left(bay: PumpBay) -> void:
 	var lost := combo.multiplier
+	world_view.world.shake(1.0 if lost > 1 else 0.6)
 	if lost > 1:
 		combo.register(ScoreTiers.MISS)
 	sound.play_tier(ScoreTiers.MISS)
@@ -825,6 +880,7 @@ func _add_bay(i: int) -> void:
 	bay.car_arrived.connect(func(b: PumpBay, colour: Color) -> void: world_view.world.car_arrive(b.index, colour))
 	bay.car_departed.connect(func(b: PumpBay) -> void: world_view.world.car_depart(b.index))
 	bay.pump.stopped.connect(func(_f: float) -> void: world_view.world.set_pouring(bay.index, false))
+	bay.self_pouring.connect(func(b: PumpBay, on: bool) -> void: world_view.world.set_pouring(b.index, on))
 	bay.customer.patience_seconds = businessman_patience
 	sound.watch_pump(bay.pump, i)
 	bays.append(bay)
@@ -846,8 +902,9 @@ func anchor_position(i: int) -> Vector2:
 	return (px * world_view.size / vp - Vector2(0, PumpBay.SIZE.y / 2.0)).round()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	place_bays()
+	tick_pops(delta)
 
 
 func _build_station() -> void:
@@ -917,6 +974,12 @@ func _build_station() -> void:
 	summary_label = Greybox.label(panel, "", 26, Vector2(0, 20), Vector2(640, 380))
 	summary_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_overlay.visible = false
+
+	# Cash pops float above the lane cards (#26).
+	_pop_layer = Control.new()
+	_pop_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pop_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_pop_layer)
 
 	# Naming screen (#24): name the station at the start of a run.
 	_naming = Control.new()

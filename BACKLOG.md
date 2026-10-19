@@ -5,6 +5,7 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
+- [ ] `[juice]` **Juice pass: pour stream, Perfect sparkle, cash pops, cars from the road, world shake** (#26, v0.23.0, awaiting playtest; each has an F2 switch)
 - [x] `[art]` **Look test: Hopper station kit in Blender, isometric renders at morning, afternoon, night** (#21, approved)
 - [x] `[art]` **Look test in Godot: isometric 3D station behind the HUD, light from the day clock, rain** (#22, v0.20.0; painterly filter rejected)
 - [x] `[art]` **Lanes kit (Blender): parallel lanes, modular pump/island/car props, footprint expansion, decor** (#23, approved)

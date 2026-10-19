@@ -34,6 +34,7 @@ godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs 
 - **S / 1x 2x 3x 10x buttons:** game speed (player feature, #19). 10x is for automated stretches; hand-stopping at 10x is coarse.
 - **Shift + n / AUTO button:** switch pump n between auto and manual (player feature, #20). **E** on the run-complete screen: endless mode.
 - **F5:** toggle rain (dev, #22).
+- **Juice switches (F2):** pour stream, Perfect sparkle, cash pops (0/1) and screen shake strength (0 = off), so each effect can be judged on its own (#26).
 - **F2 tuning panel:** every number in `scripts/systems/tuning.gd`, saved to `user://tuning.cfg`. When the designer pastes "Copy values", treat it as their preferred tuning and fold it into the defaults when asked.
 - **Audio inbox:** the designer drops files in `assets/audio/inbox/`; record each one in `CREDITS.md`.
 - **Audio direction:** plain SFX + looping background music. No music engineering (no tier notes, chord tracking or beat sync) unless the designer asks again.

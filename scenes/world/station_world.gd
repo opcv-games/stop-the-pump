@@ -15,9 +15,14 @@ const LANE_W := 3.4
 const LANE_Y0 := 5.0  # Blender y of lane 1
 const MAX_LANES := 5
 const STOP_X := -0.4   # where a car parks beside its pump
-const ENTER_X := 26.0  # off screen, top right
-const EXIT_X := -28.0  # off screen, bottom left
-const CAR_SPEED := 9.0  # metres per second
+## Cars come along the road, up the entry apron, into their lane; they leave by the exit apron (#26).
+const ROAD_Z := 14.6        # Godot z of the road's centre (Blender ROAD_Y = -14.6)
+const ROAD_FAR := 48.0      # off screen along the road
+const APRON_IN_X := 13.0    # entry apron, top right
+const APRON_OUT_X := -13.0  # exit apron, bottom left
+const CAR_SPEED := 16.0     # metres per second
+const SPARKLE_PERFECT := Color(0.45, 1.0, 0.55)
+const SPARKLE_SUPER := Color(1.0, 0.85, 0.3)
 const HUD_X0 := 7.6     # lane 1's card anchor, up-right of the pump (clear of pump and car)
 const HUD_SLIDE := 1.25 # each next lane's card slides this far down its lane (stays clear of its pump)
 ## Framed a little right of the Blender review so the station sits left of centre: the lane cards
@@ -44,6 +49,14 @@ var _cars := {}          # lane -> parked or arriving car (Node3D)
 var _leaving: Array[Node3D] = []
 var _pouring := {}       # lane -> true while the player pours
 var _wet_materials := {}  # material -> [dry albedo, dry roughness]
+var _streams := {}        # lane -> GPUParticles3D
+## Juice (#26), switched from the tuning panel through the station.
+var streams_enabled := true
+var sparkles_enabled := true
+var shake_strength := 0.6
+var shake_amount := 0.0
+var last_sparkle_lane := -1
+var last_sparkle_colour := Color.BLACK
 
 
 func _ready() -> void:
@@ -71,6 +84,7 @@ func _exit_tree() -> void:
 
 func _process(delta: float) -> void:
 	tick_cars(delta)
+	tick_shake(delta)
 
 
 # --- Lanes and pumps -------------------------------------------------------------------------
@@ -95,8 +109,9 @@ func set_lane_count(n: int) -> void:
 		var p: Dictionary = pumps.pop_back()
 		day_light.glow_lights.erase(p.light)
 		day_light.glow_materials.erase(p.globe)
-		for key in ["pump", "island", "light"]:
+		for key in ["pump", "island", "light", "stream"]:
 			p[key].queue_free()
+		_streams.erase(pumps.size())
 	lane_count = n
 	for i in MAX_LANES:
 		scenery.get_node("Lane_%d" % (i + 1)).visible = i < n
@@ -121,7 +136,10 @@ func _add_pump(i: int) -> void:
 	light.light_color = Color(1.0, 0.78, 0.5)
 	add_child(light)
 	day_light.glow_lights.append(light)
-	pumps.append({"pump": pump, "island": island, "globe": globe, "light": light})
+	# Starts high and arcs over the roofline: the car sits between the camera and the nozzle (#26).
+	var stream := _make_stream(Vector3(0.4, 1.55, z + 0.45))
+	_streams[i] = stream
+	pumps.append({"pump": pump, "island": island, "globe": globe, "light": light, "stream": stream})
 
 
 ## Footprint expansion (#24): the vacant lot and its FOR SALE sign give way to new concrete.
@@ -135,7 +153,93 @@ func set_expanded(on: bool) -> void:
 ## The player is pouring this lane's pump: its globe glows brighter.
 func set_pouring(lane: int, on: bool) -> void:
 	_pouring[lane] = on
+	if _streams.has(lane):
+		_streams[lane].emitting = on and streams_enabled
 	_apply_look()
+
+
+func stream(lane: int) -> GPUParticles3D:
+	return _streams[lane]
+
+
+## A great stop: a burst of stars from the pump's globe (green Perfect, gold Super Perfect).
+func sparkle(lane: int, colour: Color) -> void:
+	if not sparkles_enabled or lane >= pumps.size():
+		return
+	last_sparkle_lane = lane
+	last_sparkle_colour = colour
+	var p := GPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.amount = 26
+	p.lifetime = 0.9
+	p.position = pumps[lane].pump.position + Vector3(0, 1.8, 0)
+	var pm := ParticleProcessMaterial.new()
+	pm.direction = Vector3(0, 1, 0)
+	pm.spread = 70.0
+	pm.initial_velocity_min = 2.5
+	pm.initial_velocity_max = 5.0
+	pm.gravity = Vector3(0, -6, 0)
+	pm.scale_min = 0.6
+	pm.scale_max = 1.2
+	p.process_material = pm
+	var star := QuadMesh.new()
+	star.size = Vector2(0.18, 0.18)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	m.albedo_color = colour
+	m.emission_enabled = true
+	m.emission = colour
+	m.emission_energy_multiplier = 3.0
+	star.material = m
+	p.draw_pass_1 = star
+	add_child(p)
+	p.emitting = true
+	p.finished.connect(p.queue_free)
+
+
+## A bad moment (Miss, drive-off, broken combo): the world shakes, the HUD does not (#26).
+func shake(amount := 1.0) -> void:
+	shake_amount = maxf(shake_amount, amount * shake_strength)
+
+
+## Kept separate from _process so tests control time.
+func tick_shake(delta: float) -> void:
+	if shake_amount <= 0.0:
+		return
+	shake_amount = maxf(0.0, shake_amount - delta * 2.5)
+	if shake_amount == 0.0:
+		camera.h_offset = 0.0
+		camera.v_offset = 0.0
+		return
+	camera.h_offset = randf_range(-1.0, 1.0) * shake_amount * 0.35
+	camera.v_offset = randf_range(-1.0, 1.0) * shake_amount * 0.35
+
+
+func _make_stream(at: Vector3) -> GPUParticles3D:
+	var p := GPUParticles3D.new()
+	p.amount = 70
+	p.lifetime = 0.45
+	p.position = at
+	var pm := ParticleProcessMaterial.new()
+	pm.direction = Vector3(-0.3, 0.9, 1.0)  # up and over, toward the car
+	pm.spread = 5.0
+	pm.initial_velocity_min = 3.0
+	pm.initial_velocity_max = 3.4
+	pm.gravity = Vector3(0, -9.8, 0)
+	p.process_material = pm
+	var drop := SphereMesh.new()
+	drop.radius = 0.08
+	drop.height = 0.16
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED  # readable in any light
+	m.albedo_color = Color(1.0, 0.78, 0.25)
+	drop.material = m
+	p.draw_pass_1 = drop
+	p.emitting = false
+	add_child(p)
+	return p
 
 
 func globe_energy(lane: int) -> float:
@@ -144,25 +248,30 @@ func globe_energy(lane: int) -> float:
 
 # --- Cars --------------------------------------------------------------------------------------
 
-## A customer pulled in at `lane`: a car in `colour` drives in from the top right to the pump.
+## A customer pulled in at `lane`: a car in `colour` comes along the road from the top right, turns
+## up the entry apron, and drives into its lane to the pump (#26).
 func car_arrive(lane: int, colour: Color) -> void:
 	car_depart(lane)
 	var car: MeshInstance3D = _props.get_node("Car").duplicate()
-	car.position = Vector3(ENTER_X, 0.07, lane_z(lane))
 	var body := _own_material(car, "CarBody")
 	body.albedo_color = colour
-	car.set_meta("target_x", STOP_X)
+	car.position = Vector3(ROAD_FAR, 0.07, ROAD_Z)
+	car.set_meta("path", [Vector3(APRON_IN_X, 0.07, ROAD_Z), Vector3(APRON_IN_X, 0.07, lane_z(lane)),
+		Vector3(STOP_X, 0.07, lane_z(lane))])
 	add_child(car)
+	_face(car, Vector3(-1, 0, 0))
 	_cars[lane] = car
 
 
-## The customer is done (served, gone, or the day closed): the car drives off bottom left.
+## The customer is done (served, gone, or the day closed): the car leaves by the exit apron and the road.
 func car_depart(lane: int) -> void:
 	if not _cars.has(lane):
 		return
 	var car: Node3D = _cars[lane]
 	_cars.erase(lane)
-	car.set_meta("target_x", EXIT_X)
+	var z := car.position.z
+	car.set_meta("path", [Vector3(APRON_OUT_X, 0.07, z), Vector3(APRON_OUT_X, 0.07, ROAD_Z),
+		Vector3(-ROAD_FAR, 0.07, ROAD_Z)])
 	_leaving.append(car)
 
 
@@ -179,16 +288,37 @@ func car_colour(lane: int) -> Color:
 	return Color.BLACK
 
 
-## Kept separate from _process so tests control time.
+## Kept separate from _process so tests control time. Cars follow their waypoints at CAR_SPEED,
+## turning to face where they go; leaving cars are removed at the end of the road.
 func tick_cars(delta: float) -> void:
 	for car in _cars.values() + _leaving:
-		var target: float = car.get_meta("target_x")
-		car.position.x = move_toward(car.position.x, target, CAR_SPEED * delta)
+		var budget := CAR_SPEED * delta
+		var path: Array = car.get_meta("path")
+		while budget > 0.0 and not path.is_empty():
+			var to: Vector3 = path[0] - car.position
+			var d := to.length()
+			if d <= budget:
+				car.position = path[0]
+				budget -= d
+				path.pop_front()
+			else:
+				_face(car, to)
+				car.position += to / d * budget
+				budget = 0.0
+		if path.is_empty() and _cars.values().has(car):
+			_face(car, Vector3(-1, 0, 0))  # parked facing the way out
 	for car in _leaving.duplicate():
-		if is_equal_approx(car.position.x, EXIT_X):
+		if (car.get_meta("path") as Array).is_empty():
 			_leaving.erase(car)
-			car.queue_free()
 			remove_child(car)
+			car.queue_free()
+
+
+## The car model's front points along -X; turn it to face `direction` (on the ground plane).
+func _face(car: Node3D, direction: Vector3) -> void:
+	if Vector2(direction.x, direction.z).length() < 0.001:
+		return
+	car.rotation.y = atan2(direction.z, -direction.x)
 
 
 # --- Name ---------------------------------------------------------------------------------------

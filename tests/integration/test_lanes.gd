@@ -67,15 +67,15 @@ func test_given_customer_arrives_then_a_car_drives_in_and_stops_at_its_pump() ->
 	_make()
 	var car: Node3D = _world().car_at(1)
 	assert_not_null(car, "pump 2 has a customer at the start of the day")
-	assert_gt(car.position.x, _world().STOP_X + 5.0, "starts at the top right")
-	_world().tick_cars(10.0)
+	assert_gt(car.position.x, _world().STOP_X + 5.0, "starts at the top right (on the road)")
+	_world().tick_cars(20.0)
 	assert_almost_eq(car.position.x, _world().STOP_X, 0.01)
 	assert_almost_eq(car.position.z, _world().lane_z(1), 0.01)
 
 
 func test_given_served_then_the_car_drives_off_bottom_left_and_is_removed() -> void:
 	_make()
-	_world().tick_cars(10.0)
+	_world().tick_cars(20.0)
 	var car: Node3D = _world().car_at(0)
 	var pump: PumpComponent = station.bays[0].pump
 	pump.finish_at(pump.target)
@@ -127,8 +127,3 @@ func test_given_empty_name_then_a_default_is_used() -> void:
 	_make(PROFILE)
 	station.confirm_name("   ")
 	assert_eq(_world().name_label.text, "GAS BAR BLUES")
-
-
-func test_given_station_then_version_is_0_22_1() -> void:
-	_make()
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.22.1")

@@ -14,6 +14,8 @@ signal auto_toggle_requested(bay: PumpBay)
 ## A car pulled in (`colour` = customer type) or left this pump: the 3D world follows these (#24).
 signal car_arrived(bay: PumpBay, colour: Color)
 signal car_departed(bay: PumpBay)
+## A self-service customer started or stopped pumping (drives the pour stream, #26).
+signal self_pouring(bay: PumpBay, on: bool)
 ## The customer gave up and drove off without buying (Impatient Businessman, #5).
 signal customer_left(bay: PumpBay)
 
@@ -270,6 +272,7 @@ func make_manual() -> void:
 
 
 func _on_self_service_phase(phase: SelfServiceComponent.Phase) -> void:
+	self_pouring.emit(self, phase == SelfServiceComponent.Phase.PUMPING)
 	match phase:
 		SelfServiceComponent.Phase.CARD:
 			say("*fumbles with the card*")
