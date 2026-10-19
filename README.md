@@ -1,6 +1,6 @@
-# STOP. THE. PUMP.
+# Gas Bar Blues
 
-**STOP. THE. PUMP. is a 15-minute roguelite for Mac and PC where you run ever more fuel pumps at once, stopping each on the exact amount to earn tips and margins that pay your rent, while absurd customers and your own overshoots set the station on fire.**
+**Gas Bar Blues is a 15-minute roguelite for Mac and PC where you run ever more fuel pumps at once, stopping each on the exact amount to earn tips and margins that pay your rent, while absurd customers and your own overshoots set the station on fire.**
 
 Built with Godot 4.7.2. Design: [DESIGN.md](DESIGN.md) · Backlog: [BACKLOG.md](BACKLOG.md) · Playtests: [docs/PLAYTEST_LOG.md](docs/PLAYTEST_LOG.md)
 

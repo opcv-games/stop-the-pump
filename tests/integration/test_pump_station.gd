@@ -193,8 +193,8 @@ func test_given_cleaning_switched_off_when_big_overshoot_then_bay_is_not_cleanin
 	assert_false(station.bays[0].cleaning)
 
 
-func test_given_station_then_version_is_0_8() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.8")
+func test_given_station_then_version_is_0_9() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.9")
 
 
 # --- Random arrivals (#10) ---

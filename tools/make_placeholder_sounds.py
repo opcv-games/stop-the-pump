@@ -41,32 +41,33 @@ write("pour_loop.wav", [0.25 * (math.sin(2 * math.pi * 90 * i / RATE) + 0.5 * ma
                                + 0.3 * square(2 * math.pi * 45 * i / RATE)) / 1.8 + 0.03 * random.uniform(-1, 1)
                         for i in range(RATE)])
 write("tick.wav", [0.6 * env(i, 900, attack=0.0005, release=0.9) * random.uniform(-1, 1) for i in range(900)])
-write("perfect.wav", seq(tone([1318.5], 0.09, 0.5), tone([1975.5, 1318.5], 0.45, 0.5)))
-write("good.wav", tone([1046.5], 0.3, 0.45))
 write("ok.wav", tone([392.0], 0.18, 0.4, release=0.5))
 write("miss.wav", tone([110.0, 116.0], 0.4, 0.35, wave_fn=square, release=0.3))
 
 
-# Chord progression for good stops (playtest 7): C - G - Am - F. Perfect adds a bright top note.
+# Gas Bar Blues (playtest 8): a 12-bar blues in A uses three dominant-7th chords.
+# Perfect adds the "blue note" (the flat third) on top, an octave up.
 def note(n):  # MIDI note number to Hz
     return 440.0 * 2 ** ((n - 69) / 12)
 
 
-def keys(freqs, dur=0.7, vol=0.45):
+def keys(freqs, dur=0.8, vol=0.45):
+    """Soft electric-piano-ish tone: sine + a little 2nd harmonic, quick attack, slow decay."""
     n = int(RATE * dur)
     out = []
     for i in range(n):
         t = i / RATE
-        e = min(1, t / 0.004) * math.exp(-3.2 * t)
+        e = min(1, t / 0.004) * math.exp(-2.8 * t)
         v = sum(math.sin(2 * math.pi * f * t) + 0.35 * math.sin(4 * math.pi * f * t) for f in freqs)
         out.append(vol * e * v / (len(freqs) * 1.35))
     return out
 
 
-CHORDS = {"C": [60, 64, 67], "G": [55, 59, 62], "Am": [57, 60, 64], "F": [53, 57, 60]}
-for name, notes in CHORDS.items():
+# root, 3rd, 5th, flat 7th (voiced around middle C), and the blue note (flat 3rd of the key's chord root)
+CHORDS = {"A7": ([45, 57, 61, 64, 67], 72), "D7": ([50, 57, 60, 62, 66], 77), "E7": ([52, 56, 59, 62, 64], 79)}
+for name, (notes, blue) in CHORDS.items():
     write("chord_%s.wav" % name, keys([note(m) for m in notes]))
-    write("chord_%s_perfect.wav" % name, keys([note(m) for m in notes] + [note(notes[0] + 24), note(notes[2] + 12)], vol=0.5))
+    write("chord_%s_perfect.wav" % name, keys([note(m) for m in notes] + [note(blue)], vol=0.5))
 
 # The chain breaks: a detuned cluster that sags in pitch, like a tape slowing down.
 n = int(RATE * 0.9)

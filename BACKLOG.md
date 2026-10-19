@@ -1,4 +1,4 @@
-# STOP. THE. PUMP. — Backlog
+# Gas Bar Blues — Backlog
 
 > Agile, not a roadmap. Only "Now" is committed. Re-prioritize after every development cycle.
 > Tags: `[innovation]` 40% hooks · `[standard]` genre conventions · `[tech]` infrastructure

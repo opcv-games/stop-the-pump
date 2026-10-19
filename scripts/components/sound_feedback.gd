@@ -4,8 +4,9 @@ extends Node
 ## so sound can be muted or swapped in Phase 4 without touching rules. Serves: Mastery (feel). Refs #7
 
 const DIR := "res://assets/audio/placeholder/"
-## Good stops walk this loop; a broken chain starts it again from the top (#10).
-const CHORDS := ["C", "G", "Am", "F"]
+## Good stops walk a 12-bar blues in A; a broken chain starts it again from bar 1 (#10, #11).
+const CHORDS := ["A7", "D7", "E7"]
+const TWELVE_BAR := ["A7", "A7", "A7", "A7", "D7", "D7", "A7", "A7", "E7", "D7", "A7", "E7"]
 
 ## Toggled with M during playtests so sound can be judged on its own.
 @export var enabled := true:
@@ -74,13 +75,12 @@ func play_tier(tier: String) -> void:
 
 
 func _on_chained(length: int, tier: String) -> void:
-	var chord: String = CHORDS[chord_index(length)]
-	_play("chord_%s%s" % [chord, "_perfect" if tier == ScoreTiers.PERFECT else ""])
+	_play("chord_%s%s" % [chord_for(length), "_perfect" if tier == ScoreTiers.PERFECT else ""])
 
 
-## The 1st good stop plays C, the 2nd G, the 3rd Am, the 4th F, then the loop repeats.
-static func chord_index(chain_length: int) -> int:
-	return (chain_length - 1) % CHORDS.size()
+## The Nth good stop in a row plays bar N of the 12-bar blues, then the chorus repeats.
+static func chord_for(chain_length: int) -> String:
+	return TWELVE_BAR[(chain_length - 1) % TWELVE_BAR.size()]
 
 
 func _play(sfx: String) -> void:

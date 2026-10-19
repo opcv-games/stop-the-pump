@@ -1,11 +1,11 @@
-# STOP. THE. PUMP. — Design Document
+# Gas Bar Blues — Design Document
 
 > **Current phase:** 3 — Ugly Prototype
 > **Last updated:** 2026-10-18
 > This file is the Committee's memory. Read it before every Godot or Blender action. Update it after every approved decision.
 
 ## 1. Pitch
-**STOP. THE. PUMP. is a 15-minute roguelite for Mac and PC where you run ever more fuel pumps at once, stopping each on the exact amount to earn tips and margins that pay your rent, while absurd customers and your own overshoots set the station on fire.**
+**Gas Bar Blues is a 15-minute roguelite for Mac and PC where you run ever more fuel pumps at once, stopping each on the exact amount to earn tips and margins that pay your rent, while absurd customers and your own overshoots set the station on fire.**
 
 <details><summary>Pitch iterations</summary>
 
@@ -14,7 +14,8 @@
 | 1 | A timing game where you stop a pump on the exact dollar amount, upgrading your unreliable pump between customers. | First idea |
 | 2 | A 5-minute roguelite where you hold pump levers and release them at exact dollar amounts to pay rent. | Run length, rent, hold mechanic |
 | 3 | A 5-minute roguelite where you juggle ever more fuel pumps at once, releasing each on the exact amount to pay rent, while absurd customers and your own overshoots set the station on fire. | Multi-pump juggling, customer chaos, fire risk |
-| 4 (final) | See above. | Mac/PC only, 15-minute run, economy = fuel margin + tips |
+| 4 | See above. | Mac/PC only, 15-minute run, economy = fuel margin + tips |
+| 5 | Same pitch, new title: **Gas Bar Blues** (working title was STOP. THE. PUMP.) | The blues gives the game its mood; good stops play a 12-bar blues |
 
 </details>
 
@@ -50,7 +51,7 @@ Two currencies, kept separate so the fiction holds (a customer doesn't pay more 
 
 ## 4. Genre, Mood & Audience
 - **Genre / comparables:** short-run roguelite with a number-go-up build layer. Balatro, Bills Must Be Paid, 9 Kings, Ball x Pit, sports management games.
-- **Mood:** frantic, absurd, satisfying.
+- **Mood:** frantic, absurd, satisfying, with the blues of a lonely late shift.
 - **For:** fans of short roguelite runs and build-crafting, playing on Mac or PC in ~15-minute sittings, who want depth under a simple surface.
 - **Not for:** players who want a story, mobile play, or the strict precision of a rhythm game.
 
