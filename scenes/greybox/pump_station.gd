@@ -12,6 +12,7 @@ extends Control
 ## Kept: #5 customers with rules (Grandpa, Businessman), grey car + speech bubble.
 ## Kept: #19 run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed.
 ## Kept: #20 endless mode after day 10; auto on/off per pump (Shift + number).
+## #25: each pump's card is pinned to its 3D lane (no grey panels, no 2D cars).
 ## Phase 4 (#22, #24): the 3D station sits behind this HUD: one lane per pump, cars come and go,
 ## lit by the clock, with rain. The player names the station at the start of a run.
 
@@ -138,7 +139,7 @@ func _ready() -> void:
 	_build_station()
 	combo.multiplier_changed.connect(_on_multiplier_changed)
 	wallet.cash_changed.connect(func(_c: float, _d: float) -> void: _update_gauges())
-	wallet.xp_changed.connect(func(xp: int) -> void: _xp_label.text = "XP\n%d" % xp)
+	wallet.xp_changed.connect(func(xp: int) -> void: _xp_label.text = "XP %d" % xp)
 	tank.level_changed.connect(func(_l: float) -> void: _update_gauges())
 	tank.emptied.connect(_close_day)
 	clock.time_changed.connect(_on_time_changed)
@@ -395,7 +396,6 @@ func start_next_day() -> void:
 	clock.start()
 	for bay in bays:
 		bay.show_empty()
-		bay.result_label.text = ""
 		_customer_after(bay, randf_range(0.0, second_customer_offset * bay.index))
 	_update_gauges()
 	_update_hint()
@@ -553,8 +553,8 @@ func _reset_run_upgrades() -> void:
 		_add_bay(bays.size())
 	for bay in bays:
 		bay.make_manual()
-	_layout_bays()
 	world_view.world.set_lane_count(bays.size())
+	place_bays()
 	apply_tuning()
 
 
@@ -562,8 +562,8 @@ func _reset_run_upgrades() -> void:
 func add_pump() -> void:
 	pump_count += 1
 	_add_bay(bays.size())
-	_layout_bays()
 	world_view.world.set_lane_count(bays.size())
+	place_bays()
 
 
 func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
@@ -766,7 +766,7 @@ func _on_multiplier_changed(multiplier: int) -> void:
 	# Greybox "heat": the label warms from grey to orange as the chain grows.
 	var heat := float(multiplier - 1) / float(combo.max_multiplier - 1)
 	_combo_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.72).lerp(Color(1.0, 0.55, 0.15), heat))
-	_combo_label.add_theme_font_size_override("font_size", 48 + multiplier * 10)
+	_combo_label.add_theme_font_size_override("font_size", 26 + multiplier * 4)
 
 
 func _update_hint() -> void:
@@ -829,17 +829,24 @@ func _add_bay(i: int) -> void:
 	bays.append(bay)
 
 
-## Bays side by side between the gauge (left) and the combo (right), shrinking to fit.
-func _layout_bays() -> void:
-	var area_left := 200.0
-	var area_width := 1152.0 - 400.0
-	var gap := 20.0
-	var n := bays.size()
-	var scale_factor := minf(1.0, (area_width - gap * (n - 1)) / (PumpBay.SIZE.x * n))
-	var row_width := (PumpBay.SIZE.x * scale_factor + gap) * n - gap
-	for i in n:
-		bays[i].scale = Vector2.ONE * scale_factor
-		bays[i].position = Vector2(area_left + (area_width - row_width) / 2.0 + i * (PumpBay.SIZE.x * scale_factor + gap), 62)
+## Pins every pump's card to its lane in the 3D view (#25). Runs every frame (cheap) so cards follow
+## lanes as pumps are added and the window is resized.
+func place_bays() -> void:
+	for bay in bays:
+		bay.position = anchor_position(bay.index)
+
+
+## Lane `i`'s card position in this HUD's coordinates (the world view is stretched over the screen).
+## The card's left edge sits on the lane's anchor point, centred vertically on the lane line.
+func anchor_position(i: int) -> Vector2:
+	var world := world_view.world
+	var px := world.camera.unproject_position(world.hud_anchor(i))
+	var vp := Vector2(world_view.viewport.size)
+	return (px * world_view.size / vp - Vector2(0, PumpBay.SIZE.y / 2.0)).round()
+
+
+func _process(_delta: float) -> void:
+	place_bays()
 
 
 func _build_station() -> void:
@@ -867,7 +874,6 @@ func _build_station() -> void:
 
 	for i in pump_count:
 		_add_bay(i)
-	_layout_bays()
 
 	# Left: one gauge where fuel (orange) turns into today's cash (green), plus the bank balance.
 	_day_gauge = DayGauge.new()
@@ -877,11 +883,13 @@ func _build_station() -> void:
 	_tank_label.modulate = Color(1, 1, 1, 0.6)
 	_cash_label = Greybox.label(self, "", 22, Vector2(0, 505), Vector2(200, 60))
 
-	# Right: combo and XP.
-	_combo_label = Greybox.label(self, "", 48, Vector2(952, 110), Vector2(200, 160))
+	# Top right, under the dev buttons: combo and XP (the lane cards own the middle of the screen, #25).
+	_combo_label = Greybox.label(self, "", 30, Vector2(930, 40), Vector2(110, 44))
+	_combo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_combo_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	Greybox.label(self, "COMBO", 22, Vector2(952, 270), Vector2(200, 32)).modulate = Color(1, 1, 1, 0.6)
-	_xp_label = Greybox.label(self, "XP\n0", 28, Vector2(952, 340), Vector2(200, 90))
+	Greybox.label(self, "COMBO", 14, Vector2(1044, 60), Vector2(100, 22)).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_xp_label = Greybox.label(self, "XP 0", 18, Vector2(930, 86), Vector2(214, 26))
+	_xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_on_multiplier_changed(1)
 
 	_stats_label = Greybox.label(self, "Super 0   Perfect 0   Good 0   OK 0   Miss 0   |   Best combo x1", 20, Vector2(0, 572), Vector2(1152, 30))

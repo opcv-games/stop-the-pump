@@ -128,7 +128,7 @@ func test_given_pump_3_converted_then_only_pump_3_is_self_service() -> void:
 	assert_true(station.buy_pump(2))
 	assert_true(station.bays[2].self_service)
 	assert_false(station.bays[0].self_service)
-	assert_string_contains(station.bays[2]._key_label.text, "SELF-SERVE")
+	assert_true(station.bays[2]._auto_button.visible, "the AUTO switch marks a self-serve pump")
 
 
 func test_given_self_service_sale_then_cash_minus_card_fee_and_no_combo_or_xp() -> void:

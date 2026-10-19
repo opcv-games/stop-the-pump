@@ -28,3 +28,14 @@ Feature: Lanes, cars and the station's name
     Then the player is asked to name the station, prefilled with the last name
     When they type a name and press Enter
     Then the name appears on the pylon and the day begins
+
+  Scenario: Each pump's HUD sits on its lane
+    Given the station has pumps
+    Then each pump has a compact card on its own lane: key, meter, order and the customer's line
+    And cards for neighbouring lanes never overlap, even with 5 pumps
+    And there are no grey panels or 2D cars any more
+
+  Scenario: Results pop up and fade
+    When a stop is scored
+    Then its result pops up beside the card
+    And fades after a few seconds

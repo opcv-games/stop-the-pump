@@ -18,8 +18,13 @@ const STOP_X := -0.4   # where a car parks beside its pump
 const ENTER_X := 26.0  # off screen, top right
 const EXIT_X := -28.0  # off screen, bottom left
 const CAR_SPEED := 9.0  # metres per second
-const CAMERA_POS := Vector3(-28.5, 30.0, 28.4)
-const CAMERA_TARGET := Vector3(1.5, 0.8, -1.6)
+const HUD_X0 := 7.6     # lane 1's card anchor, up-right of the pump (clear of pump and car)
+const HUD_SLIDE := 1.25 # each next lane's card slides this far down its lane (stays clear of its pump)
+## Framed a little right of the Blender review so the station sits left of centre: the lane cards
+## and their result popups need the room on the right (#25).
+const CAMERA_SHIFT := Vector3(2.2, 0.0, 2.2)  # one screen-right step in world space
+const CAMERA_POS := Vector3(-28.5, 30.0, 28.4) + CAMERA_SHIFT
+const CAMERA_TARGET := Vector3(1.5, 0.8, -1.6) + CAMERA_SHIFT
 
 var scenery: Node3D
 var camera: Camera3D
@@ -73,6 +78,13 @@ func _process(delta: float) -> void:
 ## Godot z of lane `i`'s centre line (0-based).
 func lane_z(i: int) -> float:
 	return -(LANE_Y0 - i * LANE_W - 0.3)
+
+
+## Where lane `i`'s HUD card is pinned: on the lane, up-right of its pump. Each lane's point slides a
+## little further down its lane than the previous one, so the cards stack in a column without
+## overlapping (neighbouring lanes are only ~75 px apart on screen). Refs #25
+func hud_anchor(i: int) -> Vector3:
+	return Vector3(HUD_X0 - i * HUD_SLIDE, 1.0, lane_z(i))
 
 
 func set_lane_count(n: int) -> void:
