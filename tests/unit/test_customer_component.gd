@@ -81,11 +81,6 @@ func test_given_special_chance_0_then_every_customer_is_regular() -> void:
 		assert_eq(Customers.roll(0.0, [10.0, 20.0]).type, "regular")
 
 
-func test_given_twenty_guy_rolled_then_his_order_is_20() -> void:
-	var seen := false
+func test_given_twenty_guy_retired_then_he_is_never_rolled() -> void:
 	for i in 300:
-		var c := Customers.roll(1.0, [10.0, 40.0])
-		if c.type == "twenty_guy":
-			seen = true
-			assert_eq(c.target, 20.0)
-	assert_true(seen)
+		assert_ne(Customers.roll(1.0, [10.0, 40.0]).type, "twenty_guy")

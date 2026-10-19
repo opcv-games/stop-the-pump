@@ -16,6 +16,7 @@ const PARAMS := [
 	{"key": "station/self_service_speed", "label": "Self-service speed (x pour speed)", "min": 0.1, "max": 1.5, "step": 0.05},
 	{"key": "station/card_fee", "label": "Self-service card fee (share)", "min": 0.0, "max": 0.2, "step": 0.005},
 	{"key": "station/shop_price_scale", "label": "Shop prices (x)", "min": 0.25, "max": 3.0, "step": 0.05},
+	{"key": "station/run_days", "label": "Days in a run", "min": 1, "max": 30, "step": 1},
 	{"key": "clock/day_seconds", "label": "Day length (s)", "min": 30.0, "max": 600.0, "step": 10.0},
 	{"key": "tank/capacity_liters", "label": "Tank size (L, next day)", "min": 50.0, "max": 1000.0, "step": 10.0},
 	{"key": "tiers/super_window", "label": "Super Perfect window ($)", "min": 0.0, "max": 0.2, "step": 0.005},

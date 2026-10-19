@@ -9,7 +9,8 @@ const TYPES := {
 		"hello": ["{t} on this one, thanks.", "{t}, please.", "Just {t} today.", "{t}. Nice night for it."],
 	},
 	"twenty_guy": {
-		"name": "$20 Guy", "car": Color(0.36, 0.56, 0.36), "weight": 1.0,
+		# Retired after playtest 15 (everyone pays cash anyway): weight 0 keeps him out of the mix.
+		"name": "$20 Guy", "car": Color(0.36, 0.56, 0.36), "weight": 0.0,
 		"hello": ["I've only got a twenty. Not a cent more!", "Twenty bucks. Exactly twenty.", "One crumpled twenty. That's it."],
 	},
 	"grandpa": {

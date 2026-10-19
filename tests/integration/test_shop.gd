@@ -124,15 +124,6 @@ func test_given_pump_3_converted_then_only_pump_3_is_self_service() -> void:
 	assert_string_contains(station.bays[2]._key_label.text, "SELF-SERVE")
 
 
-func test_given_one_played_pump_left_when_converting_it_then_refused() -> void:
-	_to_shop()
-	assert_true(station.buy_pump(0))
-	var cash: float = station.wallet.cash
-	assert_false(station.buy_pump(1), "the last played pump stays the player's")
-	assert_false(station.bays[1].self_service)
-	assert_almost_eq(station.wallet.cash, cash, 0.001)
-
-
 func test_given_self_service_sale_then_cash_minus_card_fee_and_no_combo_or_xp() -> void:
 	var bay := _make_self_service()
 	var combo_before: int = station.combo.multiplier

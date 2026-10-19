@@ -115,7 +115,7 @@ func test_given_clock_runs_out_with_pumps_idle_then_summary_shows_costs() -> voi
 	_end_day_by_clock()
 	assert_eq(station.state, station.State.SUMMARY)
 	assert_true(station._overlay.visible)
-	assert_string_contains(station.summary_label.text, "DAY 1 CLOSED")
+	assert_string_contains(station.summary_label.text, "DAY 1/10 CLOSED")
 	assert_string_contains(station.summary_label.text, "Rent")
 
 

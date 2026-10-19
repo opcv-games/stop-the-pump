@@ -9,7 +9,8 @@ extends Control
 ## Kept: #16 plain SFX + background music (Roadside At Two).
 ## Kept: #17 self-service pumps (replace the Turbo nozzle).
 ## Kept: #18 an upgrade tree per pump (shop page 2, Tab).
-## Testing: #5 customers with rules ($20 Guy, Grandpa, Businessman), grey car + speech bubble.
+## Kept: #5 customers with rules (Grandpa, Businessman), grey car + speech bubble.
+## Testing: #19 run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed.
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP }
 enum ShopPage { STATION, PUMPS }
@@ -33,6 +34,8 @@ enum ShopPage { STATION, PUMPS }
 @export var tuning_file := "user://tuning.cfg"
 ## Cash the player starts a run with.
 @export var starting_cash := 50.0
+## Days in a run (#19). Surviving the last one completes the run.
+@export var run_days := 10
 ## Customers (#5): chance a car is a special customer instead of a Regular, and how long the
 ## Impatient Businessman waits for the pour to start.
 @export_range(0.0, 1.0) var special_customer_chance := 0.45
@@ -79,9 +82,14 @@ var _base_targets: Array[float] = []
 var state := State.OPEN
 var day := 0
 var evicted := false
+## The last day of the run was survived (#19).
+var run_complete := false
+## Game speed picked by the player: 1, 2 or 3 (#19).
+var speed := 1
 
 var _day_id := 0  # stale customer timers from a previous day are ignored
 var _day_earned := 0.0
+var _run_earned := 0.0
 var _start_fuel_value := 1.0
 var _counts := {ScoreTiers.SUPER_PERFECT: 0, ScoreTiers.PERFECT: 0, ScoreTiers.GOOD: 0, ScoreTiers.OK: 0, ScoreTiers.MISS: 0}
 var _best_combo := 1
@@ -100,6 +108,7 @@ var _dev_label: Label
 var _tuning_panel: TuningPanel
 var _shop: Control
 var _bg: ColorRect
+var _speed_buttons: Array[Button] = []
 var _shop_title: Label
 var _shop_cards: Array[Label] = []
 var _shop_footer: Label
@@ -138,6 +147,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("toggle_tuning"):
 		_tuning_panel.toggle()
+		return
+	if event.is_action_pressed("cycle_speed"):
+		cycle_speed()
 		return
 	if event.is_action_pressed("dev_end_day"):
 		dev_end_day()
@@ -239,10 +251,32 @@ func note_tuned(key: String) -> void:
 	_base[key] = Tuning.get_value(self, key)
 
 
+## Game speed (#19): the whole game, clock and timers included, runs `n` times faster.
+func set_speed(n: int) -> void:
+	speed = clampi(n, 1, 3)
+	Engine.time_scale = speed
+	for i in _speed_buttons.size():
+		_speed_buttons[i].button_pressed = i + 1 == speed
+
+
+func cycle_speed() -> void:
+	set_speed(speed % 3 + 1)
+
+
+func speed_text() -> String:
+	return "%dx" % speed
+
+
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0  # never leave the engine fast-forwarded
+
+
 ## A new run: starting cash, day 1. XP is kept (it is the run-to-run currency).
 func start_run() -> void:
 	_reset_run_upgrades()
 	evicted = false
+	run_complete = false
+	_run_earned = 0.0
 	day = 0
 	wallet.add(starting_cash - wallet.cash)
 	start_next_day()
@@ -271,7 +305,7 @@ func start_next_day() -> void:
 func continue_pressed() -> void:
 	match state:
 		State.SUMMARY:
-			if evicted:
+			if evicted or run_complete:
 				start_run()
 			else:
 				open_shop()
@@ -323,9 +357,6 @@ func buy_pump(index: int) -> bool:
 	var node := Upgrades.next_pump_node(bay)
 	if node.is_empty():
 		return false
-	if node.id == "self_service" and _played_pump_count() <= 1:
-		_shop_footer.text = "Pump %d is the last pump you pour. Keep it." % (index + 1)
-		return false
 	var price := Upgrades.next_pump_price(self, bay)
 	if wallet.cash < price:
 		_shop_footer.text = "Not enough cash for pump %d's %s ($%.0f)." % [index + 1, node.name, price]
@@ -338,14 +369,6 @@ func buy_pump(index: int) -> bool:
 	apply_tuning()
 	_refresh_shop()
 	return true
-
-
-func _played_pump_count() -> int:
-	var n := 0
-	for bay in bays:
-		if not bay.self_service:
-			n += 1
-	return n
 
 
 func shop_card_text(branch: int) -> String:
@@ -399,17 +422,14 @@ func _fill_pump_card(i: int) -> void:
 			lines.append("✓ %s" % node.name)
 		elif n == bay.pump_level:
 			var price := Upgrades.next_pump_price(self, bay)
-			var blocked: bool = node.id == "self_service" and _played_pump_count() <= 1
-			lines.append("> %s\n   %s\n   %s" % [node.name, node.helps,
-				"keep one pump for yourself" if blocked else "$%.0f%s" % [price, "" if wallet.cash >= price else "  (short)"]])
+			lines.append("> %s\n   %s\n   $%.0f%s" % [node.name, node.helps, price, "" if wallet.cash >= price else "  (short)"])
 		else:
 			lines.append("· %s" % node.name)
 	if bay.pump_level >= Upgrades.PUMP_TREE.size():
 		lines.append("\nCOMPLETE")
 	_shop_cards[i].text = "\n".join(lines)
 	var node := Upgrades.next_pump_node(bay)
-	var can: bool = not node.is_empty() and wallet.cash >= Upgrades.next_pump_price(self, bay) \
-		and not (node.id == "self_service" and _played_pump_count() <= 1)
+	var can: bool = not node.is_empty() and wallet.cash >= Upgrades.next_pump_price(self, bay)
 	_shop_cards[i].modulate = Color.WHITE if can else Color(1, 1, 1, 0.6)
 
 
@@ -585,10 +605,24 @@ func _settle_day() -> void:
 	var rent := economy.rent_for(day)
 	wallet.add(-(refill + rent))
 	evicted = wallet.cash < 0.0
+	run_complete = not evicted and day >= run_days
+	_run_earned += _day_earned
 	state = State.SUMMARY
 	var reason := "Out of fuel" if tank.is_empty() else "11:00 PM"
+	if run_complete:
+		summary_label.text = "\n".join([
+			"RUN COMPLETE", "%d day%s at the Gas Bar" % [run_days, "" if run_days == 1 else "s"], "",
+			"Earned this run      +$%.2f" % _run_earned,
+			"Cash left               $%.2f" % wallet.cash,
+			"XP                         %d" % wallet.xp, "",
+			"Press ENTER to start a new run",
+		])
+		summary_label.add_theme_color_override("font_color", TIER_COLORS[ScoreTiers.SUPER_PERFECT])
+		_overlay.visible = true
+		_update_hint()
+		return
 	summary_label.text = "\n".join([
-		"EVICTED" if evicted else "DAY %d CLOSED" % day,
+		"EVICTED" if evicted else "DAY %d/%d CLOSED" % [day, run_days],
 		reason,
 		"",
 		"Earned today         +$%.2f" % _day_earned,
@@ -605,7 +639,7 @@ func _settle_day() -> void:
 
 
 func _on_time_changed(_hour: float) -> void:
-	_clock_label.text = "DAY %d     %s" % [day, clock.label()]
+	_clock_label.text = "DAY %d/%d     %s" % [day, run_days, clock.label()]
 	_day_bar.size.x = 400.0 * clock.progress()
 
 
@@ -639,13 +673,14 @@ func _update_hint() -> void:
 		if not bay.self_service:
 			played.append(str((bay.index + 1) % 10))
 	var keys := ", ".join(played)
-	_hint_label.text = "Hold %s to pour.  Release to stop.    M sound %s    C cleaning %s    F1 dev    F2 tuning" % [
-		keys, "ON" if sound.enabled else "OFF", "ON" if cleaning_enabled else "OFF"]
+	var pour := "Hold %s to pour.  Release to stop." % keys if keys != "" else "Fully automated."
+	_hint_label.text = "%s    S speed %s    M sound %s    C cleaning %s    F1 dev    F2 tuning" % [
+		pour, speed_text(), "ON" if sound.enabled else "OFF", "ON" if cleaning_enabled else "OFF"]
 
 
 ## Greybox input, done in code; moves to the Input Map later. Keys 1..9 then 0 for pump 10.
 func _ensure_input_actions() -> void:
-	var bindings := {"toggle_sound": [KEY_M], "toggle_cleaning": [KEY_C], "toggle_dev": [KEY_F1], "toggle_tuning": [KEY_F2], "dev_end_day": [KEY_F3], "dev_add_cash": [KEY_F4], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
+	var bindings := {"toggle_sound": [KEY_M], "toggle_cleaning": [KEY_C], "cycle_speed": [KEY_S], "toggle_dev": [KEY_F1], "toggle_tuning": [KEY_F2], "dev_end_day": [KEY_F3], "dev_add_cash": [KEY_F4], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
 	for i in 10:
 		bindings["pour_%d" % (i + 1)] = [KEY_1 + i if i < 9 else KEY_0]
 	bindings["pour_1"].append(KEY_SPACE)
@@ -774,7 +809,25 @@ func _build_station() -> void:
 	_shop_footer = Greybox.label(_shop, "", 20, Vector2(0, 510), Vector2(1152, 60))
 	_shop.visible = false
 
-	_dev_label = Greybox.label(self, "DEV   Q super   W perfect   E good   R ok   T -$10   Y +$10", 16, Vector2(8, 6), Vector2(400, 24))
+	# Game speed (#19): 1x 2x 3x at the top left, also S to cycle.
+	var speed_row := HBoxContainer.new()
+	speed_row.position = Vector2(8, 6)
+	speed_row.add_theme_constant_override("separation", 4)
+	add_child(speed_row)
+	for n in [1, 2, 3]:
+		var b := Button.new()
+		b.text = "%dx" % n
+		b.toggle_mode = true
+		b.button_pressed = n == 1
+		b.focus_mode = Control.FOCUS_NONE
+		b.add_theme_font_size_override("font_size", 16)
+		b.pressed.connect(func() -> void:
+			set_speed(n)
+			_update_hint())
+		speed_row.add_child(b)
+		_speed_buttons.append(b)
+
+	_dev_label = Greybox.label(self, "DEV   Q super   W perfect   E good   R ok   T -$10   Y +$10", 16, Vector2(8, 44), Vector2(400, 24))
 	_dev_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_dev_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.8))
 	_dev_label.visible = false

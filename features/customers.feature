@@ -2,6 +2,7 @@ Feature: Customers with rules
   # #5. Design rule 2: every customer changes one variable of the micro loop. Dialogue is flavour on top.
   # Grey visuals: a small car in front of each pump (colour = type) and a speech bubble.
 
+  # Retired after playtest 15 (everyone pays cash); kept for reference and its tests.
   Scenario: The $20 Guy pays exactly twenty
     Given a $20 Guy at pump 1
     When the pump stops at $22.00

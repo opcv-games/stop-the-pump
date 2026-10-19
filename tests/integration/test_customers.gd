@@ -72,5 +72,3 @@ func test_given_special_chance_1_then_self_service_pumps_still_get_regulars() ->
 	assert_eq(station.bays[2].customer.type, "regular")
 
 
-func test_given_station_then_version_is_0_17() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.17")
