@@ -27,7 +27,7 @@
 - Ten-pump ladder tuning
 - Between-day costs: inspections, pump calibration
 - Spending XP on permanent upgrades
-- Marketing upgrade branch: more cars at once, arriving more often
+- Marketing upgrade branch: more cars at once; shorter min–max wait between cars
 - Rethink the gauge: the player has no time to watch it mid-day (playtest 7)
 - Shop upgrade ideas: bigger tank (downside: bigger refill bill), faster pour (built-in downside: harder to stop precisely)
 - Gas price variation
@@ -40,11 +40,14 @@
 - Police callback, Rich Guy, other special customers
 - Fuel types (ethanol, diesel, premium)
 - Mobile version
+- Bonus for completing a full 12-bar blues chorus (12 good stops in a row)
+- `[art]` Cars drive in from the end of the street (Phase 4 animation)
 - Visible per-pump quirks (e.g. a pump labeled "sticky" with a shown delay): the only fair way a release delay could return
 - Bribing a government inspector between days (comedy)
 - Tips as a third, personal currency for the attendant's own things (company money vs. personal money)
 
 ## Done
+- [x] Random car arrivals and chord progression (#10), v0.8.0, playtest 2026-10-19: kept; core loop declared fun
 - [x] Car-cleaning delay, merged gauge (#9), v0.7.0, playtest 2026-10-19: kept
 - [x] A full day: tank, clock, end-of-day costs, cash + XP (#8, #3), v0.6.0, playtest 2026-10-19: kept
 - [x] Second pump with shared combo (#4), playtest 2026-10-19: strategy emerged, kept

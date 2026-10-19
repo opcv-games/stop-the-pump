@@ -131,3 +131,6 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | A day is 7am–11pm in 3 minutes; ends on clock or empty tank (400 L) | Gives each round a shape and makes overshoot visible as wasted tank | Playtest 5 (#8) |
 | 2026-10-19 | Full day kept (v0.6.0) | Tank and clock end close together; day 1 felt rewarding | Playtest 6 (#8) |
 | 2026-10-19 | Car-cleaning delay kept (4 s past the OK window) | Made play more attentive; overshoot finally feels costly | Playtest 7 (#9) |
+| 2026-10-19 | Random arrivals (1–5 s) kept | Rhythm can't be memorized; simultaneous cars are fine | Playtest 8 (#10) |
+| 2026-10-19 | Core loop declared genuinely fun (Phase 3 gate) | Player: "clearly becoming more and more fun"; playtests 1–8 | Playtest 8 |
+| 2026-10-19 | Game renamed Gas Bar Blues; music is a 12-bar blues | The blues gives the game its mood and ties the chord progression to the theme | Playtest 8 |

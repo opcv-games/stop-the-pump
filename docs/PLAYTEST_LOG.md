@@ -2,6 +2,16 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.8.0 Random arrivals, chord progression  (#10)
+Hypothesis: If cars arrive after a random 1–5 s, then the rhythm can't be memorized and the player stays alert, increasing Mastery. Juice: good stops walk C–G–Am–F; a break falls apart.
+Variable: fixed 1.5 s arrivals → random 1–5 s; octave combo → chord progression
+Sessions: 1 (self: 1, others: 0)
+Observed: Arrival rhythm "great"; cars arriving together is fine; randomness is good. Chord progression great, but it should be the blues. "This game is clearly becoming more and more fun."
+Biggest weakness: none blocking in the core loop. Music should carry the theme (blues).
+Decision: KEPT. Game renamed **Gas Bar Blues**. Next: 12-bar blues progression (v0.9).
+**Phase 3 gate:** the player reports the core interaction is genuinely fun, backed by playtests 1–8.
+Ideas raised: cars drive in from the end of the street (Phase 4 animation); marketing upgrades shorten the min–max arrival wait.
+
 ## 2026-10-19 — v0.7.0 Car-cleaning delay, merged gauge, octave combo  (#9)
 Hypothesis: If overshooting past the OK window locks that pump for 4 s (car cleaning), then overshoot costs time and finally feels costly, increasing Mastery.
 Variable: cleaning off → on (4 s); two gauges → one; combo sound pitch → octaves
