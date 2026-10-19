@@ -10,7 +10,8 @@ var station: Control
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.pump_count = 2
-	station.next_customer_delay = 60.0  # keep results on screen for the assertions
+	station.arrival_min = 60.0  # keep results on screen for the assertions
+	station.arrival_max = 60.0
 	station.second_customer_offset = 0.0  # both customers present at once
 	add_child_autofree(station)
 	station.sound.enabled = false
@@ -192,5 +193,18 @@ func test_given_cleaning_switched_off_when_big_overshoot_then_bay_is_not_cleanin
 	assert_false(station.bays[0].cleaning)
 
 
-func test_given_station_then_version_is_0_7() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.7")
+func test_given_station_then_version_is_0_8() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.8")
+
+
+# --- Random arrivals (#10) ---
+
+func test_given_arrivals_between_1_and_5_then_waits_stay_in_range_and_vary() -> void:
+	station.arrival_min = 1.0
+	station.arrival_max = 5.0
+	var waits := {}
+	for i in 50:
+		var w: float = station.next_arrival_delay()
+		assert_between(w, 1.0, 5.0)
+		waits[snappedf(w, 0.1)] = true
+	assert_gt(waits.size(), 5, "waits should not all be the same")

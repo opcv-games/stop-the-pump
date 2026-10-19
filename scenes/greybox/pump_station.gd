@@ -2,7 +2,8 @@ extends Control
 ## Ugly Prototype: a station of pumps, keys 1..N, one shared combo, one shared tank. Flat colors only.
 ## Kept: #1 tiered stop, #7 combo + sound (M toggles), #4 two pumps.
 ## Kept: #8 a full day (7am-11pm in 3 minutes), cash at the pump, XP from combos, costs at day end.
-## Testing: #9 car-cleaning delay after a big overshoot (C toggles it), one fuel-to-cash gauge.
+## Kept: #9 car-cleaning delay after a big overshoot (C toggles it), one fuel-to-cash gauge.
+## Testing: #10 random car arrivals; chord progression on good stops (M toggles sound).
 
 enum State { OPEN, CLOSING, SUMMARY }
 
@@ -10,10 +11,11 @@ enum State { OPEN, CLOSING, SUMMARY }
 @export_range(1, 10) var pump_count := 2
 ## Customer orders, in dollars. Picked at random each customer.
 @export var possible_targets: Array[float] = [10.0, 15.0, 20.0, 25.0, 30.0, 40.0]
-## Pause before the next customer pulls in, so the result can be read.
-@export var next_customer_delay := 1.5
-## Later pumps get their first customer this many seconds after the previous one,
-## so pumps fall out of sync instead of all starting together.
+## The next car pulls in after a random wait between these, so the rhythm can't be memorized (#10).
+## The marketing upgrade branch will shorten it.
+@export var arrival_min := 1.0
+@export var arrival_max := 5.0
+## At opening, pump N's first car arrives within N x this many seconds, so pumps start out of sync.
 @export var second_customer_offset := 2.0
 @export var flow_rate := 4.0
 ## Seconds a pump is out of service after an overshoot past the OK window (#9).
@@ -128,7 +130,7 @@ func start_next_day() -> void:
 	for bay in bays:
 		bay.show_empty()
 		bay.result_label.text = ""
-		_customer_after(bay, second_customer_offset * bay.index)
+		_customer_after(bay, randf_range(0.0, second_customer_offset * bay.index))
 	_update_gauges()
 
 
@@ -160,7 +162,7 @@ func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
 	if cleaning_enabled and receipt.overshoot > combo.tiers.ok_window:
 		bay.start_cleaning(cleaning_seconds)  # the next customer comes when cleaning finishes
 	elif state == State.OPEN:
-		_customer_after(bay, next_customer_delay)
+		_customer_after(bay, next_arrival_delay())
 	if state != State.OPEN:
 		_check_day_over()
 
@@ -182,6 +184,10 @@ func _receipt_text(tier: String, diff: float, r: FuelEconomy.Receipt, xp: int, p
 		if paid_multiplier > 1:
 			text += " (x%d)" % paid_multiplier
 	return text
+
+
+func next_arrival_delay() -> float:
+	return randf_range(arrival_min, arrival_max)
 
 
 func _customer_after(bay: PumpBay, delay: float) -> void:
@@ -323,7 +329,7 @@ func _build_station() -> void:
 		bay.scale = Vector2.ONE * scale_factor
 		bay.position = Vector2(area_left + (area_width - row_width) / 2.0 + i * (PumpBay.SIZE.x * scale_factor + gap), 62)
 		bay.pump_stopped.connect(_on_bay_stopped)
-		bay.cleaning_finished.connect(func(b: PumpBay) -> void: _customer_after(b, next_customer_delay))
+		bay.cleaning_finished.connect(func(b: PumpBay) -> void: _customer_after(b, next_arrival_delay()))
 		sound.watch_pump(bay.pump, i)
 		bays.append(bay)
 

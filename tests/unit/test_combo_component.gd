@@ -53,3 +53,24 @@ func test_given_max_multiplier_when_perfect_then_multiplier_stays_capped() -> vo
 	_build_to(5)
 	combo.register(ScoreTiers.PERFECT)
 	assert_eq(combo.multiplier, 5)
+
+
+func test_given_three_good_stops_then_chain_length_is_three_and_chained_fired_each_time() -> void:
+	watch_signals(combo)
+	for i in 3:
+		combo.register(ScoreTiers.GOOD)
+	assert_eq(combo.chain_length, 3)
+	assert_signal_emit_count(combo, "chained", 3)
+	assert_signal_emitted_with_parameters(combo, "chained", [3, ScoreTiers.GOOD], 2)
+
+
+func test_given_chain_at_cap_when_good_then_chain_keeps_growing() -> void:
+	_build_to(5)
+	combo.register(ScoreTiers.GOOD)
+	assert_eq(combo.chain_length, 5)
+
+
+func test_given_chain_when_miss_then_chain_length_resets() -> void:
+	combo.register(ScoreTiers.GOOD)
+	combo.register(ScoreTiers.MISS)
+	assert_eq(combo.chain_length, 0)

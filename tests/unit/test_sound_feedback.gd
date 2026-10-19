@@ -1,10 +1,9 @@
 extends GutTest
-## Combo sound climbs one octave per step (playtest 6). Refs #9
+## Good stops walk a chord progression; a broken chain falls apart (playtest 7). Refs #10
 
 
-func test_given_combo_x2_then_base_pitch() -> void:
-	assert_almost_eq(SoundFeedback.combo_pitch(2), 1.0, 0.001)
-
-
-func test_given_combo_x4_then_two_octaves_up() -> void:
-	assert_almost_eq(SoundFeedback.combo_pitch(4), 4.0, 0.001)
+func test_given_chain_of_five_then_chords_are_c_g_am_f_c() -> void:
+	var names := []
+	for length in range(1, 6):
+		names.append(SoundFeedback.CHORDS[SoundFeedback.chord_index(length)])
+	assert_eq(names, ["C", "G", "Am", "F", "C"])

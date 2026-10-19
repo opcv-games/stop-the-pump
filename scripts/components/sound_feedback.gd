@@ -4,6 +4,8 @@ extends Node
 ## so sound can be muted or swapped in Phase 4 without touching rules. Serves: Mastery (feel). Refs #7
 
 const DIR := "res://assets/audio/placeholder/"
+## Good stops walk this loop; a broken chain starts it again from the top (#10).
+const CHORDS := ["C", "G", "Am", "F"]
 
 ## Toggled with M during playtests so sound can be judged on its own.
 @export var enabled := true:
@@ -22,7 +24,11 @@ var _tick: AudioStream
 
 
 func _ready() -> void:
-	for sfx in ["perfect", "good", "ok", "miss", "combo_up", "combo_break"]:
+	var names := ["ok", "miss", "chord_break"]
+	for chord in CHORDS:
+		names.append("chord_" + chord)
+		names.append("chord_" + chord + "_perfect")
+	for sfx in names:
 		var p := AudioStreamPlayer.new()
 		p.stream = load(DIR + sfx + ".wav")
 		add_child(p)
@@ -57,24 +63,24 @@ func watch_pump(pump: PumpComponent, index := 0) -> void:
 
 
 func watch_combo(combo: ComboComponent) -> void:
-	combo.multiplier_changed.connect(_on_multiplier_changed)
-	combo.combo_broken.connect(func(_lost: int) -> void: _play("combo_break"))
+	combo.chained.connect(_on_chained)
+	combo.combo_broken.connect(func(_lost: int) -> void: _play("chord_break"))
 
 
+## Only OK and Miss have their own sound; good stops play the next chord instead.
 func play_tier(tier: String) -> void:
-	_play(tier.to_lower())
+	if tier == ScoreTiers.OK or tier == ScoreTiers.MISS:
+		_play(tier.to_lower())
 
 
-func _on_multiplier_changed(multiplier: int) -> void:
-	if multiplier <= 1:
-		return
-	_players["combo_up"].pitch_scale = combo_pitch(multiplier)
-	_play("combo_up")
+func _on_chained(length: int, tier: String) -> void:
+	var chord: String = CHORDS[chord_index(length)]
+	_play("chord_%s%s" % [chord, "_perfect" if tier == ScoreTiers.PERFECT else ""])
 
 
-## One octave up per combo step: x2 plays the base note, x3 an octave higher, and so on.
-static func combo_pitch(multiplier: int) -> float:
-	return pow(2.0, multiplier - 2)
+## The 1st good stop plays C, the 2nd G, the 3rd Am, the 4th F, then the loop repeats.
+static func chord_index(chain_length: int) -> int:
+	return (chain_length - 1) % CHORDS.size()
 
 
 func _play(sfx: String) -> void:
