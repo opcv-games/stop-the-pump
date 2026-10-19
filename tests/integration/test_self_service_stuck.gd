@@ -20,8 +20,8 @@ func before_each() -> void:
 	station.wallet.add(5000.0)
 	station.dev_end_day()
 	station.continue_pressed()
-	station.buy(1)
-	station.buy(1)
+	station.buy(1)  # build pump 3
+	station.buy_pump(2)  # pump 3: self-service
 	station.continue_pressed()
 	station.clock.running = false
 	bay = station.bays[2]

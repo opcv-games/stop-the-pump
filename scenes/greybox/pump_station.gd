@@ -7,9 +7,11 @@ extends Control
 ## Kept: #12 Super Perfect tier (M toggles sound). #13 designer tools.
 ## Kept: #15 cash upgrade tree between days (Bills-style, cost only).
 ## Kept: #16 plain SFX + background music (Roadside At Two).
-## Testing: #17 self-service pumps (replace the Turbo nozzle).
+## Kept: #17 self-service pumps (replace the Turbo nozzle).
+## Testing: #18 an upgrade tree per pump (shop page 2, Tab).
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP }
+enum ShopPage { STATION, PUMPS }
 
 ## How many pumps the station runs. The difficulty ladder (1 to 10) is this one number.
 @export_range(1, 10) var pump_count := 2
@@ -33,6 +35,7 @@ enum State { OPEN, CLOSING, SUMMARY, SHOP }
 ## Upgrade tree (#15): a multiplier on every upgrade price.
 @export var shop_price_scale := 1.0
 ## Self-service pumps (#17): share of the normal pour speed, and the card fee taken from each sale.
+## A pump's own tree (#18) multiplies the speed by 1.5 (Faster self-serve) and halves the fee (Card deal).
 @export var self_service_speed := 0.5
 @export var card_fee := 0.03
 @export var economy: FuelEconomy = FuelEconomy.new()
@@ -63,6 +66,7 @@ var bays: Array[PumpBay] = []
 var dev_mode := false
 ## Upgrade tree progress: branch id -> how many of its upgrades are owned. Wiped on eviction.
 var owned := {}
+var shop_page := ShopPage.STATION
 
 ## Numbers at the start of a run (after the designer's tuning), restored when a new run starts.
 var _base := {}
@@ -149,8 +153,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == State.SHOP:
 		if event is InputEventKey and event.pressed:
-			if event.physical_keycode >= KEY_1 and event.physical_keycode < KEY_1 + Upgrades.BRANCHES.size():
-				buy(event.physical_keycode - KEY_1)
+			if event.physical_keycode == KEY_TAB:
+				toggle_shop_page()
+				return
+			if event.physical_keycode >= KEY_1 and event.physical_keycode <= KEY_9:
+				var i: int = event.physical_keycode - KEY_1
+				if shop_page == ShopPage.STATION:
+					buy(i)
+				else:
+					buy_pump(i)
 				return
 		if event.is_action_pressed("continue") and not (event is InputEventKey and event.physical_keycode == KEY_SPACE):
 			continue_pressed()
@@ -207,7 +218,9 @@ func dev_add_cash() -> void:
 func apply_tuning() -> void:
 	tank.price_per_liter = economy.price_per_liter
 	for bay in bays:
-		bay.flow_multiplier = self_service_speed if bay.self_service else 1.0
+		bay.flow_multiplier = 1.0
+		if bay.self_service:
+			bay.flow_multiplier = self_service_speed * (1.5 if bay.pump_level >= 2 else 1.0)
 		bay.pump.flow_rate = flow_rate * bay.flow_multiplier
 	sound.apply_tuning()
 
@@ -261,6 +274,7 @@ func continue_pressed() -> void:
 
 func open_shop() -> void:
 	state = State.SHOP
+	shop_page = ShopPage.STATION
 	_overlay.visible = false
 	_refresh_shop()
 	_shop.visible = true
@@ -286,6 +300,45 @@ func buy(branch: int) -> bool:
 	return true
 
 
+func toggle_shop_page() -> void:
+	shop_page = ShopPage.PUMPS if shop_page == ShopPage.STATION else ShopPage.STATION
+	_refresh_shop()
+	_update_hint()
+
+
+## Buys the next upgrade in pump `index`'s own tree. The last pump the player pours can't convert.
+func buy_pump(index: int) -> bool:
+	if state != State.SHOP or index >= bays.size():
+		return false
+	var bay := bays[index]
+	var node := Upgrades.next_pump_node(bay)
+	if node.is_empty():
+		return false
+	if node.id == "self_service" and _played_pump_count() <= 1:
+		_shop_footer.text = "Pump %d is the last pump you pour. Keep it." % (index + 1)
+		return false
+	var price := Upgrades.next_pump_price(self, bay)
+	if wallet.cash < price:
+		_shop_footer.text = "Not enough cash for pump %d's %s ($%.0f)." % [index + 1, node.name, price]
+		return false
+	wallet.add(-price)
+	bay.pump_level += 1
+	owned["pump_%d" % (index + 1)] = bay.pump_level
+	if node.id == "self_service":
+		bay.make_self_service()
+	apply_tuning()
+	_refresh_shop()
+	return true
+
+
+func _played_pump_count() -> int:
+	var n := 0
+	for bay in bays:
+		if not bay.self_service:
+			n += 1
+	return n
+
+
 func shop_card_text(branch: int) -> String:
 	return _shop_cards[branch].text
 
@@ -293,27 +346,62 @@ func shop_card_text(branch: int) -> String:
 func _refresh_shop() -> void:
 	if not _shop:
 		return
-	_shop_title.text = "UPGRADES   after day %d      cash $%.0f" % [day, wallet.cash]
-	for i in Upgrades.BRANCHES.size():
-		var b: Dictionary = Upgrades.BRANCHES[i]
-		var level: int = owned.get(b.id, 0)
-		var lines := ["[%d]  %s" % [i + 1, b.name], ""]
-		for n in b.nodes.size():
-			var node: Dictionary = b.nodes[n]
-			if n < level:
-				lines.append("✓ %s" % node.name)
-			elif n == level:
-				var price := Upgrades.next_price(self, i)
-				lines.append("> %s\n   %s\n   $%.0f%s" % [node.name, node.helps, price, "" if wallet.cash >= price else "  (short)"])
-			else:
-				lines.append("· %s" % node.name)
-		if level >= b.nodes.size():
-			lines.append("\nCOMPLETE")
-		_shop_cards[i].text = "\n".join(lines)
-		var next_price := Upgrades.next_price(self, i)
-		_shop_cards[i].modulate = Color.WHITE if level < b.nodes.size() and wallet.cash >= next_price else Color(1, 1, 1, 0.6)
-	_shop_footer.text = "1–%d buy the next upgrade in a branch      ENTER open the station for day %d  (rent $%.0f)" % [
-		Upgrades.BRANCHES.size(), day + 1, economy.rent_for(day + 1)]
+	var page := "STATION" if shop_page == ShopPage.STATION else "YOUR PUMPS"
+	_shop_title.text = "UPGRADES: %s   after day %d      cash $%.0f" % [page, day, wallet.cash]
+	for i in _shop_cards.size():
+		if shop_page == ShopPage.STATION:
+			_fill_branch_card(i)
+		else:
+			_fill_pump_card(i)
+	var keys := Upgrades.BRANCHES.size() if shop_page == ShopPage.STATION else bays.size()
+	_shop_footer.text = "1–%d buy     TAB %s     ENTER open the station for day %d  (rent $%.0f)" % [
+		keys, "your pumps" if shop_page == ShopPage.STATION else "station upgrades", day + 1, economy.rent_for(day + 1)]
+
+
+func _fill_branch_card(i: int) -> void:
+	var b: Dictionary = Upgrades.BRANCHES[i]
+	var level: int = owned.get(b.id, 0)
+	var lines := ["[%d]  %s" % [i + 1, b.name], ""]
+	for n in b.nodes.size():
+		var node: Dictionary = b.nodes[n]
+		if n < level:
+			lines.append("✓ %s" % node.name)
+		elif n == level:
+			var price := Upgrades.next_price(self, i)
+			lines.append("> %s\n   %s\n   $%.0f%s" % [node.name, node.helps, price, "" if wallet.cash >= price else "  (short)"])
+		else:
+			lines.append("· %s" % node.name)
+	if level >= b.nodes.size():
+		lines.append("\nCOMPLETE")
+	_shop_cards[i].text = "\n".join(lines)
+	_shop_cards[i].modulate = Color.WHITE if level < b.nodes.size() and wallet.cash >= Upgrades.next_price(self, i) else Color(1, 1, 1, 0.6)
+
+
+func _fill_pump_card(i: int) -> void:
+	if i >= bays.size():
+		_shop_cards[i].text = "\n\n(build more pumps\nin the station's\nPUMPS branch)"
+		_shop_cards[i].modulate = Color(1, 1, 1, 0.35)
+		return
+	var bay := bays[i]
+	var lines := ["[%d]  PUMP %d" % [i + 1, i + 1], "self-serve" if bay.self_service else "you pour it", ""]
+	for n in Upgrades.PUMP_TREE.size():
+		var node: Dictionary = Upgrades.PUMP_TREE[n]
+		if n < bay.pump_level:
+			lines.append("✓ %s" % node.name)
+		elif n == bay.pump_level:
+			var price := Upgrades.next_pump_price(self, bay)
+			var blocked: bool = node.id == "self_service" and _played_pump_count() <= 1
+			lines.append("> %s\n   %s\n   %s" % [node.name, node.helps,
+				"keep one pump for yourself" if blocked else "$%.0f%s" % [price, "" if wallet.cash >= price else "  (short)"]])
+		else:
+			lines.append("· %s" % node.name)
+	if bay.pump_level >= Upgrades.PUMP_TREE.size():
+		lines.append("\nCOMPLETE")
+	_shop_cards[i].text = "\n".join(lines)
+	var node := Upgrades.next_pump_node(bay)
+	var can: bool = not node.is_empty() and wallet.cash >= Upgrades.next_pump_price(self, bay) \
+		and not (node.id == "self_service" and _played_pump_count() <= 1)
+	_shop_cards[i].modulate = Color.WHITE if can else Color(1, 1, 1, 0.6)
 
 
 ## Eviction: the run's upgrades are gone; the station goes back to its starting setup.
@@ -324,6 +412,7 @@ func _reset_run_upgrades() -> void:
 	possible_targets.assign(_base_targets)
 	economy.tip_bonus = 0.0
 	owned.clear()
+	shop_page = ShopPage.STATION
 	while bays.size() > pump_count:
 		var bay: PumpBay = bays.pop_back()
 		sound.unwatch_pump(bay.pump)
@@ -393,7 +482,7 @@ func _receipt_text(tier: String, diff: float, r: FuelEconomy.Receipt, xp: int, p
 
 ## A self-service customer paid and drove off: the sale minus the card fee. No tip, combo or XP.
 func _on_self_service_paid(bay: PumpBay, amount: float) -> void:
-	var fee := amount * card_fee
+	var fee := amount * card_fee_for(bay)
 	var earned := amount - fee
 	_day_earned += earned
 	wallet.add(earned)
@@ -404,6 +493,11 @@ func _on_self_service_paid(bay: PumpBay, amount: float) -> void:
 	else:
 		bay.show_empty()
 		_check_day_over()
+
+
+## The card fee a pump charges: halved by its Card deal upgrade (#18).
+func card_fee_for(bay: PumpBay) -> float:
+	return card_fee * (0.5 if bay.pump_level >= 3 else 1.0)
 
 
 func next_arrival_delay() -> float:
@@ -502,7 +596,7 @@ func _update_hint() -> void:
 		_hint_label.text = "ENTER to continue.     M: sound %s" % ("ON" if sound.enabled else "OFF")
 		return
 	if state == State.SHOP:
-		_hint_label.text = "1–%d buy     ENTER open the station" % Upgrades.BRANCHES.size()
+		_hint_label.text = "1–%d buy     TAB switch page     ENTER open the station" % (Upgrades.BRANCHES.size() if shop_page == ShopPage.STATION else bays.size())
 		return
 	var played: Array[String] = []
 	for bay in bays:

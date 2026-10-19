@@ -22,6 +22,8 @@ var target_label: Label
 var flow_multiplier := 1.0
 ## Converted to self-service (#17): customers serve themselves; the player's key does nothing.
 var self_service := false
+## How far up its own upgrade tree this pump is (#18): 1 self-service, 2 faster, 3 card deal.
+var pump_level := 0
 var self_service_component: SelfServiceComponent
 ## Out of service while the attendant cleans an overshoot off the car (#9).
 var cleaning := false
@@ -132,6 +134,7 @@ func make_self_service() -> void:
 
 ## Back to a pump the player pours (new run).
 func make_manual() -> void:
+	pump_level = 0
 	if not self_service:
 		return
 	self_service = false

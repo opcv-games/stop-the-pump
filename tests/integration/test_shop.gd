@@ -88,20 +88,48 @@ func test_given_marketing_branch_then_cars_come_sooner_then_bigger_orders() -> v
 
 func _make_self_service() -> PumpBay:
 	_to_shop()
-	station.buy(PUMPS)  # extra pump
-	station.buy(PUMPS)  # self-service
+	station.buy(PUMPS)  # build pump 3
+	assert_true(station.buy_pump(2))  # pump 3: self-service
 	station.continue_pressed()
 	return station.bays[2]
 
 
-func test_given_pumps_branch_then_extra_pump_then_newest_pump_goes_self_service() -> void:
+func test_given_pumps_branch_then_it_only_builds_pumps_up_to_5() -> void:
+	_to_shop()
+	for i in 3:
+		assert_true(station.buy(PUMPS))
+	assert_eq(station.bays.size(), 5)
+	assert_false(station.buy(PUMPS))
+	for bay in station.bays:
+		assert_false(bay.self_service)
+
+
+func test_given_pumps_page_when_tab_then_cards_show_each_pump() -> void:
+	_to_shop()
+	station.toggle_shop_page()
+	assert_eq(station.shop_page, station.ShopPage.PUMPS)
+	assert_string_contains(station.shop_card_text(0), "PUMP 1")
+	assert_string_contains(station.shop_card_text(0), "Self-service")
+	station.toggle_shop_page()
+	assert_eq(station.shop_page, station.ShopPage.STATION)
+
+
+func test_given_pump_3_converted_then_only_pump_3_is_self_service() -> void:
 	_to_shop()
 	station.buy(PUMPS)
-	assert_eq(station.bays.size(), 3)
-	station.buy(PUMPS)
+	assert_true(station.buy_pump(2))
 	assert_true(station.bays[2].self_service)
 	assert_false(station.bays[0].self_service)
 	assert_string_contains(station.bays[2]._key_label.text, "SELF-SERVE")
+
+
+func test_given_one_played_pump_left_when_converting_it_then_refused() -> void:
+	_to_shop()
+	assert_true(station.buy_pump(0))
+	var cash: float = station.wallet.cash
+	assert_false(station.buy_pump(1), "the last played pump stays the player's")
+	assert_false(station.bays[1].self_service)
+	assert_almost_eq(station.wallet.cash, cash, 0.001)
 
 
 func test_given_self_service_sale_then_cash_minus_card_fee_and_no_combo_or_xp() -> void:
@@ -153,21 +181,30 @@ func test_given_self_service_pump_when_its_key_is_pressed_then_nothing_pours() -
 	assert_eq(bay.pump.amount, 0.0)
 
 
-func test_given_faster_self_serve_and_card_deal_then_speed_up_and_fee_down() -> void:
+func test_given_faster_self_serve_on_pump_3_then_only_pump_3_speeds_up() -> void:
 	_to_shop()
-	for i in 4:
-		station.buy(PUMPS)
-	assert_almost_eq(station.bays[2].pump.flow_rate, station.flow_rate * station.self_service_speed, 0.001)
-	assert_almost_eq(station.self_service_speed, 0.75, 0.001)
-	assert_almost_eq(station.card_fee, 0.015, 0.0001)
 	station.buy(PUMPS)
-	assert_eq(station.bays.size(), 4)
-	assert_false(station.bays[3].self_service, "the last pump in the branch is a normal pump")
+	station.buy(PUMPS)
+	station.buy_pump(2)
+	station.buy_pump(3)
+	assert_true(station.buy_pump(2))  # pump 3: faster self-serve
+	assert_almost_eq(station.bays[2].pump.flow_rate, station.flow_rate * station.self_service_speed * 1.5, 0.001)
+	assert_almost_eq(station.bays[3].pump.flow_rate, station.flow_rate * station.self_service_speed, 0.001)
+
+
+func test_given_card_deal_on_pump_3_then_its_fee_halves() -> void:
+	_to_shop()
+	station.buy(PUMPS)
+	for i in 3:
+		assert_true(station.buy_pump(2))
+	assert_almost_eq(station.card_fee_for(station.bays[2]), 0.015, 0.0001)
+	assert_false(station.buy_pump(2), "pump tree complete")
+	station.toggle_shop_page()
+	assert_string_contains(station.shop_card_text(2), "COMPLETE")
 
 
 func test_given_extra_pump_then_day_2_gives_it_a_customer() -> void:
 	_to_shop()
-	station.buy(PUMPS)
 	station.buy(PUMPS)
 	station.continue_pressed()
 	assert_false(station.bays[2].waiting)
@@ -198,6 +235,8 @@ func test_given_upgrades_when_evicted_then_new_run_starts_clean() -> void:
 	for branch in 5:
 		station.buy(branch)
 		station.buy(branch)
+	station.buy_pump(2)
+	station.buy_pump(2)
 	station.continue_pressed()
 	station.wallet.add(-station.wallet.cash - 5000.0)
 	station.clock.running = true
@@ -211,8 +250,9 @@ func test_given_upgrades_when_evicted_then_new_run_starts_clean() -> void:
 	assert_almost_eq(station.arrival_max, 60.0, 0.001)
 	for bay in station.bays:
 		assert_false(bay.self_service)
-	assert_almost_eq(station.card_fee, 0.03, 0.0001)
+		assert_eq(bay.pump_level, 0)
 	assert_true(station.owned.is_empty())
+	assert_eq(station.shop_page, station.ShopPage.STATION)
 
 
 func test_given_day_2_after_shop_then_every_bay_is_drawn_in_front_of_the_background() -> void:
@@ -225,5 +265,5 @@ func test_given_day_2_after_shop_then_every_bay_is_drawn_in_front_of_the_backgro
 		assert_lt(bay.get_index(), station._overlay.get_index())
 
 
-func test_given_station_then_version_is_0_15() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.15")
+func test_given_station_then_version_is_0_16() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.16")

@@ -4,19 +4,24 @@ extends RefCounted
 ## Upgrades cost cash only, never a gameplay downside, and never replace skill (design rule 1).
 ## They last for the run and are wiped on eviction. Serves: Advancement. Refs #15
 
+## Every pump's own tree, bought on the shop's "Your pumps" page (#18).
+const PUMP_TREE := [
+	{"id": "self_service", "name": "Self-service", "helps": "serves cars on its own: 3% card fee, slow, no tips", "price": 200.0},
+	{"id": "faster_self_serve", "name": "Faster self-serve", "helps": "this pump pours 50% faster", "price": 200.0},
+	{"id": "card_deal", "name": "Card deal", "helps": "this pump's card fee halves", "price": 250.0},
+]
+
 const BRANCHES := [
 	{"id": "marketing", "name": "MARKETING", "nodes": [
 		{"id": "flyers", "name": "Flyers", "helps": "cars arrive 20% sooner", "price": 80.0},
 		{"id": "radio_ad", "name": "Radio ad", "helps": "cars arrive 20% sooner", "price": 150.0},
 		{"id": "billboard", "name": "Billboard", "helps": "$50 and $60 orders", "price": 220.0},
 	]},
-	# Turbo nozzle removed after playtest 12: faster pumps made combos harder (#17).
+	# Builds pumps only; each pump then has its own tree (PUMP_TREE, #18). Turbo removed (#17).
 	{"id": "pumps", "name": "PUMPS", "nodes": [
-		{"id": "extra_pump", "name": "Extra pump", "helps": "one more pump", "price": 250.0},
-		{"id": "self_service", "name": "Self-service", "helps": "your newest pump serves cars on its own (card fee, slow)", "price": 200.0},
-		{"id": "faster_self_serve", "name": "Faster self-serve", "helps": "self-service pumps pour 50% faster", "price": 200.0},
-		{"id": "card_deal", "name": "Card deal", "helps": "card fee 3% > 1.5%", "price": 250.0},
-		{"id": "another_pump", "name": "Another pump", "helps": "one more pump", "price": 400.0},
+		{"id": "pump_3", "name": "Pump 3", "helps": "build a third pump", "price": 250.0},
+		{"id": "pump_4", "name": "Pump 4", "helps": "build a fourth pump", "price": 400.0},
+		{"id": "pump_5", "name": "Pump 5", "helps": "build a fifth pump", "price": 550.0},
 	]},
 	{"id": "tank", "name": "TANK", "nodes": [
 		{"id": "tank_1", "name": "Bigger tank", "helps": "+100 L", "price": 150.0},
@@ -47,6 +52,16 @@ static func next_price(station: Node, branch: int) -> float:
 	return roundf(node.price * station.shop_price_scale) if node else 0.0
 
 
+## The next upgrade in a pump's own tree, or {} when it is complete.
+static func next_pump_node(bay: PumpBay) -> Dictionary:
+	return PUMP_TREE[bay.pump_level] if bay.pump_level < PUMP_TREE.size() else {}
+
+
+static func next_pump_price(station: Node, bay: PumpBay) -> float:
+	var node := next_pump_node(bay)
+	return roundf(node.price * station.shop_price_scale) if node else 0.0
+
+
 static func apply(station: Node, id: String) -> void:
 	match id:
 		"flyers", "radio_ad":
@@ -56,14 +71,8 @@ static func apply(station: Node, id: String) -> void:
 			for order in [50.0, 60.0]:
 				if not station.possible_targets.has(order):
 					station.possible_targets.append(order)
-		"extra_pump", "another_pump":
+		"pump_3", "pump_4", "pump_5":
 			station.add_pump()
-		"self_service":
-			station.bays[-1].make_self_service()
-		"faster_self_serve":
-			station.self_service_speed = 0.75
-		"card_deal":
-			station.card_fee = 0.015
 		"tank_1", "tank_2", "tank_3":
 			station.tank.capacity_liters += 100.0  # filled at the next morning's refill
 		"squeegee":

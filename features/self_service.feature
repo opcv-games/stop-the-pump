@@ -19,8 +19,13 @@ Feature: Self-service pumps
     When the player presses 3
     Then nothing happens
 
-  Scenario: Upgrades
-    When the player buys Faster self-serve
-    Then self-service pumps pour 50% faster
-    When the player buys Card deal
-    Then the card fee is 1.5%
+  Scenario: Each pump has its own tree (#18)
+    Given the night shop's "Your pumps" page (Tab)
+    When the player buys pump 3's Self-service, then Faster self-serve, then Card deal
+    Then pump 3 serves itself, pours 50% faster, and pays a 1.5% card fee
+    And the other pumps are unchanged
+
+  Scenario: The player keeps at least one pump
+    Given pump 2 is the only pump the player still pours
+    When the player tries to convert pump 2
+    Then nothing is bought
