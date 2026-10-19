@@ -2,6 +2,13 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.21–v0.22 Lanes, cars, station name, HUD pinned to lanes  (#24, #25)
+Hypothesis: A 3D station with one lane per pump and each pump's HUD pinned to its lane stays readable while looking like a real place.
+Variable: grey 2D panels → 3D lanes + compact lane cards
+Sessions: 1 (self: 1, others: 0)
+Observed: "The art looks good." Pumps read fine; card-to-pump mapping is obvious; the staircase looks good, but it is unclear how it scales to 10 pumps and beyond. Wants a 10x speed.
+Decision: KEPT (Phase 4 art direction for the slice). Added 10x speed (v0.22.1). Scaling past 5 pumps goes to Later (camera pulls back, compact cards).
+
 ## 2026-10-19 — v0.19.0 Endless mode, auto on/off per pump  (#20)
 Hypothesis: Switching a pump between auto and manual lets the player push for combos when a day is at risk (9 Kings' manual attack).
 Variable: auto locked on → auto on/off per pump; endless mode after day 10

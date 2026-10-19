@@ -21,6 +21,7 @@ Feature: The run arc
       | 1x    |
       | 2x    |
       | 3x    |
+      | 10x   |
 
   Scenario: Full automation is allowed
     Given pumps 1 and 2

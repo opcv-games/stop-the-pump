@@ -97,7 +97,8 @@ var expanded := false
 ## The player's station name, shown on the pylon (#24).
 var station_name := "Gas Bar Blues"
 var name_input: LineEdit
-## Game speed picked by the player: 1, 2 or 3 (#19).
+## Game speed picked by the player: one of SPEEDS (#19). 10x is for fully automated stretches.
+const SPEEDS := [1, 2, 3, 10]
 var speed := 1
 
 var _day_id := 0  # stale customer timers from a previous day are ignored
@@ -284,10 +285,10 @@ func note_tuned(key: String) -> void:
 
 ## Game speed (#19): the whole game, clock and timers included, runs `n` times faster.
 func set_speed(n: int) -> void:
-	speed = clampi(n, 1, 3)
+	speed = n if SPEEDS.has(n) else 1
 	Engine.time_scale = speed
 	for i in _speed_buttons.size():
-		_speed_buttons[i].button_pressed = i + 1 == speed
+		_speed_buttons[i].button_pressed = SPEEDS[i] == speed
 
 
 ## Switches pump `i` between auto and manual (#20). False when it can't (no upgrade, busy).
@@ -314,7 +315,7 @@ func go_endless() -> void:
 
 
 func cycle_speed() -> void:
-	set_speed(speed % 3 + 1)
+	set_speed(SPEEDS[(SPEEDS.find(speed) + 1) % SPEEDS.size()])
 
 
 func speed_text() -> String:
@@ -961,12 +962,12 @@ func _build_station() -> void:
 	_shop_footer = Greybox.label(_shop, "", 20, Vector2(0, 510), Vector2(1152, 60))
 	_shop.visible = false
 
-	# Game speed (#19): 1x 2x 3x at the top left, also S to cycle.
+	# Game speed (#19): 1x 2x 3x 10x at the top left, also S to cycle.
 	var speed_row := HBoxContainer.new()
 	speed_row.position = Vector2(8, 6)
 	speed_row.add_theme_constant_override("separation", 4)
 	add_child(speed_row)
-	for n in [1, 2, 3]:
+	for n in SPEEDS:
 		var b := Button.new()
 		b.text = "%dx" % n
 		b.toggle_mode = true

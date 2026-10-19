@@ -8,8 +8,8 @@
 - [x] `[art]` **Look test: Hopper station kit in Blender, isometric renders at morning, afternoon, night** (#21, approved)
 - [x] `[art]` **Look test in Godot: isometric 3D station behind the HUD, light from the day clock, rain** (#22, v0.20.0; painterly filter rejected)
 - [x] `[art]` **Lanes kit (Blender): parallel lanes, modular pump/island/car props, footprint expansion, decor** (#23, approved)
-- [ ] `[art]` **Lanes in Godot: remove the painterly filter, one lane per pump, cars drive in top right and out bottom left, footprint expansion upgrade (paves the vacant lot), player names the station on the pylon** (#24, v0.21.0, awaiting playtest)
-- [ ] `[art]` **Anchor each pump's HUD (order, meter, bubble, result) to its 3D lane; drop the grey panels and 2D cars** (#25, v0.22.0, awaiting playtest)
+- [ ] `[art]` **Lanes in Godot: remove the painterly filter, one lane per pump, cars drive in top right and out bottom left, footprint expansion upgrade (paves the vacant lot), player names the station on the pylon** (#24, v0.21.0, kept)
+- [ ] `[art]` **Anchor each pump's HUD (order, meter, bubble, result) to its 3D lane; drop the grey panels and 2D cars** (#25, v0.22.0, kept; 10x speed in v0.22.1)
 - [x] `[standard]` **Endless mode and auto on/off per pump** (#20, v0.19.0, kept; endless parked until balance)
   - Given day 10 is survived, When I press E, Then the run keeps going (endless) with rising rent.
   - Given pump 1 has Self-service, When I press Shift+1, Then it switches to manual (and back).
@@ -35,6 +35,7 @@
 - [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (playtest 3: clicks are too fast to count at $4/s, so this needs rethinking)
 
 ## Later (deliberately vague)
+- Scale past 5 pumps (10 and beyond): camera pulls back as the station grows; lane cards switch to a one-line compact mode past ~6 pumps
 - Station looks upgrades in later levels (clean up the run-down station: paint, repair the sign, fix potholes)
 - New characters to replace the $20 Guy; customers that matter to automated pumps too
 - Balance the run arc: manual clearly worth it on days 1–3, mostly automated by day 4 (bot harness #6)

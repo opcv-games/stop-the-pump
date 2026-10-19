@@ -178,3 +178,4 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Parallel lanes (cars top right to bottom left), one per pump; footprint expansion needed beyond 3 pumps; decor props | Designer request | Review of v0.20 (#23) |
 | 2026-10-19 | Station starts run-down (grime, potholes, faded paint); player-named pylon sign; 3 lanes plus a vacant lot for expansion | Designer request; looks upgrades come in later levels | Review of lanes kit (#23) |
 | 2026-10-19 | Pump HUD is a compact card pinned to each 3D lane, in a staircase so cards never overlap or cover pumps; combo and XP move to the top right | Designer request (#25) | v0.22.0 |
+| 2026-10-19 | Lanes, cars, named pylon and lane-pinned HUD kept; 10x speed added | "The art looks good"; pumps and cards read at a glance | Playtest 18 (#24, #25) |

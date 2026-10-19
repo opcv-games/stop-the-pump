@@ -67,12 +67,19 @@ func test_given_speed_2x_then_engine_runs_twice_as_fast() -> void:
 	assert_string_contains(station.speed_text(), "2x")
 
 
-func test_given_speed_cycles_then_1_2_3_1() -> void:
+func test_given_speed_cycles_then_2_3_10_1() -> void:
 	var seen := []
 	for i in 4:
 		station.cycle_speed()
 		seen.append(station.speed)
-	assert_eq(seen, [2, 3, 1, 2])
+	assert_eq(seen, [2, 3, 10, 1])
+
+
+func test_given_10x_then_engine_runs_ten_times_as_fast_and_its_button_is_lit() -> void:
+	station.set_speed(10)
+	assert_eq(Engine.time_scale, 10.0)
+	assert_true(station._speed_buttons[3].button_pressed)
+	assert_false(station._speed_buttons[0].button_pressed)
 
 
 func test_given_both_pumps_when_both_converted_then_both_self_service() -> void:

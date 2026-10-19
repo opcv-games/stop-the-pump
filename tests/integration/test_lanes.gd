@@ -129,6 +129,6 @@ func test_given_empty_name_then_a_default_is_used() -> void:
 	assert_eq(_world().name_label.text, "GAS BAR BLUES")
 
 
-func test_given_station_then_version_is_0_22() -> void:
+func test_given_station_then_version_is_0_22_1() -> void:
 	_make()
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.22")
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.22.1")

@@ -31,7 +31,7 @@ godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs 
 ## Designer tools (in game)
 - **F1 dev mode:** Q Super Perfect, W Perfect, E Good, R OK, T miss $10 under, Y miss $10 over (next waiting pump).
 - **F3 / "End day" button:** settle the day now. **F4 / "+$100" button:** free cash (works in the upgrade tree too).
-- **S / 1x 2x 3x buttons:** game speed (player feature, #19).
+- **S / 1x 2x 3x 10x buttons:** game speed (player feature, #19). 10x is for automated stretches; hand-stopping at 10x is coarse.
 - **Shift + n / AUTO button:** switch pump n between auto and manual (player feature, #20). **E** on the run-complete screen: endless mode.
 - **F5:** toggle rain (dev, #22).
 - **F2 tuning panel:** every number in `scripts/systems/tuning.gd`, saved to `user://tuning.cfg`. When the designer pastes "Copy values", treat it as their preferred tuning and fold it into the defaults when asked.
