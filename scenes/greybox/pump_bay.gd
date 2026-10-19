@@ -7,6 +7,8 @@ signal pump_stopped(bay: PumpBay, final_amount: float)
 signal cleaning_finished(bay: PumpBay)
 ## A self-service customer has paid for `amount` and left.
 signal self_service_paid(bay: PumpBay, amount: float)
+## The player clicked this pump's AUTO button (#20).
+signal auto_toggle_requested(bay: PumpBay)
 ## The customer gave up and drove off without buying (Impatient Businessman, #5).
 signal customer_left(bay: PumpBay)
 
@@ -22,7 +24,8 @@ var result_label: Label
 var target_label: Label
 ## Pour speed relative to the station's (self-service pumps are slower, #17).
 var flow_multiplier := 1.0
-## Converted to self-service (#17): customers serve themselves; the player's key does nothing.
+## Self-service is running right now (#17): customers serve themselves; the player's key does nothing.
+## A pump that owns the upgrade (pump_level >= 1) can switch it off to be poured by hand (#20).
 var self_service := false
 ## How far up its own upgrade tree this pump is (#18): 1 self-service, 2 faster, 3 card deal.
 var pump_level := 0
@@ -42,6 +45,7 @@ var _bubble_label: Label
 var _car: Control
 var _car_body: ColorRect
 var _car_roof: ColorRect
+var _auto_button: Button
 
 
 func setup(bay_index: int, flow_rate: float) -> void:
@@ -180,25 +184,52 @@ func release() -> void:
 	pump.stop_pour()
 
 
+## First Self-service upgrade: give this pump its self-service component and switch it on.
 func make_self_service() -> void:
-	if self_service:
-		return
-	self_service = true
-	self_service_component = SelfServiceComponent.new()
-	self_service_component.name = "SelfService"
-	add_child(self_service_component)
-	self_service_component.attach(pump)
-	self_service_component.phase_changed.connect(_on_self_service_phase)
-	self_service_component.paid.connect(func(amount: float) -> void: self_service_paid.emit(self, amount))
-	_key_label.text = "[ %d ]  SELF-SERVE" % ((index + 1) % 10)
+	if not self_service_component:
+		self_service_component = SelfServiceComponent.new()
+		self_service_component.name = "SelfService"
+		add_child(self_service_component)
+		self_service_component.phase_changed.connect(_on_self_service_phase)
+		self_service_component.paid.connect(func(amount: float) -> void: self_service_paid.emit(self, amount))
+	_auto_button.visible = true
+	set_auto(true)
+
+
+## Auto on: customers serve themselves. Auto off: the player pours this pump by hand (#20).
+func set_auto(on: bool) -> void:
+	self_service = on
+	if on:
+		self_service_component.attach(pump)
+		if not waiting and not pump.is_done and pump.amount == 0.0:
+			self_service_component.begin()
+	else:
+		self_service_component.detach()
+		_light.color = IDLE_LIGHT
+	_auto_button.text = "AUTO ON" if on else "AUTO OFF"
+	_auto_button.button_pressed = on
 	if not waiting and not pump.is_done:
-		self_service_component.begin()
+		_show_order(false)
+		if not on:
+			say(Customers.line(customer.type if customer.type != "" else "regular", "hello", pump.target))
+	_key_label.text = "[ %d ]  SELF-SERVE" % ((index + 1) % 10) if on else "[ %d ]" % ((index + 1) % 10)
 
 
-## Back to a pump the player pours (new run).
+## Switches auto on/off. Refused without the upgrade, mid-pour, or while a customer pays.
+func toggle_auto() -> bool:
+	if pump_level < 1 or pump.is_pouring:
+		return false
+	if self_service and self_service_component.phase == SelfServiceComponent.Phase.PAYING:
+		return false
+	set_auto(not self_service)
+	return true
+
+
+## Back to a plain pump the player pours (new run).
 func make_manual() -> void:
 	pump_level = 0
-	if not self_service:
+	_auto_button.visible = false
+	if not self_service_component:
 		return
 	self_service = false
 	self_service_component.detach()
@@ -273,6 +304,19 @@ func _build() -> void:
 
 	_key_label = Greybox.label(body, "[ %d ]" % ((index + 1) % 10), 24, Vector2(0, 170), Vector2(250, 36))
 	_key_label.add_theme_color_override("font_color", Color(0.15, 0.15, 0.17))
+
+	# AUTO switch (#20): only on pumps that own the Self-service upgrade. Shift + number does the same.
+	_auto_button = Button.new()
+	_auto_button.toggle_mode = true
+	_auto_button.focus_mode = Control.FOCUS_NONE
+	_auto_button.add_theme_font_size_override("font_size", 14)
+	_auto_button.position = Vector2(170, 124)
+	_auto_button.size = Vector2(72, 30)
+	_auto_button.visible = false
+	_auto_button.pressed.connect(func() -> void:
+		_auto_button.button_pressed = self_service  # the station decides; show the real state
+		auto_toggle_requested.emit(self))
+	body.add_child(_auto_button)
 
 	# The car parked in front of the pump: flat boxes, colour = customer type (#5).
 	_car = Control.new()

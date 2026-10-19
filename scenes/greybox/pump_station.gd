@@ -10,7 +10,8 @@ extends Control
 ## Kept: #17 self-service pumps (replace the Turbo nozzle).
 ## Kept: #18 an upgrade tree per pump (shop page 2, Tab).
 ## Kept: #5 customers with rules (Grandpa, Businessman), grey car + speech bubble.
-## Testing: #19 run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed.
+## Kept: #19 run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed.
+## Testing: #20 endless mode after day 10; auto on/off per pump (Shift + number).
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP }
 enum ShopPage { STATION, PUMPS }
@@ -84,6 +85,8 @@ var day := 0
 var evicted := false
 ## The last day of the run was survived (#19).
 var run_complete := false
+## Endless mode (#20): kept going after the last day; only eviction ends the run.
+var endless := false
 ## Game speed picked by the player: 1, 2 or 3 (#19).
 var speed := 1
 
@@ -165,6 +168,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		_update_hint()
 		return
 	if state == State.SUMMARY:
+		if run_complete and event is InputEventKey and event.pressed and event.physical_keycode == KEY_E:
+			go_endless()
+			return
 		if event.is_action_pressed("continue"):
 			continue_pressed()
 		return
@@ -182,6 +188,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 		if event.is_action_pressed("continue") and not (event is InputEventKey and event.physical_keycode == KEY_SPACE):
 			continue_pressed()
+		return
+	# Shift + number: switch that pump between auto and manual (#20). Checked before pouring.
+	if event is InputEventKey and event.pressed and event.shift_pressed \
+			and event.physical_keycode >= KEY_1 and event.physical_keycode <= KEY_9:
+		toggle_auto(event.physical_keycode - KEY_1)
 		return
 	for i in bays.size():
 		var action := "pour_%d" % (i + 1)
@@ -259,6 +270,24 @@ func set_speed(n: int) -> void:
 		_speed_buttons[i].button_pressed = i + 1 == speed
 
 
+## Switches pump `i` between auto and manual (#20). False when it can't (no upgrade, busy).
+func toggle_auto(i: int) -> bool:
+	if i >= bays.size() or not bays[i].toggle_auto():
+		return false
+	apply_tuning()
+	_update_hint()
+	return true
+
+
+## Endless mode (#20): keep the run going past the last day.
+func go_endless() -> void:
+	if not run_complete:
+		return
+	endless = true
+	run_complete = false
+	open_shop()
+
+
 func cycle_speed() -> void:
 	set_speed(speed % 3 + 1)
 
@@ -276,6 +305,7 @@ func start_run() -> void:
 	_reset_run_upgrades()
 	evicted = false
 	run_complete = false
+	endless = false
 	_run_earned = 0.0
 	day = 0
 	wallet.add(starting_cash - wallet.cash)
@@ -415,7 +445,10 @@ func _fill_pump_card(i: int) -> void:
 		_shop_cards[i].modulate = Color(1, 1, 1, 0.35)
 		return
 	var bay := bays[i]
-	var lines := ["[%d]  PUMP %d" % [i + 1, i + 1], "self-serve" if bay.self_service else "you pour it", ""]
+	var mode := "you pour it"
+	if bay.pump_level >= 1:
+		mode = "self-serve (auto on)" if bay.self_service else "self-serve (auto off)"
+	var lines := ["[%d]  PUMP %d" % [i + 1, i + 1], mode, ""]
 	for n in Upgrades.PUMP_TREE.size():
 		var node: Dictionary = Upgrades.PUMP_TREE[n]
 		if n < bay.pump_level:
@@ -605,7 +638,7 @@ func _settle_day() -> void:
 	var rent := economy.rent_for(day)
 	wallet.add(-(refill + rent))
 	evicted = wallet.cash < 0.0
-	run_complete = not evicted and day >= run_days
+	run_complete = not evicted and not endless and day >= run_days
 	_run_earned += _day_earned
 	state = State.SUMMARY
 	var reason := "Out of fuel" if tank.is_empty() else "11:00 PM"
@@ -615,14 +648,14 @@ func _settle_day() -> void:
 			"Earned this run      +$%.2f" % _run_earned,
 			"Cash left               $%.2f" % wallet.cash,
 			"XP                         %d" % wallet.xp, "",
-			"Press ENTER to start a new run",
+			"ENTER  new run          E  keep going (endless)",
 		])
 		summary_label.add_theme_color_override("font_color", TIER_COLORS[ScoreTiers.SUPER_PERFECT])
 		_overlay.visible = true
 		_update_hint()
 		return
 	summary_label.text = "\n".join([
-		"EVICTED" if evicted else "DAY %d/%d CLOSED" % [day, run_days],
+		"EVICTED" if evicted else ("DAY %d CLOSED (endless)" % day if endless else "DAY %d/%d CLOSED" % [day, run_days]),
 		reason,
 		"",
 		"Earned today         +$%.2f" % _day_earned,
@@ -639,7 +672,8 @@ func _settle_day() -> void:
 
 
 func _on_time_changed(_hour: float) -> void:
-	_clock_label.text = "DAY %d/%d     %s" % [day, run_days, clock.label()]
+	var day_text := "DAY %d (endless)" % day if endless else "DAY %d/%d" % [day, run_days]
+	_clock_label.text = "%s     %s" % [day_text, clock.label()]
 	_day_bar.size.x = 400.0 * clock.progress()
 
 
@@ -674,6 +708,10 @@ func _update_hint() -> void:
 			played.append(str((bay.index + 1) % 10))
 	var keys := ", ".join(played)
 	var pour := "Hold %s to pour.  Release to stop." % keys if keys != "" else "Fully automated."
+	for bay in bays:
+		if bay.pump_level >= 1:
+			pour += "  Shift+n auto"
+			break
 	_hint_label.text = "%s    S speed %s    M sound %s    C cleaning %s    F1 dev    F2 tuning" % [
 		pour, speed_text(), "ON" if sound.enabled else "OFF", "ON" if cleaning_enabled else "OFF"]
 
@@ -705,6 +743,7 @@ func _add_bay(i: int) -> void:
 	bay.cleaning_finished.connect(func(b: PumpBay) -> void: _customer_after(b, next_arrival_delay()))
 	bay.self_service_paid.connect(_on_self_service_paid)
 	bay.customer_left.connect(_on_customer_left)
+	bay.auto_toggle_requested.connect(func(b: PumpBay) -> void: toggle_auto(b.index))
 	bay.customer.patience_seconds = businessman_patience
 	sound.watch_pump(bay.pump, i)
 	bays.append(bay)

@@ -26,3 +26,20 @@ Feature: The run arc
     Given pumps 1 and 2
     When the player converts both to self-service
     Then both are self-service and the station keeps running
+
+  Scenario: Endless mode
+    Given the run-complete screen after day 10
+    When the player presses E
+    Then the night shop opens, day 11 follows, and the run only ends by eviction
+
+  Scenario: Switching a pump between auto and manual
+    Given pump 1 owns the Self-service upgrade and runs on auto
+    When the player presses Shift+1 (or clicks its AUTO button)
+    Then the player pours pump 1 by hand and earns tips, combo and XP
+    When the player presses Shift+1 again
+    Then pump 1 serves itself again
+
+  Scenario: No switching while a self-service customer pays
+    Given pump 1's self-service customer is paying
+    When the player tries to switch pump 1 to manual
+    Then nothing changes
