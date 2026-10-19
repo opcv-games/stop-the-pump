@@ -116,7 +116,9 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 
 ## 9b. Art Direction (Phase 4, decided 2026-10-19)
 - **View:** isometric, one fixed camera on the whole station (pumps, kiosk, street).
-- **Style:** impressionist painting, after Edward Hopper's *Gas* (1940): a lonely roadside station, warm light against dark woods, quiet melancholy. Soft brush texture, limited palette, light doing the storytelling.
+- **Layout:** parallel lanes, one per pump. Cars enter at the top right and leave at the bottom left. Three lanes fit the starting footprint; an "Expand the station footprint" upgrade adds room for lanes 4 and 5.
+- **Decor:** a broken-down car beside the house, a tyre pile, oil barrels, a bench, a vending machine, an air pump, a phone booth.
+- **Style:** clean low-poly with Hopper's *Gas* (1940) as the mood reference: a lonely roadside station, warm light against dark woods, limited palette, light doing the storytelling. *(The impressionist post-process was tried in v0.20 and removed: "it doesn't help". Art direction to be revisited later.)*
 - **Time of day:** the day clock drives the light. Morning: low warm sun from the east, long shadows. Afternoon: high flat light, bleached colours. Night (toward 11 pm): pump lights and kiosk glow, deep blue sky.
 - **Weather:** rain cycles: wet asphalt reflections, streaks, darker palette.
 - **Readability first (affordances):** the pump display, the customer's order and the pump state must stay readable over any light or rain. Pumps in use glow; self-service pumps look different at a glance.
@@ -170,3 +172,5 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Phase 3 complete; Phase 4 begins | Core loop fun (playtests 8–17); slice mechanics in grey | Playtest 17 |
 | 2026-10-19 | Endless mode parked until balance | Designer: later | Playtest 17 (#20) |
 | 2026-10-19 | Look test approved: Hopper kit, isometric composition and mood | Designer review of docs/art/look_test_*.png | #21 |
+| 2026-10-19 | Impressionist post-process removed; clean low-poly for now | Designer: it doesn't help; art direction later | Review of v0.20 (#22) |
+| 2026-10-19 | Parallel lanes (cars top right to bottom left), one per pump; footprint expansion needed beyond 3 pumps; decor props | Designer request | Review of v0.20 (#23) |

@@ -10,7 +10,12 @@ Rule: the things you act on are saturated and lit; the world around them is mute
 | **Car** | "A customer is waiting here." Its colour codes the customer type. | Low, long, horizontal: the opposite of the pump's vertical, so the two never blur together. Muted colours so the pumps stay the brightest thing. |
 | **Station building** | Mood and place. Not interactive. | Small white clapboard box, dark roof, warm yellow windows that light up at night. Low contrast by day. |
 | **Sign pole** | Mood: "a roadside gas station". | Tall thin pole with a round sign; frames the composition like Hopper's Mobilgas sign. |
-| **Road** | "Cars come from here." Leads the eye from the edge of the screen to the pumps. | A strip that enters from the left and runs past the pumps. |
+| **Road** | "Cars come from here." | Runs along the bottom of the station; aprons at both ends lead into and out of the lanes. |
+| **Lane** | "Cars flow this way, one lane per pump." | A dark asphalt strip with white arrows pointing bottom-left (direction of travel). |
+| **Pump island** | "The pump belongs to this lane." | A low kerb beside each lane carrying its pump. |
+| **Footprint expansion** | "The station got bigger." | A newer, slightly lighter concrete slab with two more lanes. |
+| **Broken-down car** | Comedy and mood. Must never look like a customer. | Up on blocks, a flat tyre, a missing door, grass around it, rust brown (low saturation, never the pumps' red). Beside the house, away from the lanes. |
+| **Tyre pile, oil barrels, bench, vending machine, air pump, phone booth** | Place and mood. Not interactive. | Muted colours, small, at the edges of the forecourt and around the house. The vending machine glows softly at night, never brighter than the pump globes. |
 | **Woods** | Mood and frame. Not interactive. | Dark, dense masses of trees behind the station; deepest values in the scene, so everything in front pops. |
 | **Grass / ground** | Mood. | Hopper's dry gold grass at the edge of the road; flat, quiet. |
 
