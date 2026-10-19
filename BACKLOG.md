@@ -7,7 +7,7 @@
 ## Now (committed, top = highest priority)
 - [x] `[juice]` **Juice pass: pour stream, Perfect sparkle, cash pops, cars from the road, world shake** (#26, v0.23.0, kept)
 - [ ] `[juice]` **Cars serve only once parked, drive smoothly; glug + crick-crack-crock sounds; new pumps pop out of the ground** (#27, v0.24.0, awaiting playtest)
-- [ ] `[art]` **Cosmetic prop for every upgrade (Blender), popping in like the pumps** (#28) (tanks, billboard, radio antenna, jukebox, squeegee bucket, tip jar, card reader on self-serve pumps...)
+- [ ] `[art]` **Cosmetic prop for every upgrade (Blender), popping in like the pumps** (#28; Blender props done, awaiting review: docs/art/upgrades_all.png; Godot wiring next) (tanks, billboard, radio antenna, jukebox, squeegee bucket, tip jar, card reader on self-serve pumps...)
 - [x] `[art]` **Look test: Hopper station kit in Blender, isometric renders at morning, afternoon, night** (#21, approved)
 - [x] `[art]` **Look test in Godot: isometric 3D station behind the HUD, light from the day clock, rain** (#22, v0.20.0; painterly filter rejected)
 - [x] `[art]` **Lanes kit (Blender): parallel lanes, modular pump/island/car props, footprint expansion, decor** (#23, approved)

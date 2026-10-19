@@ -22,6 +22,25 @@ Rule: the things you act on are saturated and lit; the world around them is mute
 | **Woods** | Mood and frame. Not interactive. | Dark, dense masses of trees behind the station; deepest values in the scene, so everything in front pops. |
 | **Grass / ground** | Mood. | Hopper's dry gold grass at the edge of the road; flat, quiet. |
 
+## Upgrade props (#28): every upgrade shows on the station and pops in
+Rule: props are muted and smaller than the pumps; nothing but the pumps uses saturated red. Each prop
+says "you bought this" at a glance.
+
+| Upgrade | Prop | What it tells the player |
+|---|---|---|
+| Flyers | A-frame sandwich board at the entrance | Marketing is working |
+| Radio ad | Antenna mast on the roof | Marketing is on air |
+| Billboard | Billboard across the road | Marketing at full size |
+| Bigger tank I/II/III | 1, 2, 3 white fuel tanks on cradles beside the house | Fuel capacity, counted at a glance |
+| Squeegee | Bucket and squeegee at the end of the first island | Cleaning is faster |
+| Tip jar | Glass jar on a stand by the door | Tips are bigger |
+| Pressure washer | Yellow washer cart at the exit | Cleaning is fastest |
+| Bluesy radio | Vintage console radio by the bench | The vibe (max combo) is up |
+| Jukebox | Softly glowing jukebox on the porch, never brighter than the globes | The vibe is at its peak |
+| Self-service (per pump) | Blue card reader on the pump's side | This pump serves itself (matches the blue strip on its card) |
+| Faster self-serve | Yellow speed band round the pump | This self-serve pump is quicker |
+| Card deal | Small sticker on the card reader | This pump's card fee is lower |
+
 ## Light (from the day clock)
 - **Morning:** low warm sun from the east, long shadows across the road.
 - **Afternoon:** high flat light, bleached colours.

@@ -12,6 +12,8 @@ Writes:
     assets/art/export/station_scenery.glb  (ground, road, aprons, forecourt + expansion slab,
                                             lane strips 1-5, station, woods, sign, decor)
     assets/art/export/station_props.glb    (Pump, Island, Car: each at the origin, for instancing)
+    assets/art/export/station_upgrades.glb (#28: one prop per upgrade, in place; per-pump props
+                                            PumpCardReader/PumpSpeedBand/PumpDealSticker at the origin)
     docs/art/lanes_3.png, docs/art/lanes_5.png  (review renders)
 Affordances: docs/art/AFFORDANCES.md. Refs #23
 
@@ -121,6 +123,14 @@ def mats():
 		"board": material("SignBoard", BOARD),
 		"bulb": material("SignBulb", (1.0, 0.9, 0.6, 1), emission=1.2),
 		"bulb_dead": material("DeadBulb", (0.20, 0.19, 0.17, 1)),
+		"tank": material("TankWhite", (0.82, 0.82, 0.78, 1), roughness=0.5),
+		"yellow": material("WorkYellow", (0.80, 0.62, 0.16, 1), roughness=0.6),
+		"blue": material("CardBlue", (0.20, 0.36, 0.72, 1), roughness=0.5),
+		"screen": material("CardScreen", (0.55, 0.80, 0.70, 1), emission=0.8),
+		"jar": material("JarGlass", (0.70, 0.80, 0.78, 1), roughness=0.1),
+		"coins": material("Coins", (0.75, 0.62, 0.30, 1), roughness=0.4),
+		"jukebox": material("JukeboxGlow", (1.0, 0.55, 0.38, 1), emission=1.0),
+		"poster": material("Poster", (0.78, 0.70, 0.52, 1)),
 	})
 
 
@@ -370,6 +380,92 @@ def build_dirt(col, back, base_front):
 	join(parts, "Dirt", col)
 
 
+def build_upgrades(col):
+	"""One prop per upgrade (#28), placed where it sits on the station. Godot hides them all and pops
+	each one in when its upgrade is bought. Per-pump props are built at the pump's origin."""
+	back = lane_y(0) + LANE_W / 2 + 1.6
+	sx, sy = 2.0, back + 4.2
+	front_y = sy - 2.27
+
+	# Marketing: sandwich board at the entrance, antenna on the roof, billboard across the road.
+	join([
+		box("SideA", (1.0, 0.06, 1.3), (13.6, -3.0, 0.6), M["wood"], rot=(math.radians(14), 0, -math.pi / 4)),
+		box("SideB", (1.0, 0.06, 1.3), (13.75, -2.85, 0.6), M["wood"], rot=(math.radians(-14), 0, -math.pi / 4)),
+		box("PosterA", (0.8, 0.02, 0.9), (13.55, -3.08, 0.68), M["poster"], rot=(math.radians(14), 0, -math.pi / 4)),
+	], "UpFlyers", col)
+	parts = [cylinder("Mast", 0.06, 3.4, (sx + 2.6, sy + 1.2, 3.5 + 1.7), M["steel"], verts=6)]
+	for k, w in enumerate([1.4, 1.0, 0.6]):
+		parts.append(box("Bar", (w, 0.05, 0.05), (sx + 2.6, sy + 1.2, 4.4 + k * 0.8), M["steel"], rot=(0, 0, -math.pi / 4)))
+	parts.append(sphere("Tip", 0.08, (sx + 2.6, sy + 1.2, 6.95), M["rim"]))
+	join(parts, "UpRadioAd", col)
+	bx, by = 3.5, ROAD_Y - 6.5
+	join([
+		cylinder("LegL", 0.15, 4.2, (bx - 2.0, by + 2.0, 2.1), M["wood"], verts=6),
+		cylinder("LegR", 0.15, 4.2, (bx + 2.0, by - 2.0, 2.1), M["wood"], verts=6),
+		box("Board", (6.5, 0.25, 2.6), (bx, by, 4.7), M["board"], rot=(0, 0, -math.pi / 4)),
+		box("Frame", (6.8, 0.2, 2.9), (bx + 0.08, by + 0.08, 4.7), M["roof"], rot=(0, 0, -math.pi / 4)),
+		box("Stripe", (6.5, 0.27, 0.35), (bx - 0.01, by - 0.01, 5.65), M["rim"], rot=(0, 0, -math.pi / 4)),
+	], "UpBillboard", col)
+	anchor = bpy.data.objects.new("BillboardAnchor", None)  # Godot can write on the board here
+	anchor.location = (bx - 0.16, by - 0.16, 4.5)
+	anchor.rotation_euler = (math.pi / 2, 0, -math.pi / 4)
+	col.objects.link(anchor)
+
+	# Tank: up to three white tanks on cradles beside the house (capacity at a glance).
+	for k in range(3):
+		tx = -7.6 - k * 2.4
+		join([
+			cylinder("Tank", 0.85, 3.2, (tx, sy + 0.5, 1.25), M["tank"], rot=(math.pi / 2, 0, 0), verts=16),
+			box("CradleA", (1.4, 0.3, 0.5), (tx, sy - 0.6, 0.25), M["steel"]),
+			box("CradleB", (1.4, 0.3, 0.5), (tx, sy + 1.6, 0.25), M["steel"]),
+			box("Band", (1.75, 0.12, 0.12), (tx, sy + 0.5, 2.12), M["rim"]),
+		], "UpTank_%d" % (k + 1), col)
+
+	# Service: squeegee bucket at the first island, tip jar by the door, pressure washer at the exit.
+	isl_y = lane_y(0) + 1.25
+	join([
+		cylinder("Bucket", 0.22, 0.4, (3.05, isl_y, 0.42), M["blue"], verts=10),
+		box("Handle", (0.04, 0.04, 1.0), (3.05, isl_y + 0.05, 0.9), M["wood"], rot=(math.radians(18), 0, 0)),
+		box("Blade", (0.45, 0.05, 0.1), (3.05, isl_y + 0.2, 1.38), M["tyre"]),
+	], "UpSqueegee", col)
+	join([
+		box("Stand", (0.35, 0.35, 0.9), (sx + 1.0, front_y - 0.35, 0.45), M["wood"]),
+		cylinder("Jar", 0.16, 0.36, (sx + 1.0, front_y - 0.35, 1.08), M["jar"], verts=12),
+		cylinder("Coins", 0.14, 0.12, (sx + 1.0, front_y - 0.35, 0.96), M["coins"], verts=12),
+	], "UpTipJar", col)
+	wx, wy = LANE_X[0] - 1.6, back - 2.2
+	join([
+		box("Cart", (0.9, 0.6, 0.7), (wx, wy, 0.55), M["yellow"]),
+		cylinder("WheelA", 0.2, 0.1, (wx - 0.3, wy - 0.33, 0.2), M["tyre"], rot=(math.pi / 2, 0, 0), verts=10),
+		cylinder("WheelB", 0.2, 0.1, (wx + 0.3, wy - 0.33, 0.2), M["tyre"], rot=(math.pi / 2, 0, 0), verts=10),
+		box("Lance", (0.05, 0.05, 1.1), (wx + 0.35, wy, 1.2), M["steel"], rot=(0, math.radians(20), 0)),
+		torus("Hose", 0.3, 0.05, (wx, wy + 0.36, 0.6), M["tyre"], rot=(math.pi / 2, 0, 0)),
+	], "UpPressureWasher", col)
+
+	# Vibe: console radio by the bench, glowing jukebox on the porch.
+	join([
+		box("Cabinet", (0.8, 0.45, 1.0), (sx + 4.6, front_y - 0.4, 0.5), M["wood"]),
+		box("Grille", (0.6, 0.02, 0.4), (sx + 4.6, front_y - 0.63, 0.55), M["roof"]),
+		cylinder("Dial", 0.08, 0.02, (sx + 4.6, front_y - 0.63, 0.88), M["coins"], rot=(math.pi / 2, 0, 0), verts=10),
+	], "UpRadio", col)
+	jx = sx - 4.6
+	join([
+		box("Body", (0.95, 0.6, 1.5), (jx, front_y - 0.45, 0.75), M["wood"]),
+		cylinder("Arch", 0.475, 0.6, (jx, front_y - 0.45, 1.5), M["wood"], rot=(math.pi / 2, 0, 0), verts=16),
+		box("Glow", (0.7, 0.04, 0.9), (jx, front_y - 0.77, 0.9), M["jukebox"]),
+		cylinder("GlowArch", 0.35, 0.04, (jx, front_y - 0.77, 1.5), M["jukebox"], rot=(math.pi / 2, 0, 0), verts=16),
+	], "UpJukebox", col)
+
+	# Per-pump props, at the pump's origin (pump body 0.75 x 0.55 x 1.7, display facing -Y).
+	# The reader sits on the pump's -X side, which faces the camera (the +X side is hidden).
+	join([
+		box("Reader", (0.26, 0.34, 0.55), (-0.52, 0, 1.05), M["blue"]),
+		box("Screen", (0.03, 0.22, 0.16), (-0.66, -0.02, 1.2), M["screen"]),
+	], "PumpCardReader", col)
+	join([box("Band", (0.8, 0.6, 0.22), (0, 0, 0.55), M["yellow"])], "PumpSpeedBand", col)
+	join([box("Sticker", (0.02, 0.2, 0.14), (-0.665, -0.02, 0.92), M["sign"])], "PumpDealSticker", col)
+
+
 def build_decor(col, sx, sy, back):
 	# Broken-down car beside the house: on blocks, flat tyre, missing door, rust, grass. Never a customer.
 	bx, by = sx + 6.6, back + 2.6  # front corner of the house: visible, but off the forecourt
@@ -529,8 +625,10 @@ def main():
 	props = new_collection("Props")
 	scenery = new_collection("Scenery")
 	review = new_collection("ReviewLayout")
+	upgrades = new_collection("Upgrades")
 	build_props(props)
 	build_scenery(scenery)
+	build_upgrades(upgrades)
 
 	src = os.path.join(ROOT, "assets", "art", "source")
 	exp = os.path.join(ROOT, "assets", "art", "export")
@@ -539,16 +637,33 @@ def main():
 		os.makedirs(d, exist_ok=True)
 	export(list(scenery.objects), os.path.join(exp, "station_scenery.glb"))
 	export(list(props.objects), os.path.join(exp, "station_props.glb"))
+	export(list(upgrades.objects), os.path.join(exp, "station_upgrades.glb"))
 
 	preview_name(review)
 	camera_and_light()
 	for o in props.objects:
 		o.hide_render = True  # the originals sit at the origin; the review layout uses copies
+	per_pump = [bpy.data.objects[n] for n in ("PumpCardReader", "PumpSpeedBand", "PumpDealSticker")]
+	for o in upgrades.objects:
+		o.hide_render = True
 	for lanes in (BASE_LANES, MAX_LANES):
 		layout(review, lanes)
 		bpy.context.scene.render.filepath = os.path.join(docs, "lanes_%d.png" % lanes)
 		bpy.ops.render.render(write_still=True)
 		print("RENDERED", lanes)
+	# Fully upgraded station (#28): every station prop, and pumps 3-5 self-serve with all three per-pump props.
+	layout(review, MAX_LANES)
+	for o in upgrades.objects:
+		o.hide_render = o in per_pump
+	for i in range(2, MAX_LANES):
+		for prop in per_pump:
+			c = prop.copy()
+			c.location = (0.6, lane_y(i) + 1.25, 0.22)
+			c.hide_render = False
+			review.objects.link(c)
+	bpy.context.scene.render.filepath = os.path.join(docs, "upgrades_all.png")
+	bpy.ops.render.render(write_still=True)
+	print("RENDERED upgrades")
 	bpy.ops.wm.save_as_mainfile(filepath=os.path.join(src, "lanes_kit.blend"))
 	print("KIT_DONE")
 
