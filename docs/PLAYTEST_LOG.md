@@ -2,6 +2,13 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.16.0 Upgrade tree per pump  (#18)
+Hypothesis: Giving every pump its own tree makes building the station feel personal (Advancement).
+Variable: station-wide pump upgrades → a tree per pump (Tab page)
+Sessions: 1 (self: 1, others: 0)
+Observed: "The auto pumps work fine." Bug: "End day" on day 2 with two self-service pumps never reached the summary (the dev button's release was ignored by self-service pumps). Fixed in v0.16.1 with a regression test.
+Decision: KEPT. Next: customers with rules, with a grey car and a speech bubble per pump.
+
 ## 2026-10-19 — v0.15.1 Self-service pumps  (#17)
 Hypothesis: A self-service pump turns expansion into a business decision instead of a finger problem (Advancement), without replacing skill.
 Variable: Turbo nozzle → self-service branch

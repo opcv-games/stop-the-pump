@@ -196,8 +196,11 @@ func dev_end_day() -> void:
 		return
 	for bay in bays:
 		if bay.self_service:
+			# The player's release is ignored on self-service pumps, so stop the pump itself.
 			bay.self_service_component.phase = SelfServiceComponent.Phase.IDLE
-		if bay.pump.is_pouring:
+			if bay.pump.is_pouring:
+				bay.pump.stop_pour()
+		elif bay.pump.is_pouring:
 			bay.release()
 	clock.elapsed = clock.day_seconds
 	clock.running = false

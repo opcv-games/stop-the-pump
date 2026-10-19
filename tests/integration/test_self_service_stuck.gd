@@ -54,3 +54,25 @@ func test_given_self_service_pumping_when_released_then_pump_keeps_pouring() -> 
 	station.release(2)
 	ss.tick(1.0)
 	assert_gt(bay.pump.amount, before)
+
+
+func test_given_two_self_service_pumps_pumping_when_end_day_clicked_then_summary_appears() -> void:
+	# Playtest 14: "End day" with self-service pumps mid-pour never reached the summary.
+	assert_true(station.bays[2].pump.is_pouring)
+	station.dev_end_day()
+	assert_eq(station.state, station.State.SUMMARY, "end day with one self-service pump pouring")
+	station.continue_pressed()
+	station.buy(1)  # build pump 4
+	station.toggle_shop_page()
+	station.buy_pump(3)  # pump 4: self-service
+	station.continue_pressed()
+	station.clock.running = false
+	for b in [station.bays[2], station.bays[3]]:
+		var c: SelfServiceComponent = b.self_service_component
+		var guard := 0
+		while c.phase != SelfServiceComponent.Phase.PUMPING and guard < 200:
+			c.tick(0.1)
+			guard += 1
+	assert_true(station.bays[2].pump.is_pouring or station.bays[3].pump.is_pouring)
+	station.dev_end_day()
+	assert_eq(station.state, station.State.SUMMARY)
