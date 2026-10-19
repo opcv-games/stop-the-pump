@@ -10,7 +10,9 @@ var station: Control
 func _make(profile := "") -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.pump_count = 2  # these rules need two pumps; the one-pump start is in test_first_minutes
 	station.profile_file = profile
+	station.play_intro = false  # the story intro has its own tests (test_first_minutes)
 	station.cars_gate_service = false
 	station.special_customer_chance = 0.0
 	station.arrival_min = 60.0

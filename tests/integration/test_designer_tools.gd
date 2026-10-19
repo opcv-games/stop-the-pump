@@ -10,6 +10,7 @@ var station: Control
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.pump_count = 2  # these rules need two pumps; the one-pump start is in test_first_minutes
 	station.profile_file = ""  # skip the naming screen in tests
 	station.cars_gate_service = false  # customers ready at once: these tests are about other rules  # never read the designer's own saved tuning in tests
 	station.special_customer_chance = 0.0

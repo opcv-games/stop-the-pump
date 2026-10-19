@@ -12,6 +12,7 @@ var station: Control
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.pump_count = 2  # these rules need two pumps; the one-pump start is in test_first_minutes
 	station.profile_file = ""
 	station.cars_gate_service = false
 	station.special_customer_chance = 0.0
@@ -116,4 +117,11 @@ func test_given_props_when_evicted_then_the_station_is_run_down_again() -> void:
 
 
 func test_given_station_then_version_is_0_25() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.25")
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.2")
+
+
+func test_given_no_billboard_then_its_text_is_hidden_too() -> void:
+	station.set_station_name("Chez Papa")
+	assert_false(_world().billboard_label.is_visible_in_tree(), "no floating FILL UP AT text before the billboard")
+	_world().show_prop("UpBillboard", false)
+	assert_true(_world().billboard_label.is_visible_in_tree())

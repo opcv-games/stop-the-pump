@@ -9,6 +9,7 @@ var station: Control
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.pump_count = 2  # these rules need two pumps; the one-pump start is in test_first_minutes
 	station.profile_file = ""
 	station.cars_gate_service = false
 	station.special_customer_chance = 0.0

@@ -31,7 +31,9 @@ const BRANCHES := [
 	]},
 	# Builds pumps; each pump then has its own tree (PUMP_TREE, #18). Turbo removed (#17).
 	# The station starts 3 lanes wide: the footprint expansion comes before pumps 4 and 5 (#24).
+	# The run starts with one pump (#30): the pump nodes a station already has count as owned.
 	{"id": "pumps", "name": "PUMPS", "nodes": [
+		{"id": "pump_2", "name": "Pump 2", "helps": "build a second pump", "price": 100.0},
 		{"id": "pump_3", "name": "Pump 3", "helps": "build a third pump", "price": 250.0},
 		{"id": "expand", "name": "Expand the footprint", "helps": "pave the vacant lot: room for pumps 4 and 5", "price": 350.0},
 		{"id": "pump_4", "name": "Pump 4", "helps": "build a fourth pump", "price": 400.0},
@@ -61,6 +63,19 @@ static func next_node(station: Node, branch: int) -> Dictionary:
 	return b.nodes[level] if level < b.nodes.size() else {}
 
 
+## How far a branch starts already bought: the PUMPS branch skips pumps the station starts with (#30).
+static func starting_level(branch_id: String, pumps: int) -> int:
+	var level := 0
+	for b in BRANCHES:
+		if b.id != branch_id:
+			continue
+		for node in b.nodes:
+			if not node.id.begins_with("pump_") or int(node.id.trim_prefix("pump_")) > pumps:
+				break
+			level += 1
+	return level
+
+
 static func next_price(station: Node, branch: int) -> float:
 	var node := next_node(station, branch)
 	return roundf(node.price * station.shop_price_scale) if node else 0.0
@@ -85,7 +100,7 @@ static func apply(station: Node, id: String) -> void:
 			for order in [50.0, 60.0]:
 				if not station.possible_targets.has(order):
 					station.possible_targets.append(order)
-		"pump_3", "pump_4", "pump_5":
+		"pump_2", "pump_3", "pump_4", "pump_5":
 			station.add_pump()
 		"expand":
 			station.set_expanded(true)

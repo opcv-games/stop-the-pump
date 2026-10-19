@@ -27,7 +27,7 @@ class Receipt:
 ## Wholesale fuel price as a share of the pump price. 0.8 means a $2 litre costs the station $1.60.
 @export_range(0.0, 1.0) var wholesale_ratio := 0.8
 @export var price_per_liter := 2.0
-@export var rent_base := 100.0
+@export var rent_base := 60.0  # one pump on day 1 (#30)
 ## Added to the rent every new day of a run.
 @export var rent_growth := 40.0
 

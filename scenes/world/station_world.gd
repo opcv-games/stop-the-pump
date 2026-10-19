@@ -86,7 +86,10 @@ func _ready() -> void:
 	_build_lights()
 	_build_rain()
 	_build_name_label()
-	billboard_label = _sign_label(upgrades.get_node("BillboardAnchor"), 72, 0.0061, 760.0)  # board is 0.72 scale
+	# The text rides on the billboard: hidden until it is bought, and pops in with it (playtest 20).
+	var board_anchor: Node3D = upgrades.get_node("BillboardAnchor")
+	board_anchor.reparent(upgrades.get_node("UpBillboard"))
+	billboard_label = _sign_label(board_anchor, 72, 0.0061, 760.0)  # board is 0.72 scale
 	billboard_label.modulate = Color(0.16, 0.14, 0.12)
 	weather = WeatherComponent.new()
 	weather.name = "Weather"

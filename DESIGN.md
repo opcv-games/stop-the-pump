@@ -1,7 +1,7 @@
 # Gas Bar Blues — Design Document
 
-> **Current phase:** 4 — Affordances & Art
-> **Last updated:** 2026-10-18
+> **Current phase:** 5 — Vertical Slice
+> **Last updated:** 2026-10-19
 > This file is the Committee's memory. Read it before every Godot or Blender action. Update it after every approved decision.
 
 ## 1. Pitch
@@ -102,6 +102,8 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 Each run rises from one calm pump to a chaotic multi-pump peak. A round is one day (7am–11pm, 3 real minutes): calm start, rising customer pressure, a rush as the tank or the clock runs low, then a rest on the end-of-day screen (and later the shop). Target run: ~15 minutes. Slice: two runs, ~30 minutes.
 
 ## 8. Onboarding
+**Story (#29):** your father passed away; at the will reading you learn he left you a run-down gas station in Saint-Clin-Clin-des-Meuh-Meuh, Québec (the Québécois "middle of nowhere"). You rebuild it, one car at a time. Told as a skippable in-engine intro (captions over the station at dawn), not a pre-rendered video: it reuses the real station, so the player first sees the place they will fix up.
+
 Teach by doing, first 5 minutes:
 1. One pump, one friendly customer, a large generous target. The player learns hold and release.
 2. The second customer shows what an overshoot costs (fuel the player pays for).
@@ -182,3 +184,5 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Juice kept (stream, sparkle, cash pops, road cars, shake) | "Feels much better"; "the shake is fun" | Playtest 19 (#26) |
 | 2026-10-19 | A customer can only be served once their car is parked at the pump; cars drive smoothly | Serving cars that hadn't arrived broke the illusion | Playtest 19 (#27) |
 | 2026-10-19 | Every upgrade shows on the station (cosmetic prop) and pops in | Designer request: upgrades should look like upgrades | Playtest 19 (#27, #28) |
+| 2026-10-19 | Phase 4 closed; Phase 5 (Vertical Slice) opens with the story intro and a one-pump start | Art kit, lanes, juice and props approved; the first 5 minutes are the next gap | Playtest 20 (#29, #30) |
+| 2026-10-19 | The run starts with ONE pump; Pump 2 is the first PUMPS upgrade; day-1 rent $100 → $60 | Designer request; matches §8 onboarding; one pump earns about half | #30 |

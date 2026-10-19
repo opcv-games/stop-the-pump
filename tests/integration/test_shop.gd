@@ -14,6 +14,7 @@ var station: Control
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.pump_count = 2  # these rules need two pumps; the one-pump start is in test_first_minutes
 	station.profile_file = ""  # skip the naming screen in tests
 	station.cars_gate_service = false  # customers ready at once: these tests are about other rules
 	station.special_customer_chance = 0.0  # Regulars only: these tests are about other rules
@@ -67,7 +68,7 @@ func test_given_too_little_cash_when_buying_then_nothing_happens() -> void:
 	station.wallet.add(-station.wallet.cash + 10.0)
 	assert_false(station.buy(PUMPS))
 	assert_almost_eq(station.wallet.cash, 10.0, 0.001)
-	assert_eq(station.owned.get("pumps", 0), 0)
+	assert_eq(station.owned.get("pumps", 0), 1, "only the starting Pump 2 counts as owned (#30)")
 
 
 func test_given_branch_complete_then_card_says_complete_and_buying_does_nothing() -> void:
@@ -254,7 +255,7 @@ func test_given_upgrades_when_evicted_then_new_run_starts_clean() -> void:
 		assert_eq(bay.pump_level, 0)
 	assert_false(station.expanded)
 	assert_false(station.world_view.world.scenery.get_node("ForecourtExpansion").visible)
-	assert_true(station.owned.is_empty())
+	assert_eq(station.owned, {"pumps": 1}, "only the starting Pump 2 counts as owned (#30)")
 	assert_eq(station.shop_page, station.ShopPage.STATION)
 
 

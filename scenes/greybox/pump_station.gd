@@ -18,11 +18,11 @@ extends Control
 ## Phase 4 (#22, #24): the 3D station sits behind this HUD: one lane per pump, cars come and go,
 ## lit by the clock, with rain. The player names the station at the start of a run.
 
-enum State { OPEN, CLOSING, SUMMARY, SHOP, NAMING }
+enum State { OPEN, CLOSING, SUMMARY, SHOP, NAMING, INTRO }
 enum ShopPage { STATION, PUMPS }
 
 ## How many pumps the station runs. The difficulty ladder (1 to 10) is this one number.
-@export_range(1, 10) var pump_count := 2
+@export_range(1, 10) var pump_count := 1  # the run starts with one pump (#30)
 ## Customer orders, in dollars. Picked at random each customer.
 @export var possible_targets: Array[float] = [10.0, 15.0, 20.0, 25.0, 30.0, 40.0]
 ## The next car pulls in after a random wait between these, so the rhythm can't be memorized (#10).
@@ -42,6 +42,8 @@ enum ShopPage { STATION, PUMPS }
 @export var profile_file := "user://profile.cfg"
 ## Cash the player starts a run with.
 @export var starting_cash := 50.0
+## The story intro (#29) plays before the first naming screen of a session. Off when naming is off.
+@export var play_intro := true
 ## Days in a run (#19). Surviving the last one completes the run.
 @export var run_days := 10
 ## Customers (#5): chance a car is a special customer instead of a Regular, and how long the
@@ -132,6 +134,9 @@ var _dev_label: Label
 var _tuning_panel: TuningPanel
 var _shop: Control
 var _naming: Control
+var intro: StoryIntro
+var _intro_seen := false
+var _hidden_for_intro: Array[CanvasItem] = []
 var _bg: ColorRect
 ## The painted 3D station behind the HUD (#22).
 var world_view: WorldView
@@ -151,6 +156,7 @@ func _ready() -> void:
 	tank.price_per_liter = economy.price_per_liter
 	_ensure_input_actions()
 	_build_station()
+	_build_intro()
 	combo.multiplier_changed.connect(_on_multiplier_changed)
 	wallet.cash_changed.connect(func(_c: float, _d: float) -> void: _update_gauges())
 	wallet.xp_changed.connect(func(xp: int) -> void: _xp_label.text = "XP %d" % xp)
@@ -166,6 +172,10 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_echo():
+		return
+	if state == State.INTRO:
+		intro.handle_input(event)
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("toggle_sound"):
 		sound.enabled = not sound.enabled
@@ -354,10 +364,12 @@ func start_run() -> void:
 	_run_earned = 0.0
 	day = 0
 	wallet.add(starting_cash - wallet.cash)
-	if profile_file != "":
-		_show_naming()
-	else:
+	if profile_file == "":
 		start_next_day()
+	elif play_intro and not _intro_seen:
+		_show_intro()
+	else:
+		_show_naming()
 
 
 func set_station_name(text: String) -> void:
@@ -376,6 +388,36 @@ func confirm_name(text: String) -> void:
 		cfg.save(profile_file)
 	_naming.visible = false
 	start_next_day()
+
+
+## The story intro (#29) over the empty station at sunrise. The HUD hides so it reads as a film.
+func _show_intro() -> void:
+	state = State.INTRO
+	clock.running = false
+	_overlay.visible = false
+	_hidden_for_intro.clear()
+	for c in get_children():
+		if c is CanvasItem and c != world_view and c != _bg and c != intro and c.visible:
+			c.visible = false
+			_hidden_for_intro.append(c)
+	_update_hint()
+	intro.start(world_view.world)
+
+
+func _on_intro_accepted() -> void:
+	_intro_seen = true
+	for c in _hidden_for_intro:
+		c.visible = true
+	_hidden_for_intro.clear()
+	_show_naming()
+
+
+func _build_intro() -> void:
+	intro = StoryIntro.new()
+	intro.name = "StoryIntro"
+	intro.visible = false
+	intro.accepted.connect(_on_intro_accepted)
+	add_child(intro)
 
 
 func _show_naming() -> void:
@@ -578,6 +620,9 @@ func _reset_run_upgrades() -> void:
 	world_view.world.reset_props()
 	set_expanded(false)
 	owned.clear()
+	var start_level := Upgrades.starting_level("pumps", pump_count)
+	if start_level > 0:
+		owned["pumps"] = start_level
 	shop_page = ShopPage.STATION
 	while bays.size() > pump_count:
 		var bay: PumpBay = bays.pop_back()
@@ -866,6 +911,9 @@ func _on_multiplier_changed(multiplier: int) -> void:
 func _update_hint() -> void:
 	if state == State.SUMMARY:
 		_hint_label.text = "ENTER to continue.     M: sound %s" % ("ON" if sound.enabled else "OFF")
+		return
+	if state == State.INTRO:
+		_hint_label.text = ""
 		return
 	if state == State.NAMING:
 		_hint_label.text = "Type your station's name, then ENTER."
