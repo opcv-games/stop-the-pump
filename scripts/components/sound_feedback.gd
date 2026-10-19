@@ -19,7 +19,7 @@ const TIER_SFX := {
 	set(value):
 		enabled = value
 		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), not value)
-## Play a click every time the meter passes a whole dollar.
+## Play a counter knock (crick, crack or crock) every time the meter passes a whole dollar.
 @export var tick_every_dollar := true
 ## Each extra pump hums and clicks a little higher so pumps can be told apart by ear.
 @export var pitch_step_per_pump := 0.12
@@ -27,19 +27,20 @@ const TIER_SFX := {
 
 var _players := {}
 var _loop: AudioStreamWAV
-var _tick: AudioStream
+var _counters: Array[AudioStream] = []
 var _music: AudioStreamPlayer
 var _pumps: Array[PumpComponent] = []
 
 
 func _ready() -> void:
-	for sfx in TIER_SFX.values() + ["sfx_combo_break"]:
+	for sfx in TIER_SFX.values() + ["sfx_combo_break", "pop"]:
 		var p := AudioStreamPlayer.new()
 		p.stream = load(DIR + sfx + ".wav")
 		add_child(p)
 		_players[sfx] = p
-	_tick = load(DIR + "tick.wav")
-	_loop = load(DIR + "pour_loop.wav")
+	for k in 3:
+		_counters.append(load(DIR + "counter_%d.wav" % (k + 1)))
+	_loop = load(DIR + "glug_loop.wav")  # glug-glug while fuel flows (#27)
 	_loop.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	_loop.loop_end = 44100
 	var music: AudioStreamWAV = load(MUSIC)
@@ -64,11 +65,11 @@ func watch_pump(pump: PumpComponent, index := 0) -> void:
 	var pitch := 1.0 + pitch_step_per_pump * index
 	var hum := AudioStreamPlayer.new()
 	hum.stream = _loop
-	hum.volume_db = -10.0
+	hum.volume_db = -6.0
 	hum.pitch_scale = pitch
 	add_child(hum)
 	var tick := AudioStreamPlayer.new()
-	tick.stream = _tick
+	tick.volume_db = -8.0
 	tick.pitch_scale = pitch
 	add_child(tick)
 	_pumps.append(pump)
@@ -78,6 +79,8 @@ func watch_pump(pump: PumpComponent, index := 0) -> void:
 			hum.play()
 		var dollar := int(amount)
 		if tick_every_dollar and dollar > state.last_dollar:
+			tick.stream = _counters.pick_random()
+			tick.pitch_scale = pitch * randf_range(0.95, 1.05)
 			tick.play()
 		state.last_dollar = dollar)
 	pump.stopped.connect(func(_final: float) -> void: hum.stop())
@@ -90,6 +93,11 @@ func unwatch_pump(pump: PumpComponent) -> void:
 
 func watch_combo(combo: ComboComponent) -> void:
 	combo.combo_broken.connect(func(_lost: int) -> void: _play("sfx_combo_break"))
+
+
+## A new pump popped out of the ground (#27).
+func play_pop() -> void:
+	_play("pop")
 
 
 func play_tier(tier: String) -> void:

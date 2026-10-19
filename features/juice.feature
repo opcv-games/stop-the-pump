@@ -28,3 +28,21 @@ Feature: Juice
     When a stop is a Miss, a customer drives off, or a combo breaks
     Then the world shakes briefly
     And the HUD does not move
+
+  Scenario: Serve only parked cars (#27)
+    Given a customer's car is still driving in
+    Then the pump's card says "arriving..." and its key does nothing
+    When the car parks at the pump
+    Then the order appears and the pump can be poured
+
+  Scenario: Cars drive smoothly (#27)
+    Then cars round their corners, slow into turns and ease to a stop at the pump
+
+  Scenario: Fuel sounds (#27)
+    When a pump pours
+    Then it glugs, and the counter goes crick, crack, crock each dollar
+
+  Scenario: New pumps pop in (#27)
+    Given the player built a pump in the night shop
+    When the next day opens
+    Then the pump rises from the ground and pops out with a puff of dust

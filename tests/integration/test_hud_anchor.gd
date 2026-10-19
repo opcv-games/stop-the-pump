@@ -10,6 +10,7 @@ func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
 	station.profile_file = ""
+	station.cars_gate_service = false
 	station.special_customer_chance = 0.0
 	station.arrival_min = 60.0
 	station.arrival_max = 60.0

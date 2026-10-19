@@ -10,6 +10,7 @@ func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
 	station.profile_file = ""
+	station.cars_gate_service = false
 	station.special_customer_chance = 0.0
 	station.arrival_min = 60.0
 	station.arrival_max = 60.0
@@ -76,7 +77,7 @@ func test_given_money_earned_then_a_cash_pop_floats_up_and_fades() -> void:
 func test_given_customer_on_the_way_then_the_car_starts_on_the_road_and_ends_at_its_pump() -> void:
 	var car: Node3D = _world().car_at(1)
 	assert_almost_eq(car.position.z, StationWorld.ROAD_Z, 0.01, "starts on the road")
-	assert_gt(car.position.x, 30.0, "far to the top right")
+	assert_gt(car.position.x, 20.0, "far to the top right")
 	_world().tick_cars(20.0)
 	assert_almost_eq(car.position.x, StationWorld.STOP_X, 0.01)
 	assert_almost_eq(car.position.z, _world().lane_z(1), 0.01)
@@ -88,8 +89,13 @@ func test_given_served_then_the_car_leaves_by_the_exit_apron_and_the_road() -> v
 	var car: Node3D = _world().car_at(0)
 	var pump: PumpComponent = station.bays[0].pump
 	pump.finish_at(pump.target)
-	_world().tick_cars(1.4)
-	assert_almost_eq(car.position.x, StationWorld.APRON_OUT_X, 0.5, "reached the exit apron")
+	var reached_apron := false
+	for i in 200:
+		_world().tick_cars(0.05)
+		if car.position.x < StationWorld.APRON_OUT_X + 1.0 and car.position.z > _world().lane_z(0) + 1.0:
+			reached_apron = true
+			break
+	assert_true(reached_apron, "turned down the exit apron toward the road")
 	_world().tick_cars(30.0)
 	assert_false(is_instance_valid(car) and car.is_inside_tree())
 
@@ -114,5 +120,5 @@ func test_given_shake_set_to_zero_then_no_shake() -> void:
 	assert_eq(_world().shake_amount, 0.0)
 
 
-func test_given_station_then_version_is_0_23() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.23")
+func test_given_station_then_version_is_0_24() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.24")

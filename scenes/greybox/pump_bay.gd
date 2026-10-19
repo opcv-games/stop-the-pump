@@ -58,7 +58,8 @@ var _bubble: ColorRect
 var _bubble_label: Label
 var _popup: ColorRect
 var _popup_left := 0.0
-var _car_present := false  # a customer's car is at this pump (the 3D world draws it)
+var _car_present := false  # a customer's car is at (or driving to) this pump; the 3D world draws it
+var _pending := {}  # the customer whose car is still driving in (#27)
 var _auto_button: Button
 
 
@@ -88,6 +89,7 @@ func show_empty() -> void:
 	if self_service:
 		self_service_component.phase = SelfServiceComponent.Phase.IDLE
 	customer.clear()
+	_pending = {}
 	clear_result()
 	pump.reset(0.0)
 	target_label.text = "no car"
@@ -99,8 +101,29 @@ func show_empty() -> void:
 	_bubble.visible = false
 
 
-## A car pulls in. `type` is a Customers.TYPES id; self-service pumps only get Regulars.
-func new_customer(target: float, type := "regular") -> void:
+## A customer's car is on its way (#27): the card says so and the pump can't be poured until
+## begin_pending() is called when the car parks.
+func incoming(target: float, type := "regular") -> void:
+	show_empty()
+	_pending = {"target": target, "type": type}
+	target_label.text = "arriving..."
+	target_label.modulate = Color(1, 1, 1, 0.6)
+	_car_present = true
+	car_arrived.emit(self, Customers.TYPES[type].car)
+
+
+## The car parked: the customer orders and the pump can be served.
+func begin_pending() -> void:
+	if _pending.is_empty():
+		return
+	var p := _pending
+	_pending = {}
+	new_customer(p.target, p.type, false)
+
+
+## A customer is ready at the pump. `type` is a Customers.TYPES id; self-service pumps only get
+## Regulars. `announce_car` is false when the car has already driven in (#27).
+func new_customer(target: float, type := "regular", announce_car := true) -> void:
 	cleaning = false
 	waiting = false
 	pump.reset(target)
@@ -109,7 +132,8 @@ func new_customer(target: float, type := "regular") -> void:
 	_set_popup(0.0)
 	_light.color = IDLE_LIGHT
 	_car_present = true
-	car_arrived.emit(self, Customers.TYPES[type].car)
+	if announce_car:
+		car_arrived.emit(self, Customers.TYPES[type].car)
 	customer.begin(type)
 	if self_service:
 		self_service_component.begin()

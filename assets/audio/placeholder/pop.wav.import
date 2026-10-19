@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://gvn32eyna26c"
-path="res://.godot/imported/tick.wav-575e993e32b79a5710c5f6b96e1f30a7.sample"
+uid="uid://kuek1gqigph4"
+path="res://.godot/imported/pop.wav-c3ff489a4c65f0b8fcd7279fc90de0df.sample"
 
 [deps]
 
-source_file="res://assets/audio/placeholder/tick.wav"
-dest_files=["res://.godot/imported/tick.wav-575e993e32b79a5710c5f6b96e1f30a7.sample"]
+source_file="res://assets/audio/placeholder/pop.wav"
+dest_files=["res://.godot/imported/pop.wav-c3ff489a4c65f0b8fcd7279fc90de0df.sample"]
 
 [params]
 

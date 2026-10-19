@@ -17,10 +17,16 @@ const MAX_LANES := 5
 const STOP_X := -0.4   # where a car parks beside its pump
 ## Cars come along the road, up the entry apron, into their lane; they leave by the exit apron (#26).
 const ROAD_Z := 14.6        # Godot z of the road's centre (Blender ROAD_Y = -14.6)
-const ROAD_FAR := 48.0      # off screen along the road
+const ROAD_FAR := 28.0      # just off screen along the road
 const APRON_IN_X := 13.0    # entry apron, top right
 const APRON_OUT_X := -13.0  # exit apron, bottom left
-const CAR_SPEED := 16.0     # metres per second
+## Driving (#27): cruise speed, how hard cars speed up and brake, how slow they take a corner,
+## and how round the corners are.
+const CAR_SPEED := 14.0
+const CAR_ACCEL := 10.0
+const CAR_BRAKE := 9.0
+const CORNER_SPEED := 4.5
+const CORNER_RADIUS := 3.0
 const SPARKLE_PERFECT := Color(0.45, 1.0, 0.55)
 const SPARKLE_SUPER := Color(1.0, 0.85, 0.3)
 const HUD_X0 := 7.6     # lane 1's card anchor, up-right of the pump (clear of pump and car)
@@ -57,6 +63,10 @@ var shake_strength := 0.6
 var shake_amount := 0.0
 var last_sparkle_lane := -1
 var last_sparkle_colour := Color.BLACK
+var _pops: Array[Dictionary] = []  # pumps rising out of the ground (#27)
+
+## A car reached its pump and stopped: its customer can now be served (#27).
+signal car_parked(lane: int)
 
 
 func _ready() -> void:
@@ -85,6 +95,87 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	tick_cars(delta)
 	tick_shake(delta)
+	tick_pop(delta)
+
+
+## A newly built pump rises out of the ground and pops out like an inflatable (#27).
+signal pumped_up(lane: int)
+
+
+func pop_in(lane: int) -> void:
+	if lane >= pumps.size():
+		return
+	var p: Dictionary = pumps[lane]
+	for key in ["pump", "island"]:
+		var n: Node3D = p[key]
+		n.scale = Vector3(1.0, 0.05, 1.0)
+		n.set_meta("rest_y", n.position.y)
+		n.position.y -= 1.6
+	_pops.append({"lane": lane, "t": 0.0, "popped": false})
+
+
+## Kept separate from _process so tests control time. Rise (0-0.45 s), POP with an elastic wobble
+## (0.45-1.2 s), then rest at full size.
+func tick_pop(delta: float) -> void:
+	for pop in _pops.duplicate():
+		pop.t += delta
+		var t: float = pop.t
+		var p: Dictionary = pumps[pop.lane] if pop.lane < pumps.size() else {}
+		if p.is_empty():
+			_pops.erase(pop)
+			continue
+		var rise := clampf(t / 0.45, 0.0, 1.0)
+		var wobble := 0.0
+		if t > 0.45:
+			var k := clampf((t - 0.45) / 0.75, 0.0, 1.0)
+			wobble = 0.35 * sin(k * PI * 3.0) * (1.0 - k)
+			if not pop.popped:
+				pop.popped = true
+				_puff(p.pump.position)
+				pumped_up.emit(pop.lane)
+		for key in ["pump", "island"]:
+			var n: Node3D = p[key]
+			var rest: float = n.get_meta("rest_y")
+			n.position.y = lerpf(rest - 1.6, rest, ease(rise, 0.4))
+			var sy := lerpf(0.05, 1.0, rise) + wobble
+			n.scale = Vector3(1.0 - wobble * 0.5, sy, 1.0 - wobble * 0.5)
+		if t >= 1.2:
+			for key in ["pump", "island"]:
+				var n: Node3D = p[key]
+				n.position.y = n.get_meta("rest_y")
+				n.scale = Vector3.ONE
+			_pops.erase(pop)
+
+
+func _puff(at: Vector3) -> void:
+	var p := GPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.amount = 18
+	p.lifetime = 0.8
+	p.position = at + Vector3(0, 0.2, 0)
+	var pm := ParticleProcessMaterial.new()
+	pm.direction = Vector3(0, 0.4, 0)
+	pm.spread = 180.0
+	pm.initial_velocity_min = 1.5
+	pm.initial_velocity_max = 3.0
+	pm.gravity = Vector3(0, 0.5, 0)
+	pm.damping_min = 3.0
+	pm.damping_max = 4.0
+	pm.scale_min = 1.0
+	pm.scale_max = 2.0
+	p.process_material = pm
+	var puff := SphereMesh.new()
+	puff.radius = 0.18
+	puff.height = 0.36
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.62, 0.57, 0.48, 0.8)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	puff.material = m
+	p.draw_pass_1 = puff
+	add_child(p)
+	p.emitting = true
+	p.finished.connect(p.queue_free)
 
 
 # --- Lanes and pumps -------------------------------------------------------------------------
@@ -249,17 +340,16 @@ func globe_energy(lane: int) -> float:
 # --- Cars --------------------------------------------------------------------------------------
 
 ## A customer pulled in at `lane`: a car in `colour` comes along the road from the top right, turns
-## up the entry apron, and drives into its lane to the pump (#26).
+## up the entry apron, and drives into its lane to the pump, where it parks (#26, #27).
 func car_arrive(lane: int, colour: Color) -> void:
 	car_depart(lane)
 	var car: MeshInstance3D = _props.get_node("Car").duplicate()
 	var body := _own_material(car, "CarBody")
 	body.albedo_color = colour
-	car.position = Vector3(ROAD_FAR, 0.07, ROAD_Z)
-	car.set_meta("path", [Vector3(APRON_IN_X, 0.07, ROAD_Z), Vector3(APRON_IN_X, 0.07, lane_z(lane)),
-		Vector3(STOP_X, 0.07, lane_z(lane))])
 	add_child(car)
-	_face(car, Vector3(-1, 0, 0))
+	_drive(car, [Vector3(ROAD_FAR, 0.07, ROAD_Z), Vector3(APRON_IN_X, 0.07, ROAD_Z),
+		Vector3(APRON_IN_X, 0.07, lane_z(lane)), Vector3(STOP_X, 0.07, lane_z(lane))], true)
+	car.set_meta("lane", lane)
 	_cars[lane] = car
 
 
@@ -269,9 +359,9 @@ func car_depart(lane: int) -> void:
 		return
 	var car: Node3D = _cars[lane]
 	_cars.erase(lane)
-	var z := car.position.z
-	car.set_meta("path", [Vector3(APRON_OUT_X, 0.07, z), Vector3(APRON_OUT_X, 0.07, ROAD_Z),
-		Vector3(-ROAD_FAR, 0.07, ROAD_Z)])
+	var at := car.position
+	_drive(car, [at, Vector3(APRON_OUT_X, 0.07, at.z), Vector3(APRON_OUT_X, 0.07, ROAD_Z),
+		Vector3(-ROAD_FAR, 0.07, ROAD_Z)], false)
 	_leaving.append(car)
 
 
@@ -288,30 +378,76 @@ func car_colour(lane: int) -> Color:
 	return Color.BLACK
 
 
-## Kept separate from _process so tests control time. Cars follow their waypoints at CAR_SPEED,
-## turning to face where they go; leaving cars are removed at the end of the road.
+## Gives `car` a smooth route through `points`: corners are rounded into curves, and the car slows
+## into each corner and (if `park`) eases to a stop at the end.
+func _drive(car: Node3D, points: Array, park: bool) -> void:
+	var curve := Curve3D.new()
+	curve.bake_interval = 0.2
+	var corners: Array[Vector3] = []
+	curve.add_point(points[0])
+	for i in range(1, points.size() - 1):
+		var a: Vector3 = points[i - 1]
+		var b: Vector3 = points[i]
+		var c: Vector3 = points[i + 1]
+		var d_in := (b - a).normalized()
+		var d_out := (c - b).normalized()
+		var r := minf(CORNER_RADIUS, minf(a.distance_to(b), b.distance_to(c)) * 0.45)
+		curve.add_point(b - d_in * r, Vector3.ZERO, d_in * r * 0.55)
+		curve.add_point(b + d_out * r, -d_out * r * 0.55, Vector3.ZERO)
+		corners.append(b)
+	curve.add_point(points[-1])
+	var corner_offsets: Array[float] = []
+	for b in corners:
+		corner_offsets.append(curve.get_closest_offset(b))
+	car.set_meta("curve", curve)
+	car.set_meta("offset", 0.0)
+	car.set_meta("speed", car.get_meta("speed", 0.0) if not park else 6.0)
+	car.set_meta("corners", corner_offsets)
+	car.set_meta("park", park)
+	car.position = points[0]
+	_face(car, (points[1] as Vector3) - (points[0] as Vector3))
+
+
+## Kept separate from _process so tests control time (stepped in small slices for smooth motion).
 func tick_cars(delta: float) -> void:
-	for car in _cars.values() + _leaving:
-		var budget := CAR_SPEED * delta
-		var path: Array = car.get_meta("path")
-		while budget > 0.0 and not path.is_empty():
-			var to: Vector3 = path[0] - car.position
-			var d := to.length()
-			if d <= budget:
-				car.position = path[0]
-				budget -= d
-				path.pop_front()
-			else:
-				_face(car, to)
-				car.position += to / d * budget
-				budget = 0.0
-		if path.is_empty() and _cars.values().has(car):
-			_face(car, Vector3(-1, 0, 0))  # parked facing the way out
+	while delta > 0.0:
+		var dt := minf(delta, 0.03)
+		delta -= dt
+		for car in _cars.values() + _leaving:
+			_step_car(car, dt)
 	for car in _leaving.duplicate():
-		if (car.get_meta("path") as Array).is_empty():
+		if car.get_meta("offset") >= (car.get_meta("curve") as Curve3D).get_baked_length() - 0.001:
 			_leaving.erase(car)
 			remove_child(car)
 			car.queue_free()
+
+
+func _step_car(car: Node3D, dt: float) -> void:
+	var curve: Curve3D = car.get_meta("curve")
+	var length := curve.get_baked_length()
+	var offset: float = car.get_meta("offset")
+	if offset >= length:
+		return
+	# The fastest speed that still lets the car brake for the next corner, and to a stop if parking.
+	var allowed := CAR_SPEED
+	for c in car.get_meta("corners"):
+		if c > offset:
+			allowed = minf(allowed, sqrt(CORNER_SPEED * CORNER_SPEED + 2.0 * CAR_BRAKE * (c - offset)))
+	if car.get_meta("park"):
+		allowed = minf(allowed, sqrt(2.0 * CAR_BRAKE * (length - offset)) + 0.4)
+	var speed: float = minf(allowed, car.get_meta("speed") + CAR_ACCEL * dt)
+	offset = minf(length, offset + speed * dt)
+	car.set_meta("speed", speed)
+	car.set_meta("offset", offset)
+	var pos := curve.sample_baked(offset)
+	var ahead := curve.sample_baked(minf(length, offset + 0.6))
+	if ahead.distance_to(pos) > 0.05:
+		_face(car, ahead - pos)
+	car.position = pos
+	if offset >= length and car.get_meta("park") and _cars.values().has(car):
+		car.set_meta("speed", 0.0)
+		_face(car, Vector3(-1, 0, 0))  # parked facing the way out
+		car_parked.emit(car.get_meta("lane"))
 
 
 ## The car model's front points along -X; turn it to face `direction` (on the ground plane).

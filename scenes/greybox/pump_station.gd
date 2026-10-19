@@ -47,6 +47,9 @@ enum ShopPage { STATION, PUMPS }
 ## Impatient Businessman waits for the pour to start.
 @export_range(0.0, 1.0) var special_customer_chance := 0.45
 @export var businessman_patience := 4.0
+## Cars (#27): a customer can only be served once their car has parked at the pump.
+## (Tests switch this off to get customers at once.)
+@export var cars_gate_service := true
 ## Juice (#26): each effect can be switched off in the tuning panel to judge it on its own.
 @export var juice_streams := true
 @export var juice_sparkles := true
@@ -407,6 +410,9 @@ func start_next_day() -> void:
 	if _shop:
 		_shop.visible = false
 	state = State.OPEN
+	for lane in _pop_next_morning:
+		world_view.world.pop_in(lane)
+	_pop_next_morning.clear()
 	world_view.world.weather.begin_day()
 	clock.start()
 	for bay in bays:
@@ -557,6 +563,7 @@ func _reset_run_upgrades() -> void:
 	Tuning.apply_snapshot(self, _base)
 	possible_targets.assign(_base_targets)
 	economy.tip_bonus = 0.0
+	_pop_next_morning.clear()
 	set_expanded(false)
 	owned.clear()
 	shop_page = ShopPage.STATION
@@ -573,8 +580,12 @@ func _reset_run_upgrades() -> void:
 	apply_tuning()
 
 
-## Extra pump upgrade: one more bay, laid out with the others.
+## Extra pump upgrade: one more bay. Its 3D pump pops out of the ground when the next day opens (#27).
+var _pop_next_morning: Array[int] = []
+
+
 func add_pump() -> void:
+	_pop_next_morning.append(bays.size())
 	pump_count += 1
 	_add_bay(bays.size())
 	world_view.world.set_lane_count(bays.size())
@@ -723,10 +734,23 @@ func _customer_after(bay: PumpBay, delay: float) -> void:
 		await get_tree().create_timer(delay).timeout
 	if is_instance_valid(bay) and state == State.OPEN and id == _day_id:
 		if bay.self_service:
-			bay.new_customer(possible_targets.pick_random())  # self-service only gets Regulars
+			arrive(bay, possible_targets.pick_random(), "regular")  # self-service only gets Regulars
 		else:
 			var c := Customers.roll(special_customer_chance, possible_targets)
-			bay.new_customer(c.target, c.type)
+			arrive(bay, c.target, c.type)
+
+
+## A customer heads for `bay`: their car drives in first and they order once it parks (#27).
+func arrive(bay: PumpBay, target: float, type: String) -> void:
+	if cars_gate_service:
+		bay.incoming(target, type)
+	else:
+		bay.new_customer(target, type)
+
+
+func _on_car_parked(lane: int) -> void:
+	if lane < bays.size() and state == State.OPEN:
+		bays[lane].begin_pending()
 
 
 ## The clock ran out or the tank is empty: no new customers, unserved ones drive off,
@@ -916,6 +940,8 @@ func _build_station() -> void:
 	world_view = WorldView.new()
 	world_view.name = "WorldView"
 	add_child(world_view)
+	world_view.world.car_parked.connect(_on_car_parked)
+	world_view.world.pumped_up.connect(func(_lane: int) -> void: sound.play_pop())
 
 	# Day clock across the top.
 	_clock_label = Greybox.label(self, "", 26, Vector2(0, 4), Vector2(1152, 36))

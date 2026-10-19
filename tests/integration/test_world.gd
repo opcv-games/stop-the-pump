@@ -10,6 +10,7 @@ func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
 	station.profile_file = ""  # skip the naming screen in tests
+	station.cars_gate_service = false  # customers ready at once: these tests are about other rules
 	station.special_customer_chance = 0.0
 	add_child_autofree(station)
 	station.sound.enabled = false
