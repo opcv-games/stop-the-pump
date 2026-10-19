@@ -84,7 +84,7 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 **Cut:** conspiracy-angle gag.
 
 ### Design rules
-1. Every upgrade that helps the player must cost them something. Upgrades never replace skill.
+1. Upgrades cost cash (in-run) or XP (between runs), never a gameplay malus. They must never replace skill (no auto-stop, no aim assist). Difficulty rises through rent and customers instead. *(Rewritten 2026-10-19, playtest 11; was "every upgrade must have a downside".)*
 2. Every customer must change at least one variable of the micro loop. Dialogue alone is flavor.
 3. The micro loop must be fun in a grey box before the build layer is built.
 4. Variation must be readable. Hidden randomness in the player's own controls feels unfair; variation the player can see coming is fair.
@@ -137,3 +137,6 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Game renamed Gas Bar Blues; music is a 12-bar blues | The blues gives the game its mood and ties the chord progression to the theme | Playtest 8 |
 | 2026-10-19 | Cash buys run upgrades every night (random offers, Balatro); XP buys permanent upgrades between runs (tree, Bills) | Random offers give run variety; a tree gives long-term goals | Designer decision |
 | 2026-10-19 | First cash upgrades: bigger tank, turbo nozzle, flyers, extra pump, squeegee, tip jar, bluesy radio, each with a downside | Design rule 1 | Designer decision (#14) |
+| 2026-10-19 | Upgrades cost cash only, no gameplay downside; rule 1 rewritten | Downsides felt like punishments; Bills-style pure upgrades, with difficulty from rising rent | Playtest 11 (#14) |
+| 2026-10-19 | Cash shop becomes a 5-branch upgrade tree (Marketing, Pumps, Tank, Service, Vibe) | Designer prefers a Bills-style tree: a plan to work toward | Playtest 11 (#15) |
+| 2026-10-19 | Backing track "Roadside At Two" (92 BPM, 46 bars, B♭/D minor); stops play B♭–D–F | Real music; notes chosen to sit over the whole track | Designer asset (#15) |

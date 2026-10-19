@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.12.0 Night shop, random offers  (#14)
+Hypothesis: 3 random cash upgrades each night, each with a gameplay downside, make each run's station different (Advancement).
+Variable: no shop → random 3-offer shop
+Sessions: 1 (self: 1, others: 0)
+Observed: Designer prefers an upgrade tree like Bills Must Be Paid over random offers, and wants upgrades whose only downside is their price (no gameplay malus). Supplied a real backing track ("Roadside At Two", 92 BPM, 120 s loop).
+Biggest weakness: downsides made upgrades feel like punishments; random offers don't give a plan to work toward.
+Decision: REWORKED (v0.13): a 5-branch upgrade tree, cash-only cost; design rule 1 rewritten; real track as the backing.
+
 ## 2026-10-19 — v0.10.0 Super Perfect, backing band  (#12)
 Hypothesis: A Super Perfect tier gives the best players a ceiling; a backing band with stops as melody keeps the song going between stops.
 Variable: new tier (±$0.03, display snaps to target); backing band + per-tier melody notes
