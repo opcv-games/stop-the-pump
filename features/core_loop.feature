@@ -1,5 +1,5 @@
 Feature: Core micro loop - pour and stop
-  # Maps to BACKLOG.md "Now" items 1 and 2. Each scenario maps to at least one GUT test in tests/.
+  # Maps to issue #1. Each scenario maps to at least one GUT test in tests/.
 
   Scenario: Amount climbs while the key is held
     Given a customer asks for $20.00
@@ -7,12 +7,10 @@ Feature: Core micro loop - pour and stop
     When the player holds the pour key
     Then the displayed amount climbs continuously
 
-  Scenario: Releasing stops the pump after the lever delay
-    Given the lever delay is 0.4 seconds
-    And the player is pouring
+  Scenario: Releasing stops the pump at once
+    Given the player is pouring
     When the player releases the key at $19.50
-    Then the pump keeps pouring for 0.4 seconds
-    And the final amount is higher than $19.50
+    Then the final amount is $19.50
 
   Scenario Outline: Stop is scored by distance from the target
     Given a customer asks for $20.00

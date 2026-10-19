@@ -2,6 +2,15 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-18 — Rusty lever  (#2)
+Hypothesis: If the pump keeps pouring 0.4 s after release, then stopping becomes anticipation instead of reaction, deepening Mastery.
+Variable: release_delay 0 → 0.4 s
+Sessions: 1 (self: 1, others: 0)
+Observed: It felt like learning a skill at first, getting more accurate. But a fixed delay is just "aim $1.60 short" once learned, so there is no long-term depth; a random delay would feel unfair. The dollar clicks were too fast to use for timing.
+Biggest weakness: no lasting depth; the skill is a constant offset.
+Decision: REVERTED. Branch deleted. Depth must come from juggling pumps and customer modifiers.
+Ideas raised: visible per-pump quirks (Parked).
+
 ## 2026-10-18 — Combo multiplier + placeholder sound  (#7)
 Hypothesis: If chained Good-or-better stops build a multiplier that resets on OK/Miss, then every stop carries stakes, increasing Mastery. Sound tested in the same cycle behind a mute toggle.
 Variable: combo off → on (x1–x5); sound off → on

@@ -27,7 +27,7 @@
 ### MDA chain
 | Aesthetic (feel) | ← Dynamic (emergent behavior) | ← Mechanic (rule) |
 |---|---|---|
-| Mastery | The player learns each pump's lag, gets precise on one, then splits attention across many | Hold a key to pour, release to stop. Visible number and target. Rusty lever release delay. Tiered scoring. Keys 1–0 for up to ten pumps. |
+| Mastery | The player gets precise on one pump, then splits attention across many | Hold a key to pour, release to stop. Visible number and target. Tiered scoring. Combo multiplier. Keys 1–0 for up to ten pumps. |
 | Advancement | The player builds a better station to survive rising rent | Rent each round. Upgrade shop. Permanent upgrades. Every helpful upgrade has a downside. On-release procs. |
 | Comedy | Customers and mishaps break the player's plan | Customer modifiers (moving target, time pressure, unreliable display, costly overshoot). Overshoots build fire risk. |
 
@@ -65,7 +65,8 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 | Permanent upgrades between runs | Standard | Advancement | |
 | Customer queue with patience timer | Standard | Mastery | |
 | Tutorial first customer | Standard | Onboarding | |
-| Rusty lever (release delay) | Innovation | Mastery | |
+| ~~Rusty lever (release delay)~~ | Cut | Mastery | Cut after playtest 3: a fixed delay is a constant offset learned once; a random one feels unfair |
+| Combo multiplier | Innovation | Mastery | Kept after playtest 2 |
 | Multi-pump juggling (up to 10 keys) | Innovation | Mastery | Pump count is a difficulty ladder |
 | Customer modifiers | Innovation | Comedy, Mastery | Every customer must change a micro-loop variable |
 | Upgrades with built-in downsides | Innovation | Mastery, Advancement | e.g. "let it run" drifts and loses precision |
@@ -80,6 +81,7 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 1. Every upgrade that helps the player must cost them something. Upgrades never replace skill.
 2. Every customer must change at least one variable of the micro loop. Dialogue alone is flavor.
 3. The micro loop must be fun in a grey box before the build layer is built.
+4. Variation must be readable. Hidden randomness in the player's own controls feels unfair; variation the player can see coming is fair.
 
 ## 7. Pacing
 Each run rises from one calm pump to a chaotic multi-pump peak. Within a round: calm start, rising customer pressure, a rush at the end, then a rest at the shop. Target run: ~15 minutes. Slice: two runs, ~30 minutes.
@@ -87,14 +89,14 @@ Each run rises from one calm pump to a chaotic multi-pump peak. Within a round: 
 ## 8. Onboarding
 Teach by doing, first 5 minutes:
 1. One pump, one friendly customer, a large generous target. The player learns hold and release.
-2. The rusty lever delay is felt on the second customer; the game shows the overshoot and what it cost.
+2. The second customer shows what an overshoot costs (fuel the player pays for).
 3. A second pump appears; the player learns that two keys run at once.
 4. First rent payment and first shop visit with two simple upgrades.
 Failure is cheap early: a miss costs a little money and teaches the rule.
 
 ## 9. Vertical Slice Boundary
 **Target length:** ~30 minutes (two full runs).
-- **IN:** 1 to 10 pumps on keyboard; rusty lever and pump-feel tuning; 4 customers (Regular, $20 Guy, Confused Grandpa with a moving target, Impatient Businessman with time pressure); fire risk from overshoots; rent, shop and about 8 upgrades with downsides; a small set of permanent upgrades; tutorial and the first 5 minutes.
+- **IN:** 1 to 10 pumps on keyboard; pump-feel tuning; combo multiplier; 4 customers (Regular, $20 Guy, Confused Grandpa with a moving target, Impatient Businessman with time pressure); fire risk from overshoots; rent, shop and about 8 upgrades with downsides; a small set of permanent upgrades; tutorial and the first 5 minutes.
 - **OUT (explicitly not building):** mobile and touch; pump as animated character; receipts, paperwork, inspections; police callback and special customers; fuel types; hiring attendants; meta-progression trees; any art beyond what Phase 4 covers.
 
 ## 10. Risks
@@ -116,3 +118,4 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-18 | Grey one-pump loop kept | Player wanted another go to hit more Perfects | Playtest 1 (#1) |
 | 2026-10-18 | Combo multiplier (x1–x5, resets on OK/Miss) kept | Losing a x5 combo created real pressure; each stop now has stakes | Playtest 2 (#7) |
 | 2026-10-18 | Placeholder sound kept, incl. a click per dollar | Clicks help timing; sound and combo each improved the loop on their own | Playtest 2 (#7) |
+| 2026-10-18 | Rusty lever cut | Fixed delay = constant offset, learned once; random delay = unfair. Depth must come from juggling pumps and customer modifiers | Playtest 3 (#2) |

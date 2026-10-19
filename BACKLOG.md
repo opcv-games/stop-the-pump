@@ -5,10 +5,6 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[innovation]` **Rusty lever delay** (#2)
-  As a player, I want the pump to keep pouring briefly after I release so that I must anticipate the stop (serves: Mastery).
-  - Given the lever delay is 0.4 s, When I release at $19.50, Then the final amount is higher than $19.50 by the fuel poured during the delay.
-  - Given the delay value is exposed as a tunable, When I change it in the editor, Then the pump feel changes without code changes.
 - [ ] `[standard]` **Fuel economy for one customer** (#3)
   As a player, I want to earn the fuel price plus a tip so that precision and volume both pay (serves: Advancement).
   - Given I overshoot the target, When the customer pays, Then they pay only for the requested amount and I absorb the extra fuel cost.
@@ -31,7 +27,7 @@
 - [ ] Customer queue and patience timer
 - [ ] Impatient Businessman (time pressure) and $20 Guy (costly overshoot)
 - [ ] Tutorial first 5 minutes
-- [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (changes timing cues, so test as its own hypothesis)
+- [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (playtest 3: clicks are too fast to count at $4/s, so this needs rethinking)
 
 ## Later (deliberately vague)
 - Permanent upgrades between runs
@@ -47,8 +43,10 @@
 - Police callback, Rich Guy, other special customers
 - Fuel types (ethanol, diesel, premium)
 - Mobile version
+- Visible per-pump quirks (e.g. a pump labeled "sticky" with a shown delay): the only fair way a release delay could return
 - Experience as a second currency earned from chains (revisit after the economy is proven)
 
 ## Done
+- [x] ~~Rusty lever delay (#2)~~, cut after playtest 2026-10-18
 - [x] Combo multiplier and placeholder sound (#7), playtest 2026-10-18: both clear improvements
 - [x] Pour and stop on a target (one pump) (#1), playtest 2026-10-18: core loop alive
