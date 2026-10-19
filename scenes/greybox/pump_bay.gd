@@ -97,4 +97,4 @@ func _build() -> void:
 	var key := Greybox.label(body, "[ %d ]" % ((index + 1) % 10), 26, Vector2(0, 225), Vector2(250, 40))
 	key.add_theme_color_override("font_color", Color(0.15, 0.15, 0.17))
 
-	result_label = Greybox.label(self, "", 24, Vector2(0, 370), Vector2(SIZE.x, 100))
+	result_label = Greybox.label(self, "", 21, Vector2(-10, 368), Vector2(SIZE.x + 20, 100))

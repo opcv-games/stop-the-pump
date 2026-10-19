@@ -1,6 +1,7 @@
 extends Control
 ## Ugly Prototype: a station of pumps, keys 1..N, one shared combo. Flat colors only.
-## Kept: #1 tiered stop, #7 combo + sound (M toggles). Testing: #4 two pumps at once.
+## Kept: #1 tiered stop, #7 combo + sound (M toggles), #4 two pumps.
+## Testing: #3 fuel economy (margin + tips x combo, overshoot fuel is given away).
 
 ## How many pumps the station runs. The difficulty ladder (1 to 10) is this one number.
 @export_range(1, 10) var pump_count := 2
@@ -12,6 +13,7 @@ extends Control
 ## so pumps fall out of sync instead of all starting together.
 @export var second_customer_offset := 2.0
 @export var flow_rate := 4.0
+@export var economy: FuelEconomy = FuelEconomy.new()
 
 const TIER_COLORS := {
 	ScoreTiers.PERFECT: Color(0.35, 0.9, 0.45),
@@ -22,13 +24,14 @@ const TIER_COLORS := {
 
 @onready var combo: ComboComponent = $ComboComponent
 @onready var sound: SoundFeedback = $SoundFeedback
+@onready var wallet: WalletComponent = $WalletComponent
 
 var bays: Array[PumpBay] = []
 
 var _counts := {ScoreTiers.PERFECT: 0, ScoreTiers.GOOD: 0, ScoreTiers.OK: 0, ScoreTiers.MISS: 0}
 var _best_combo := 1
 var _combo_label: Label
-var _score_label: Label
+var _cash_label: Label
 var _stats_label: Label
 var _hint_label: Label
 
@@ -37,6 +40,7 @@ func _ready() -> void:
 	_ensure_input_actions()
 	_build_station()
 	combo.multiplier_changed.connect(_on_multiplier_changed)
+	wallet.cash_changed.connect(_on_cash_changed)
 	sound.watch_combo(combo)
 	_on_multiplier_changed(1)
 	for bay in bays:
@@ -73,26 +77,43 @@ func release(i: int) -> void:
 func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
 	var target := bay.pump.target
 	var tier := combo.tiers.evaluate(final_amount, target)
-	var keeps := combo.tiers.extends_combo(tier)
-	var lost := combo.multiplier if not keeps and combo.multiplier > 1 else 0
-	var paid_multiplier := combo.multiplier if keeps else 1
-	var points := combo.register(tier)
+	var lost := combo.multiplier if not combo.tiers.extends_combo(tier) and combo.multiplier > 1 else 0
+	var paid_multiplier := combo.register(tier)
+	var receipt := economy.settle(final_amount, target, tier, paid_multiplier)
+	wallet.add(receipt.profit)
 	sound.play_tier(tier)
 	_counts[tier] += 1
-
-	var diff := final_amount - target
-	var text := "%s  %s$%.2f\n+%d" % [tier.to_upper(), "+" if diff >= 0 else "-", absf(diff), points]
-	if paid_multiplier > 1:
-		text += "  (x%d)" % paid_multiplier
-	if lost:
-		text += "\nCOMBO LOST  x%d" % lost
-	bay.show_result(text, TIER_COLORS[tier])
-
-	_score_label.text = "SCORE\n%d" % combo.total_score
+	bay.show_result(_receipt_text(tier, final_amount - target, receipt, paid_multiplier, lost), TIER_COLORS[tier])
 	_stats_label.text = "Perfect %d   Good %d   OK %d   Miss %d   |   Best combo x%d" % [
 		_counts[ScoreTiers.PERFECT], _counts[ScoreTiers.GOOD], _counts[ScoreTiers.OK],
 		_counts[ScoreTiers.MISS], _best_combo]
 	_customer_after(bay, next_customer_delay)
+
+
+## Three short lines under the pump: tier and distance, money and why, combo lost.
+func _receipt_text(tier: String, diff: float, r: FuelEconomy.Receipt, paid_multiplier: int, lost: int) -> String:
+	var distance := "on the dot" if absf(diff) < 0.005 else "$%.2f %s" % [absf(diff), "over" if diff > 0 else "short"]
+	var text := "%s  %s\n%s" % [tier.to_upper(), distance, _money(r.profit)]
+	if r.short:
+		text += "  no tip"
+	elif r.overshoot >= 0.5:
+		text += "  gave away $%.2f" % r.overshoot
+	elif r.tip > 0.0:
+		text += "  tip $%.2f" % r.tip
+		if paid_multiplier > 1:
+			text += " (x%d)" % paid_multiplier
+	if lost:
+		text += "\nCOMBO LOST  x%d" % lost
+	return text
+
+
+func _money(amount: float) -> String:
+	return "%s$%.2f" % ["+" if amount >= 0 else "-", absf(amount)]
+
+
+func _on_cash_changed(cash: float, _delta: float) -> void:
+	_cash_label.text = "CASH\n%s$%.2f" % ["" if cash >= 0 else "-", absf(cash)]
+	_cash_label.add_theme_color_override("font_color", Color.WHITE if cash >= 0 else TIER_COLORS[ScoreTiers.MISS])
 
 
 func _customer_after(bay: PumpBay, delay: float) -> void:
@@ -155,7 +176,7 @@ func _build_station() -> void:
 		sound.watch_pump(bay.pump, i)
 		bays.append(bay)
 
-	_score_label = Greybox.label(self, "SCORE\n0", 28, Vector2(10, 200), Vector2(180, 100))
+	_cash_label = Greybox.label(self, "CASH\n$0.00", 28, Vector2(10, 200), Vector2(180, 100))
 	_combo_label = Greybox.label(self, "", 48, Vector2(952, 130), Vector2(200, 160))
 	_combo_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	Greybox.label(self, "COMBO", 26, Vector2(952, 290), Vector2(200, 40)).modulate = Color(1, 1, 1, 0.6)

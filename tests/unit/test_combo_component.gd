@@ -1,14 +1,11 @@
 extends GutTest
-## Spec: features/combo.feature. Refs #7
+## Spec: features/combo.feature. Refs #7, #3
 
 var combo: ComboComponent
-var tiers: ScoreTiers
 
 
 func before_each() -> void:
-	tiers = ScoreTiers.new()
 	combo = ComboComponent.new()
-	combo.tiers = tiers
 	combo.max_multiplier = 5
 	add_child_autofree(combo)
 
@@ -27,15 +24,15 @@ func test_given_x1_when_good_then_multiplier_becomes_two() -> void:
 	assert_eq(combo.multiplier, 2)
 
 
-func test_given_x3_when_good_then_pays_good_points_times_three() -> void:
+func test_given_x3_when_good_then_stop_is_paid_at_x3_and_combo_becomes_x4() -> void:
 	_build_to(3)
-	assert_eq(combo.register(ScoreTiers.GOOD), tiers.good_points * 3)
+	assert_eq(combo.register(ScoreTiers.GOOD), 3)
 	assert_eq(combo.multiplier, 4)
 
 
-func test_given_x3_when_ok_then_pays_ok_points_once_and_resets() -> void:
+func test_given_x3_when_ok_then_stop_is_paid_at_x1_and_combo_resets() -> void:
 	_build_to(3)
-	assert_eq(combo.register(ScoreTiers.OK), tiers.ok_points)
+	assert_eq(combo.register(ScoreTiers.OK), 1)
 	assert_eq(combo.multiplier, 1)
 
 
@@ -56,9 +53,3 @@ func test_given_max_multiplier_when_perfect_then_multiplier_stays_capped() -> vo
 	_build_to(5)
 	combo.register(ScoreTiers.PERFECT)
 	assert_eq(combo.multiplier, 5)
-
-
-func test_given_several_stops_then_total_score_adds_up() -> void:
-	combo.register(ScoreTiers.PERFECT)  # 100 x1
-	combo.register(ScoreTiers.GOOD)     # 50 x2
-	assert_eq(combo.total_score, tiers.perfect_points + tiers.good_points * 2)

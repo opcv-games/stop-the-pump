@@ -1,5 +1,6 @@
 extends GutTest
-## Spec: features/multi_pump.feature. Wiring check: bays -> score -> shared combo -> screen. Refs #4
+## Spec: features/multi_pump.feature, features/economy.feature.
+## Wiring check: bays -> tier -> shared combo -> money -> screen. Refs #4, #3
 
 const SCENE := preload("res://scenes/greybox/pump_station.tscn")
 
@@ -80,3 +81,24 @@ func test_given_pump_waiting_for_next_customer_when_its_key_pressed_then_nothing
 	station.press(0)
 	_pump(0).tick(1.0)
 	assert_eq(_pump(0).amount, before)
+
+
+func test_given_x1_when_pump_1_stops_exactly_then_cash_gains_margin_plus_tip() -> void:
+	var target: float = _pump(0).target
+	_stop_exactly_on_target(0)
+	var expected: float = target - target * station.economy.wholesale_ratio + station.economy.perfect_tip
+	assert_almost_eq(station.wallet.cash, expected, 0.001)
+	assert_string_contains(station._cash_label.text, "$%.2f" % expected)
+
+
+func test_given_x2_when_pump_2_stops_exactly_then_tip_is_doubled_on_screen() -> void:
+	_stop_exactly_on_target(0)
+	_stop_exactly_on_target(1)
+	assert_string_contains(station.bays[1].result_label.text, "(x2)")
+
+
+func test_given_customer_when_pump_badly_overshoots_then_bay_says_fuel_was_given_away() -> void:
+	_pump(0).start_pour()
+	_pump(0).tick((_pump(0).target + 3.0) / _pump(0).flow_rate)
+	_pump(0).stop_pour()
+	assert_string_contains(station.bays[0].result_label.text, "gave away $3.00")
