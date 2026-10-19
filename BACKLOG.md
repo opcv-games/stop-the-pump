@@ -5,9 +5,13 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
+- [ ] `[standard]` **Run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed** (#19, v0.18.0)
+  - Given day 10 ends and I'm not evicted, Then the run-complete screen shows my run and Enter starts a new run.
+  - Given I click 2x, Then the whole game runs twice as fast.
+  - Given every pump is self-service, Then the station still runs (no pump has to stay manual).
 - [x] `[standard]` **Upgrade tree per pump** (#18, v0.16.1, kept): PUMPS branch builds pumps 3–5; Tab opens "Your pumps", each with Self-service > Faster self-serve > Card deal; the last played pump can't convert.
 - [x] `[innovation]` **Self-service pumps** (#17, v0.15.2; freeze bug fixed, awaiting a clean playtest; replaces Turbo in the Pumps branch): a pump you convert runs on its own with a 3% card fee, slower pumping and slow customers; upgrades raise its speed and lower the fee. Guardrails: earns less than a played pump, no tips, no combo or XP
-- [ ] `[innovation]` **Customers with rules: $20 Guy, Confused Grandpa, Impatient Businessman; grey car + speech bubble** (#5, v0.17.0, awaiting playtest)
+- [x] `[innovation]` **Customers with rules: Confused Grandpa, Impatient Businessman; grey car + speech bubble** (#5, v0.17.0, kept; $20 Guy retired; refine later)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.
 - [ ] `[tech]` **Bot player harness** (#6)
@@ -15,7 +19,6 @@
   - Given a bot with fixed reaction time, When it plays 100 rounds, Then the run produces a report of income, rent paid and failures.
 
 ## Next (likely, not committed)
-- [ ] Run structure: 8–10 days with rising rent
 - [ ] `[juice]` Combo gauge catches fire at high combos
 - [ ] Upgrade shop with downsides
 - [ ] Customer queue and patience timer
@@ -24,6 +27,8 @@
 - [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (playtest 3: clicks are too fast to count at $4/s, so this needs rethinking)
 
 ## Later (deliberately vague)
+- New characters to replace the $20 Guy; customers that matter to automated pumps too
+- Balance the run arc: manual clearly worth it on days 1–3, mostly automated by day 4 (bot harness #6)
 - `[art]` Phase 4: isometric impressionist station after Hopper's *Gas*; light follows the day clock (morning, afternoon, night); rain cycles; cars drive in from the street
 - Permanent upgrades between runs
 - Ten-pump ladder tuning

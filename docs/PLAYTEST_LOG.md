@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.17.0 Customers with rules  (#5)
+Hypothesis: Customers who each change one variable of the stop (overshoot from your pocket, a changing order, a patience timer) add Comedy and make the player adapt.
+Variable: Regulars only → Regular, $20 Guy, Confused Grandpa, Impatient Businessman; grey car + speech bubble
+Sessions: 1 (self: 1, others: 0)
+Observed: The $20 Guy makes no sense (everyone pays cash). Customers don't change how the player plays: the game is too fast and a single fill doesn't count enough to stop and adapt. Reference: 9 Kings: manual attacking matters early, then becomes annoying and gets automated.
+Biggest weakness: per-fill decisions don't matter at this pace; the run has no arc from manual to automated.
+Decision: KEPT customers (refine later), $20 Guy retired. Pivot (v0.18): manual early, mostly automated by a third of the run, 1x/2x/3x speed, 10-day run with a finish line.
+
 ## 2026-10-19 — v0.16.0 Upgrade tree per pump  (#18)
 Hypothesis: Giving every pump its own tree makes building the station feel personal (Advancement).
 Variable: station-wide pump upgrades → a tree per pump (Tab page)

@@ -21,16 +21,23 @@
 
 ## 2. MDA
 ### Aesthetics (target forms of fun, ranked)
-1. **Mastery (application of an ability)**: the player stops a pump on the exact amount, then loses and immediately wants another go at the pump that beat them.
-2. **Advancement & completion**: the station grows run after run (more pumps, better equipment) to survive rising rent.
+1. **Mastery (application of an ability)**: early in a run, the player stops pumps on the exact amount; their hands decide whether they survive or thrive the first days. Later, mastery moves to *the build*: choosing what to automate and when.
+2. **Advancement & completion**: the station grows within a run from hand-poured pumps to an automated machine (9 Kings arc), and run after run through XP.
 3. **Comedy**: unreliable pumps, absurd customers and fire-risk mishaps interrupt the plan.
 
 ### MDA chain
 | Aesthetic (feel) | ← Dynamic (emergent behavior) | ← Mechanic (rule) |
 |---|---|---|
 | Mastery | The player gets precise on one pump, then splits attention across many and plans the order of stops (e.g. start both, stop the smallest target first) | Hold a key to pour, release to stop. Visible number and target. Tiered scoring. Combo multiplier. Keys 1–0 for up to ten pumps. |
-| Advancement | The player builds a better station to survive rising rent | Rent each round. Upgrade shop. Permanent upgrades. Every helpful upgrade has a downside. On-release procs. |
+| Advancement | The player turns a hand-run station into an automated machine and steers its tempo | Rent each day. Cash upgrade tree (station + per pump). Self-service automation. 1x/2x/3x speed. 10-day run with a finish line. XP tree between runs (later). |
 | Comedy | Customers and mishaps break the player's plan | Customer modifiers (moving target, time pressure, unreliable display, costly overshoot). Overshoots build fire risk. |
+
+### Run arc (playtest 15, after 9 Kings)
+- **Days 1–3, manual:** the player pours every pump. Manual pumps earn tips, combo and XP; precision is the difference between surviving and thriving.
+- **About a third of the run in (day 3–4 of 10):** automation (self-service and its upgrades) becomes the main path; the player is mostly automated.
+- **Late run:** the player steers the machine: what to build and automate next, and the game speed (1x/2x/3x).
+- **Tuning target (for the balance phase):** manual is clearly worth it on days 1–3; by day 4 most pumps are automated.
+- **Risk:** automated days need decisions or the game becomes idle-watching. The upgrade tree must carry those decisions.
 
 ## 3. Core Loops
 - **Micro (1–5 s):** hold a key to pour, release at the target. Closer means a better tier and a bigger tip.
@@ -84,7 +91,7 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 **Cut:** conspiracy-angle gag.
 
 ### Design rules
-1. Upgrades cost cash (in-run) or XP (between runs), never a gameplay malus. They must never replace skill (no auto-stop, no aim assist). Difficulty rises through rent and customers instead. *(Rewritten 2026-10-19, playtest 11; was "every upgrade must have a downside".)*
+1. Upgrades cost cash (in-run) or XP (between runs), never a gameplay malus. Manual play must be clearly worth it early (tips, combo, XP only come from hand-poured pumps); automation may replace the player's hands, and should become the main path about a third of the way into a run. *(Rewritten 2026-10-19, playtest 15; before: "upgrades must never replace skill"; originally: "every upgrade must have a downside".)*
 2. Every customer must change at least one variable of the micro loop. Dialogue alone is flavor.
 3. The micro loop must be fun in a grey box before the build layer is built.
 4. Variation must be readable. Hidden randomness in the player's own controls feels unfair; variation the player can see coming is fair.
@@ -154,3 +161,6 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Pump upgrades become a tree per pump | Designer: each pump should grow on its own | Playtest 13 (#17) |
 | 2026-10-19 | Fire risk from overshoots cut from the slice | The car-cleaning delay already makes overshoot costly | Designer decision |
 | 2026-10-19 | Art direction: isometric, impressionist after Hopper's *Gas*, day/night light from the clock, rain cycles | Designer decision; mood matches the blues | Designer decision |
+| 2026-10-19 | Run arc after 9 Kings: manual early, mostly automated by a third of the run; 1x/2x/3x speed; design rule 1 rewritten | Single fills don't matter enough to adapt per customer; manual clicking should be worth it early, then automated | Playtest 15 (#19) |
+| 2026-10-19 | A run is 10 days with a finish screen | "A third of the run" needs a run length | Playtest 15 (#19) |
+| 2026-10-19 | $20 Guy retired (all customers pay cash anyway) | Designer: makes no sense; new characters later | Playtest 15 (#5) |
