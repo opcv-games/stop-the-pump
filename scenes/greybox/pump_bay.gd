@@ -110,6 +110,8 @@ func press() -> void:
 
 
 func release() -> void:
+	if self_service:
+		return  # the customer is pumping, not the player (playtest 13: releasing froze them)
 	pump.stop_pour()
 
 

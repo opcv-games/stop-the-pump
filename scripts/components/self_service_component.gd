@@ -66,6 +66,10 @@ func tick(delta: float) -> void:
 
 ## Pours for `seconds`, stopping exactly on the order: self-service customers never overshoot.
 func _pump_for(seconds: float) -> void:
+	if pump.is_done:  # stopped from outside (tank ran dry): settle what was pumped, never freeze
+		_left = paying_seconds
+		_set_phase(Phase.PAYING)
+		return
 	if seconds <= 0.0 or not pump.is_pouring:
 		return
 	var remaining := pump.target - pump.amount

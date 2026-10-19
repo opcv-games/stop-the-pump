@@ -143,3 +143,4 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Upgrade tree kept | "Just one more turn" planning across days | Playtest 12 (#15) |
 | 2026-10-19 | Music is plain background music + SFX; no tier notes, chord tracking or beat-synced clicks | Designer: the music engineering isn't wanted | Playtest 12 (#16) |
 | 2026-10-19 | Balance is out of scope until the slice's systems exist | Designer decision | Playtest 12 |
+| 2026-10-19 | Pump upgrades become a tree per pump | Designer: each pump should grow on its own | Playtest 13 (#17) |

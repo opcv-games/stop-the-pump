@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.15.1 Self-service pumps  (#17)
+Hypothesis: A self-service pump turns expansion into a business decision instead of a finger problem (Advancement), without replacing skill.
+Variable: Turbo nozzle → self-service branch
+Sessions: 1 (self: 1, others: 0)
+Observed: A self-service customer froze at $5.40 for 2 minutes. Cause: releasing the pump's key (by habit) cut the customer's fuel; the customer then waited forever. Fixed in v0.15.2 with regression tests. Designer wants pump upgrades as a tree **per pump**. "The core loop works, the upgrades are ok, but we should get into making it visually engaging soon."
+Biggest weakness: freeze bug (fixed); pump upgrades are station-wide instead of per pump.
+Decision: KEPT self-service (pending a clean playtest). Next: per-pump upgrade trees; plan the move to Phase 4 (visuals).
+
 ## 2026-10-19 — v0.13.0 Upgrade tree, cash-only costs, Roadside At Two  (#15)
 Hypothesis: A Bills-style tree with cash-only upgrades gives the player a plan across days (Advancement).
 Variable: random 3-offer shop → 5-branch tree; no gameplay downsides; real backing track
