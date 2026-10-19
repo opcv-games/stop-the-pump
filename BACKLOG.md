@@ -5,7 +5,6 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[tech]` **SFX + background music only** (#16, v0.14.0): remove tier notes, chord tracking, beat-synced clicks and the placeholder band
 - [ ] `[innovation]` **Self-service pumps** (proposed, replaces Turbo in the Pumps branch): a pump you convert runs on its own with a 3% card fee, slower pumping and slow customers; upgrades raise its speed and lower the fee. Guardrails: earns less than a played pump, no tips, no combo or XP
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
@@ -48,6 +47,7 @@
 - Tips as a third, personal currency for the attendant's own things (company money vs. personal money)
 
 ## Done
+- [x] SFX + background music only (#16), v0.14.0 (designer decision; not yet listened to)
 - [x] Upgrade tree, cash-only costs (#15), v0.13.0, playtest 2026-10-19: kept
 - [x] ~~Night shop with random offers and gameplay downsides (#14)~~, reworked into the tree (#15) after playtest 11
 - [x] Designer tools: dev mode, tuning panel, on-the-beat clicks, audio inbox (#13), v0.11.0
