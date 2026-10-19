@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — Second pump, shared combo  (#4)
+Hypothesis: If two pumps run at once (keys 1 and 2) with their own customers and one shared combo, then splitting attention creates depth a single pump cannot, increasing Mastery.
+Variable: pump_count 1 → 2
+Sessions: 1 (self: 1, others: 0), about 5 minutes
+Observed: A real difficulty layer: it took about 5 minutes to chain a combo. The player invented a strategy ("like piano classes"): start both pumps together, stop the smallest target first, then the larger one. More demanding, more rewarding (more points, faster high combos). Releasing two keys at once was not a problem. Global combo is right.
+Biggest weakness: the strategy may become a fixed recipe once learned (same risk that killed the rusty lever). Customers that change the plan mid-pour are the counter.
+Decision: KEPT. Combo stays global.
+
 ## 2026-10-18 — Rusty lever  (#2)
 Hypothesis: If the pump keeps pouring 0.4 s after release, then stopping becomes anticipation instead of reaction, deepening Mastery.
 Variable: release_delay 0 → 0.4 s

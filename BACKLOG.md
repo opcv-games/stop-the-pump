@@ -9,10 +9,6 @@
   As a player, I want to earn the fuel price plus a tip so that precision and volume both pay (serves: Advancement).
   - Given I overshoot the target, When the customer pays, Then they pay only for the requested amount and I absorb the extra fuel cost.
   - Given I undershoot the target, When the customer pays, Then I earn for the amount sold, no tip, and the customer asks for a top-up.
-- [ ] `[innovation]` **Second pump (hold 1 and 2 independently)** (#4)
-  As a player, I want to run two pumps at once so that I must split my attention (serves: Mastery).
-  - Given two customers are waiting, When I hold key 1 and key 2 together, Then both amounts climb independently.
-  - Given I release key 1 only, Then pump 1 stops and pump 2 continues.
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.
@@ -47,6 +43,7 @@
 - Experience as a second currency earned from chains (revisit after the economy is proven)
 
 ## Done
+- [x] Second pump with shared combo (#4), playtest 2026-10-19: strategy emerged, kept
 - [x] ~~Rusty lever delay (#2)~~, cut after playtest 2026-10-18
 - [x] Combo multiplier and placeholder sound (#7), playtest 2026-10-18: both clear improvements
 - [x] Pour and stop on a target (one pump) (#1), playtest 2026-10-18: core loop alive

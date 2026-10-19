@@ -27,7 +27,7 @@
 ### MDA chain
 | Aesthetic (feel) | ← Dynamic (emergent behavior) | ← Mechanic (rule) |
 |---|---|---|
-| Mastery | The player gets precise on one pump, then splits attention across many | Hold a key to pour, release to stop. Visible number and target. Tiered scoring. Combo multiplier. Keys 1–0 for up to ten pumps. |
+| Mastery | The player gets precise on one pump, then splits attention across many and plans the order of stops (e.g. start both, stop the smallest target first) | Hold a key to pour, release to stop. Visible number and target. Tiered scoring. Combo multiplier. Keys 1–0 for up to ten pumps. |
 | Advancement | The player builds a better station to survive rising rent | Rent each round. Upgrade shop. Permanent upgrades. Every helpful upgrade has a downside. On-release procs. |
 | Comedy | Customers and mishaps break the player's plan | Customer modifiers (moving target, time pressure, unreliable display, costly overshoot). Overshoots build fire risk. |
 
@@ -67,7 +67,7 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 | Tutorial first customer | Standard | Onboarding | |
 | ~~Rusty lever (release delay)~~ | Cut | Mastery | Cut after playtest 3: a fixed delay is a constant offset learned once; a random one feels unfair |
 | Combo multiplier | Innovation | Mastery | Kept after playtest 2 |
-| Multi-pump juggling (up to 10 keys) | Innovation | Mastery | Pump count is a difficulty ladder |
+| Multi-pump juggling (up to 10 keys) | Innovation | Mastery | Pump count is a difficulty ladder. Kept after playtest 4: it creates strategy, which single-pump play lacked |
 | Customer modifiers | Innovation | Comedy, Mastery | Every customer must change a micro-loop variable |
 | Upgrades with built-in downsides | Innovation | Mastery, Advancement | e.g. "let it run" drifts and loses precision |
 | Overshoot builds fire risk | Innovation | Comedy, Advancement | |
@@ -82,6 +82,7 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 2. Every customer must change at least one variable of the micro loop. Dialogue alone is flavor.
 3. The micro loop must be fun in a grey box before the build layer is built.
 4. Variation must be readable. Hidden randomness in the player's own controls feels unfair; variation the player can see coming is fair.
+5. The combo is global: one chain for the whole station, so a miss on any pump breaks it.
 
 ## 7. Pacing
 Each run rises from one calm pump to a chaotic multi-pump peak. Within a round: calm start, rising customer pressure, a rush at the end, then a rest at the shop. Target run: ~15 minutes. Slice: two runs, ~30 minutes.
@@ -119,3 +120,4 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-18 | Combo multiplier (x1–x5, resets on OK/Miss) kept | Losing a x5 combo created real pressure; each stop now has stakes | Playtest 2 (#7) |
 | 2026-10-18 | Placeholder sound kept, incl. a click per dollar | Clicks help timing; sound and combo each improved the loop on their own | Playtest 2 (#7) |
 | 2026-10-18 | Rusty lever cut | Fixed delay = constant offset, learned once; random delay = unfair. Depth must come from juggling pumps and customer modifiers | Playtest 3 (#2) |
+| 2026-10-19 | Second pump kept; combo stays global across pumps | Juggling produced a strategy (start both, stop smallest target first), which is a new skill; more demanding but more rewarding | Playtest 4 (#4) |
