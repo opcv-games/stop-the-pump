@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.26.0 Story intro and a one-pump start  (#29, #30)
+Hypothesis: A short inheritance story and a single starting pump make the first minutes clearer and give the run somewhere to grow from.
+Variable: no intro → captioned intro (Saint-Clin-Clin-des-Meuh-Meuh, Québec); 2 starting pumps → 1; day-1 rent $100 → $60
+Sessions: 1 (self: 1, others: 0)
+Observed: "The intro is fine for now", to be improved later. One pump on day 1 is boring, but that's expected for the genre: you quickly want to automate, and permanent power will make starts less boring. Survival and balance don't matter yet (balance pass later).
+Biggest weakness: the night upgrade shop "looks so bad": it should be a beautiful Bills-style tree branching from the centre. Also wants to decide between rounds whether to refill the tank, and by how much.
+Decision: KEPT. Next (v0.27): Bills-style radial upgrade tree; fuel order between days.
+
 ## 2026-10-19 — v0.24–v0.25 Natural cars, glug sounds, pop-ins, upgrade props  (#27, #28)
 Hypothesis: Cars that park before service, softer pour sounds and props that pop in after each upgrade make the station feel alive and purchases feel rewarding.
 Variable: instant cars → curved, braking cars gated on parking; clicky nozzle → glug loop + counter knocks; static station → every upgrade pops in a prop the next morning

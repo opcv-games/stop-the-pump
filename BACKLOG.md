@@ -5,8 +5,10 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[standard]` **Story intro: you inherit your late father's run-down station in Saint-Clin-Clin-des-Meuh-Meuh, Québec** (#29)
-- [ ] `[standard]` **Start the run with one pump; Pump 2 is the first PUMPS upgrade** (#30)
+- [ ] `[standard]` **Bills-style upgrade tree: one radial tree branching from the station in the centre; per-pump trees hang off their pump** (#31)
+- [ ] `[standard]` **Fuel order between days: choose whether to refill the tank and by how much** (#32)
+- [x] `[standard]` **Story intro: you inherit your late father's run-down station in Saint-Clin-Clin-des-Meuh-Meuh, Québec** (#29, v0.26.0, kept; to be improved)
+- [x] `[standard]` **Start the run with one pump; Pump 2 is the first PUMPS upgrade** (#30, v0.26.0, kept)
 - [x] `[juice]` **Juice pass: pour stream, Perfect sparkle, cash pops, cars from the road, world shake** (#26, v0.23.0, kept)
 - [x] `[juice]` **Cars serve only once parked, drive smoothly; glug + crick-crack-crock sounds; new pumps pop out of the ground** (#27, v0.24.0, kept)
 - [x] `[art]` **Cosmetic prop for every upgrade, popping in the next morning; per-pump props on their pump; billboard shows the name** (#28, v0.25.1, kept; billboard moved beside the road) (tanks, billboard, radio antenna, jukebox, squeegee bucket, tip jar, card reader on self-serve pumps...)
