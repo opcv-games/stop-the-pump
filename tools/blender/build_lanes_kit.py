@@ -1,5 +1,8 @@
 """Builds the Gas Bar Blues lanes kit: parallel lanes (cars enter top right, leave bottom left),
-modular props for Godot to place per lane, the footprint expansion, and decor. Clean low-poly.
+modular props for Godot to place per lane, the footprint expansion, and decor. Clean low-poly,
+and run-down to start: grime, a boarded window, faded paint, oil stains, cracks, weeds, potholes,
+a shabby name pylon (Godot writes the player's station name at its NameAnchor), and a weedy vacant
+lot with a LOT FOR SALE sign where the footprint expansion goes.
 
 Run (headless):
     blender -b --factory-startup -P tools/blender/build_lanes_kit.py -- <project_root>
@@ -34,16 +37,16 @@ ROAD_Y = LANE_Y0 - MAX_LANES * LANE_W - 2.6
 
 # --- Palette: pumps are the only saturated red; everything else muted ---------------------------
 RED = (0.55, 0.04, 0.03, 1)
-WHITE = (0.86, 0.85, 0.80, 1)
+WHITE = (0.74, 0.72, 0.64, 1)  # dirty off-white: the station starts run-down
 ROOF = (0.16, 0.20, 0.18, 1)
 WINDOW = (1.0, 0.78, 0.38, 1)
 ASPHALT = (0.12, 0.12, 0.13, 1)
-LANE_PAINT = (0.85, 0.84, 0.78, 1)
+LANE_PAINT = (0.62, 0.61, 0.56, 1)  # faded
 CONCRETE = (0.50, 0.49, 0.46, 1)
 CONCRETE_NEW = (0.60, 0.59, 0.56, 1)
 KERB = (0.62, 0.60, 0.55, 1)
 GRASS = (0.50, 0.40, 0.17, 1)
-GRASS_DARK = (0.36, 0.33, 0.14, 1)
+GRASS_DARK = (0.27, 0.33, 0.13, 1)
 WOODS = (0.06, 0.13, 0.09, 1)
 TRUNK = (0.12, 0.08, 0.05, 1)
 CAR = (0.33, 0.38, 0.45, 1)
@@ -55,6 +58,12 @@ TEAL = (0.20, 0.33, 0.33, 1)
 WOOD = (0.36, 0.25, 0.16, 1)
 STEEL = (0.45, 0.46, 0.47, 1)
 SIGN = (0.80, 0.78, 0.72, 1)
+OIL = (0.05, 0.05, 0.06, 1)
+CRACK = (0.24, 0.23, 0.21, 1)
+GRAVEL = (0.44, 0.40, 0.31, 1)
+GRIME = (0.42, 0.39, 0.33, 1)
+PLANK = (0.40, 0.30, 0.20, 1)
+BOARD = (0.70, 0.67, 0.58, 1)
 
 
 def reset():
@@ -104,6 +113,14 @@ def mats():
 		"sign": material("Sign", SIGN),
 		"rim": material("SignRim", (0.32, 0.10, 0.08, 1)),
 		"vending": material("VendingGlow", (0.70, 0.78, 0.80, 1), emission=0.6),
+		"oil": material("OilStain", OIL, roughness=0.3),
+		"crack": material("Crack", CRACK),
+		"gravel": material("Gravel", GRAVEL, roughness=1.0),
+		"grime": material("Grime", GRIME),
+		"plank": material("Plank", PLANK),
+		"board": material("SignBoard", BOARD),
+		"bulb": material("SignBulb", (1.0, 0.9, 0.6, 1), emission=1.2),
+		"bulb_dead": material("DeadBulb", (0.20, 0.19, 0.17, 1)),
 	})
 
 
@@ -233,14 +250,18 @@ def build_scenery(col):
 		box("Window_R", (1.6, 0.06, 1.1), (sx + 1.9, sy - 2.27, 1.7), M["window"]),
 		box("Door", (0.9, 0.06, 2.0), (sx, sy - 2.27, 1.0), M["roof"]),
 		sphere("PorchLamp", 0.18, (sx, sy - 2.45, 2.6), M["globe"]),
+		# Run-down: the left window is boarded up, grime runs down the walls, a stain on the roof.
+		box("PlankA", (1.9, 0.08, 0.22), (sx - 1.9, sy - 2.33, 1.95), M["plank"], rot=(0, math.radians(12), 0)),
+		box("PlankB", (1.9, 0.08, 0.22), (sx - 1.9, sy - 2.33, 1.45), M["plank"], rot=(0, math.radians(-9), 0)),
+		box("GrimeA", (0.5, 0.04, 1.0), (sx + 1.6, sy - 2.27, 0.55), M["grime"]),
+		box("GrimeB", (0.3, 0.04, 0.8), (sx - 2.8, sy - 2.27, 0.45), M["grime"]),
+		box("GrimeC", (0.25, 0.04, 1.6), (sx + 3.3, sy - 2.27, 2.0), M["grime"]),
+		box("RoofStain", (2.2, 1.6, 0.02), (sx - 1.2, sy + 0.6, 3.53), M["grime"]),
 	], "Station", col)
 
-	# Sign pole at the entrance (top right), facing the camera.
-	join([
-		cylinder("Pole", 0.09, 4.4, (LANE_X[1] + 4.5, back - 2.0, 2.2), M["roof"]),
-		cylinder("Disc", 0.9, 0.14, (LANE_X[1] + 4.44, back - 2.06, 4.4), M["sign"], rot=(math.pi / 2, 0, -math.pi / 4), verts=32),
-		cylinder("Rim", 1.0, 0.1, (LANE_X[1] + 4.52, back - 1.98, 4.4), M["rim"], rot=(math.pi / 2, 0, -math.pi / 4), verts=32),
-	], "SignPole", col)
+	build_name_pylon(col, LANE_X[1] + 5.0, back - 6.0)
+	build_vacant_lot(col, base_front, front, w)
+	build_dirt(col, back, base_front)
 
 	build_decor(col, sx, sy, back)
 
@@ -265,6 +286,90 @@ def build_scenery(col):
 	join(trees, "Woods", col)
 
 
+def tuft(x, y, h):
+	"""A weed tuft: three thin blades leaning out, instead of a box."""
+	blades = []
+	for k in range(3):
+		a = k * 2.1 + random.uniform(-0.3, 0.3)
+		blades.append(box("Blade", (0.06, 0.06, h), (x + math.cos(a) * 0.06, y + math.sin(a) * 0.06, h / 2),
+		                  M["grass_dark"], rot=(math.cos(a) * 0.35, math.sin(a) * 0.35, 0)))
+	return blades
+
+
+def build_name_pylon(col, px, py):
+	"""Roadside pylon with the station's name board. Shabby to start: tilted, rusty posts, a missing
+	panel and a dead bulb. Godot puts the player's chosen name on the NameAnchor empty."""
+	face = -math.pi / 4  # boards face the isometric camera
+	tilt = math.radians(4)
+	parts = [
+		cylinder("PostL", 0.12, 5.2, (px - 1.5, py + 1.5, 2.6), M["rust"], verts=8),
+		cylinder("PostR", 0.12, 5.2, (px + 1.5, py - 1.5, 2.6), M["rust"], verts=8),
+		box("Board", (4.8, 0.2, 1.5), (px, py, 4.4), M["board"], rot=(tilt, 0, face)),
+		box("Frame", (5.1, 0.16, 1.8), (px + 0.07, py + 0.07, 4.4), M["roof"], rot=(tilt, 0, face)),
+		box("MissingPanel", (0.9, 0.22, 0.55), (px + 1.2, py - 1.2, 3.95), M["roof"], rot=(tilt, 0, face)),
+		box("GasTop", (1.6, 0.2, 0.7), (px - 0.7, py + 0.7, 5.6), M["rim"], rot=(0, 0, face)),
+	]
+	for k in range(6):
+		t = -2.0 + k * 0.8
+		parts.append(sphere("Bulb", 0.09, (px + t * 0.707, py - t * 0.707 - 0.2, 5.2), M["bulb_dead"] if k == 4 else M["bulb"]))
+	join(parts, "NamePylon", col)
+	anchor = bpy.data.objects.new("NameAnchor", None)
+	anchor.location = (px - 0.12, py - 0.12, 4.45)  # just in front of the board
+	anchor.rotation_euler = (math.pi / 2 + tilt, 0, face)
+	col.objects.link(anchor)
+
+
+def build_vacant_lot(col, base_front, front, w):
+	"""Weedy gravel where the footprint expansion goes, with a LOT FOR SALE sign. Godot hides it
+	when the expansion is bought (and shows ForecourtExpansion instead)."""
+	parts = [box("Gravel", (w, base_front - front, 0.03), (0, (base_front + front) / 2, 0.015), M["gravel"])]
+	for k in range(45):
+		parts += tuft(random.uniform(-w / 2 + 0.5, w / 2 - 0.5), random.uniform(front + 0.4, base_front - 0.4), random.uniform(0.3, 0.7))
+	join(parts, "VacantLot", col)
+	sy = (base_front + front) / 2
+	join([
+		box("Post", (0.12, 0.12, 1.6), (4.0, sy, 0.8), M["wood"]),
+		box("Board", (1.6, 0.08, 0.8), (4.0, sy - 0.05, 1.5), M["sign"], rot=(0, 0, -math.pi / 4)),
+		box("Stripe", (1.6, 0.09, 0.18), (4.0, sy - 0.06, 1.75), M["rim"], rot=(0, 0, -math.pi / 4)),
+	], "LotForSaleSign", col)
+
+
+def build_dirt(col, back, base_front):
+	"""Oil stains, cracks and potholes on the starting forecourt (the expansion slab is new and clean)."""
+	parts = []
+	for i in range(BASE_LANES):
+		y = lane_y(i) - 0.3
+		bpy.ops.mesh.primitive_cylinder_add(radius=1.0, depth=0.01, location=(-0.4, y, 0.082), vertices=10)
+		stain = bpy.context.active_object
+		stain.scale = (random.uniform(1.0, 1.6), random.uniform(0.5, 0.8), 1)
+		stain.data.materials.append(M["oil"])
+		parts.append(stain)
+	for k in range(14):
+		x = random.uniform(LANE_X[0] + 1, LANE_X[1] - 1)
+		y = random.uniform(base_front + 0.5, back - 0.5)
+		parts.append(box("Crack", (random.uniform(0.8, 2.2), 0.06, 0.01), (x, y, 0.086), M["crack"],
+		                 rot=(0, 0, random.uniform(0, math.pi))))
+	# Potholes: dark dips with crumbs, in the lanes and on the aprons.
+	spots = [(-6.5, lane_y(0) - 0.8), (5.5, lane_y(1) - 0.1), (-3.0, lane_y(2) - 0.9), (8.5, lane_y(2) + 0.2),
+	         (LANE_X[1] + 2.2, lane_y(1)), (LANE_X[0] - 1.6, lane_y(2) - 1.5), (LANE_X[1] + 1.6, ROAD_Y + 4.0)]
+	for (x, y) in spots:
+		r = random.uniform(0.35, 0.6)
+		bpy.ops.mesh.primitive_cylinder_add(radius=r, depth=0.012, location=(x, y, 0.088), vertices=9)
+		hole = bpy.context.active_object
+		hole.scale = (1.0, random.uniform(0.6, 0.9), 1)
+		hole.data.materials.append(M["oil"])
+		parts.append(hole)
+		for c in range(4):
+			a = random.uniform(0, 2 * math.pi)
+			parts.append(box("Crumb", (0.12, 0.12, 0.05), (x + math.cos(a) * (r + 0.15), y + math.sin(a) * (r + 0.1), 0.09), M["crack"]))
+	# Weeds along the slab edges.
+	for k in range(30):
+		x = random.uniform(LANE_X[0], LANE_X[1])
+		y = random.choice([back + 0.05, base_front - 0.05]) + random.uniform(-0.2, 0.2)
+		parts += tuft(x, y, random.uniform(0.25, 0.5))
+	join(parts, "Dirt", col)
+
+
 def build_decor(col, sx, sy, back):
 	# Broken-down car beside the house: on blocks, flat tyre, missing door, rust, grass. Never a customer.
 	bx, by = sx + 6.6, back + 2.6  # front corner of the house: visible, but off the forecourt
@@ -278,8 +383,7 @@ def build_decor(col, sx, sy, back):
 		cylinder("FlatTyre", 0.33, 0.3, (1.1, -0.85, 0.2), M["tyre"], rot=(math.pi / 2, 0, 0)),
 	]
 	for k in range(9):
-		parts.append(box("Tuft", (0.25, 0.25, random.uniform(0.3, 0.6)),
-		                 (random.uniform(-2, 2), random.choice([-1.1, 1.1]) + random.uniform(-0.2, 0.2), 0.2), M["grass_dark"]))
+		parts += tuft(random.uniform(-2, 2), random.choice([-1.1, 1.1]) + random.uniform(-0.2, 0.2), random.uniform(0.4, 0.7))
 	car = join(parts, "BrokenCar", col)
 	car.rotation_euler = (0, 0, rot)
 	car.location = (bx, by, 0)
@@ -342,9 +446,28 @@ def layout(col, lanes):
 			c.location = (-0.4 + (i % 2) * 0.4, y - 0.3, 0.07)
 			c.hide_render = False
 			col.objects.link(c)
-	bpy.data.objects["ForecourtExpansion"].hide_render = lanes <= BASE_LANES
+	expanded = lanes > BASE_LANES
+	bpy.data.objects["ForecourtExpansion"].hide_render = not expanded
+	bpy.data.objects["VacantLot"].hide_render = expanded
+	bpy.data.objects["LotForSaleSign"].hide_render = expanded
 	for i in range(MAX_LANES):
 		bpy.data.objects["Lane_%d" % (i + 1)].hide_render = i >= lanes
+
+
+def preview_name(col):
+	"""Review renders only: an example name on the pylon. Not exported; Godot writes the real name."""
+	anchor = bpy.data.objects["NameAnchor"]
+	bpy.ops.object.text_add(location=anchor.location, rotation=anchor.rotation_euler)
+	text = bpy.context.active_object
+	text.data.body = "HANK'S GAS BAR"
+	text.data.align_x = "CENTER"
+	text.data.align_y = "CENTER"
+	text.data.size = 0.55
+	text.data.extrude = 0.01
+	text.data.materials.append(M["roof"])
+	for c in text.users_collection:
+		c.objects.unlink(text)
+	bpy.context.scene.collection.objects.link(text)
 
 
 def camera_and_light():
@@ -417,6 +540,7 @@ def main():
 	export(list(scenery.objects), os.path.join(exp, "station_scenery.glb"))
 	export(list(props.objects), os.path.join(exp, "station_props.glb"))
 
+	preview_name(review)
 	camera_and_light()
 	for o in props.objects:
 		o.hide_render = True  # the originals sit at the origin; the review layout uses copies
