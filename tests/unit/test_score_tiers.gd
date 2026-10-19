@@ -8,8 +8,20 @@ func before_each() -> void:
 	tiers = ScoreTiers.new()
 
 
+func test_given_target_20_when_final_is_exactly_20_then_super_perfect() -> void:
+	assert_eq(tiers.evaluate(20.0, 20.0), ScoreTiers.SUPER_PERFECT)
+
+
+func test_given_target_20_when_final_is_20_03_then_super_perfect() -> void:
+	assert_eq(tiers.evaluate(20.03, 20.0), ScoreTiers.SUPER_PERFECT)
+
+
 func test_given_target_20_when_final_is_20_05_then_perfect() -> void:
 	assert_eq(tiers.evaluate(20.05, 20.0), ScoreTiers.PERFECT)
+
+
+func test_given_super_perfect_then_it_keeps_the_combo() -> void:
+	assert_true(tiers.extends_combo(ScoreTiers.SUPER_PERFECT))
 
 
 func test_given_target_20_when_final_is_19_70_then_good() -> void:

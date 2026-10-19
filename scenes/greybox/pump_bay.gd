@@ -21,7 +21,7 @@ var cleaning := false
 
 var _cleaning_left := 0.0
 
-var _amount_label: Label
+var amount_label: Label
 var _light: ColorRect
 
 
@@ -33,7 +33,7 @@ func setup(bay_index: int, flow_rate: float) -> void:
 	pump.flow_rate = flow_rate
 	add_child(pump)
 	_build()
-	pump.amount_changed.connect(func(a: float) -> void: _amount_label.text = "$%.2f" % a)
+	pump.amount_changed.connect(func(a: float) -> void: amount_label.text = "$%.2f" % a)
 	pump.stopped.connect(_on_stopped)
 	show_empty()
 
@@ -101,6 +101,11 @@ func release() -> void:
 	pump.stop_pour()
 
 
+## Super Perfect: the display shows the exact target ("on the dot").
+func show_amount(amount: float) -> void:
+	amount_label.text = "$%.2f" % amount
+
+
 func show_result(text: String, color: Color) -> void:
 	result_label.text = text
 	result_label.add_theme_color_override("font_color", color)
@@ -126,8 +131,8 @@ func _build() -> void:
 	screen.position = Vector2(15, 30)
 	screen.size = Vector2(220, 100)
 	body.add_child(screen)
-	_amount_label = Greybox.label(screen, "$0.00", 54, Vector2.ZERO, screen.size)
-	_amount_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	amount_label = Greybox.label(screen, "$0.00", 54, Vector2.ZERO, screen.size)
+	amount_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 
 	_light = ColorRect.new()
 	_light.position = Vector2(100, 160)

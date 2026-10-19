@@ -19,34 +19,10 @@ def env(i, n, attack=0.005, release=0.5):
     return a * r
 
 
-def tone(freqs, dur, vol=0.5, wave_fn=math.sin, release=0.7):
-    n = int(RATE * dur)
-    return [vol * env(i, n, release=release) * sum(wave_fn(2 * math.pi * f * i / RATE) for f in freqs) / len(freqs) for i in range(n)]
-
-
 def square(x):
     return 1.0 if math.sin(x) >= 0 else -1.0
 
 
-def seq(*parts):
-    out = []
-    for p in parts:
-        out += p
-    return out
-
-
-random.seed(7)
-# Motor hum, exactly 1 s so it loops cleanly (all partials are whole Hz).
-write("pour_loop.wav", [0.25 * (math.sin(2 * math.pi * 90 * i / RATE) + 0.5 * math.sin(2 * math.pi * 180 * i / RATE)
-                               + 0.3 * square(2 * math.pi * 45 * i / RATE)) / 1.8 + 0.03 * random.uniform(-1, 1)
-                        for i in range(RATE)])
-write("tick.wav", [0.6 * env(i, 900, attack=0.0005, release=0.9) * random.uniform(-1, 1) for i in range(900)])
-write("ok.wav", tone([392.0], 0.18, 0.4, release=0.5))
-write("miss.wav", tone([110.0, 116.0], 0.4, 0.35, wave_fn=square, release=0.3))
-
-
-# Gas Bar Blues (playtest 8): a 12-bar blues in A uses three dominant-7th chords.
-# Perfect adds the "blue note" (the flat third) on top, an octave up.
 def note(n):  # MIDI note number to Hz
     return 440.0 * 2 ** ((n - 69) / 12)
 
@@ -63,25 +39,90 @@ def keys(freqs, dur=0.8, vol=0.45):
     return out
 
 
-# root, 3rd, 5th, flat 7th (voiced around middle C), and the blue note (flat 3rd of the key's chord root)
-CHORDS = {"A7": ([45, 57, 61, 64, 67], 72), "D7": ([50, 57, 60, 62, 66], 77), "E7": ([52, 56, 59, 62, 64], 79)}
-for name, (notes, blue) in CHORDS.items():
-    write("chord_%s.wav" % name, keys([note(m) for m in notes]))
-    write("chord_%s_perfect.wav" % name, keys([note(m) for m in notes] + [note(blue)], vol=0.5))
+random.seed(7)
 
-# The chain breaks: a detuned cluster that sags in pitch, like a tape slowing down.
-n = int(RATE * 0.9)
-out = []
-phase = [0.0, 0.0, 0.0, 0.0]
-base = [note(60), note(61), note(66), note(67)]
-for i in range(n):
-    t = i / RATE
-    sag = 1.0 - 0.35 * (t / 0.9) ** 1.5
-    e = min(1, t / 0.01) * math.exp(-2.5 * t)
-    v = 0.0
-    for k, f in enumerate(base):
-        phase[k] += 2 * math.pi * f * sag / RATE
-        v += square(phase[k]) * 0.5 + math.sin(phase[k]) * 0.5
-    out.append(0.35 * e * v / 4)
-write("chord_break.wav", out)
+# --- Pump -----------------------------------------------------------------
+# Motor hum, exactly 1 s so it loops cleanly (all partials are whole Hz).
+write("pour_loop.wav", [0.25 * (math.sin(2 * math.pi * 90 * i / RATE) + 0.5 * math.sin(2 * math.pi * 180 * i / RATE)
+                               + 0.3 * square(2 * math.pi * 45 * i / RATE)) / 1.8 + 0.03 * random.uniform(-1, 1)
+                        for i in range(RATE)])
+write("tick.wav", [0.6 * env(i, 900, attack=0.0005, release=0.9) * random.uniform(-1, 1) for i in range(900)])
+
+# --- Melody: the player's stops, on top of the band (#12) ----------------------
+# Gas Bar Blues is a 12-bar blues in A: three dominant-7th chords, A7, D7, E7.
+# Super Perfect: 3 notes strummed (root, 3rd, flat 7th). Perfect: root + 5th. Good: root.
+# Miss: two notes that clash with the chord. OK plays nothing.
+MELODY_ROOTS = {"A7": 69, "D7": 62, "E7": 64}
+
+
+def strum(midis, gap=0.025, dur=0.9, vol=0.5):
+    n = int(RATE * (dur + gap * len(midis)))
+    out = [0.0] * n
+    for k, m in enumerate(midis):
+        part = keys([note(m)], dur, vol)
+        off = int(RATE * gap * k)
+        for i, v in enumerate(part):
+            out[off + i] += v / math.sqrt(len(midis))
+    return out
+
+
+for name, root in MELODY_ROOTS.items():
+    write("note_%s_good.wav" % name, strum([root]))
+    write("note_%s_perfect.wav" % name, strum([root, root + 7]))
+    write("note_%s_super.wav" % name, strum([root, root + 4, root + 10]))
+    bad = []
+    for i in range(int(RATE * 0.5)):
+        t = i / RATE
+        e = min(1, t / 0.005) * math.exp(-5 * t)
+        bad.append(0.3 * e * (square(2 * math.pi * note(root + 1) * t) + square(2 * math.pi * note(root + 6) * t)) / 2)
+    write("note_%s_bad.wav" % name, bad)
+
+# --- Backing band: one 12-bar chorus in A at 90 BPM, shuffle feel, loops seamlessly ----
+BPM = 90
+BEAT = 60.0 / BPM
+BAR = BEAT * 4
+TWELVE_BAR = ["A7", "A7", "A7", "A7", "D7", "D7", "A7", "A7", "E7", "D7", "A7", "E7"]
+BASS_ROOTS = {"A7": 45, "D7": 50, "E7": 52}
+BOOGIE = [0, 4, 7, 9, 10, 9, 7, 4]  # classic walking boogie bass, one note per swung eighth
+mix = [0.0] * int(RATE * BAR * 12)
+
+
+def add(at, samples):
+    off = int(at * RATE)
+    for i, v in enumerate(samples):
+        if off + i < len(mix):
+            mix[off + i] += v
+
+
+def bass(midi, dur):
+    f = note(midi)
+    return [0.5 * min(1, (i / RATE) / 0.005) * math.exp(-4 * i / RATE)
+            * (math.sin(2 * math.pi * f * i / RATE) + 0.5 * math.sin(4 * math.pi * f * i / RATE)
+               + 0.25 * math.sin(6 * math.pi * f * i / RATE)) / 1.75 for i in range(int(RATE * dur))]
+
+
+def noise(dur, vol, decay):
+    return [vol * math.exp(-decay * i / RATE) * random.uniform(-1, 1) for i in range(int(RATE * dur))]
+
+
+def kick():
+    out, ph = [], 0.0
+    for i in range(int(RATE * 0.15)):
+        t = i / RATE
+        ph += 2 * math.pi * (50 + 70 * math.exp(-30 * t)) / RATE
+        out.append(0.55 * math.exp(-18 * t) * math.sin(ph))
+    return out
+
+
+for b, chord in enumerate(TWELVE_BAR):
+    for beat in range(4):
+        on = b * BAR + beat * BEAT
+        off = on + BEAT * 2 / 3  # swung eighth
+        add(on, bass(BASS_ROOTS[chord] + BOOGIE[beat * 2], BEAT * 2 / 3))
+        add(off, bass(BASS_ROOTS[chord] + BOOGIE[beat * 2 + 1], BEAT / 3))
+        add(off, noise(0.04, 0.07, 90))
+        add(on, noise(0.03, 0.05, 120))
+        add(on, kick() if beat in (0, 2) else noise(0.12, 0.14, 30))
+peak = max(abs(v) for v in mix)
+write("backing_12bar.wav", [v * 0.6 / peak for v in mix])
 print("ok")

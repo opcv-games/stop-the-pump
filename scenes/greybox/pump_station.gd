@@ -3,7 +3,8 @@ extends Control
 ## Kept: #1 tiered stop, #7 combo + sound (M toggles), #4 two pumps.
 ## Kept: #8 a full day (7am-11pm in 3 minutes), cash at the pump, XP from combos, costs at day end.
 ## Kept: #9 car-cleaning delay after a big overshoot (C toggles it), one fuel-to-cash gauge.
-## Testing: #10 random car arrivals; chord progression on good stops (M toggles sound).
+## Kept: #10 random car arrivals, #11 the blues.
+## Testing: #12 Super Perfect tier; backing band with stops as melody (M toggles sound).
 
 enum State { OPEN, CLOSING, SUMMARY }
 
@@ -27,6 +28,7 @@ enum State { OPEN, CLOSING, SUMMARY }
 @export var economy: FuelEconomy = FuelEconomy.new()
 
 const TIER_COLORS := {
+	ScoreTiers.SUPER_PERFECT: Color(1.0, 0.85, 0.3),
 	ScoreTiers.PERFECT: Color(0.35, 0.9, 0.45),
 	ScoreTiers.GOOD: Color(0.6, 0.8, 1.0),
 	ScoreTiers.OK: Color(0.95, 0.85, 0.4),
@@ -47,7 +49,7 @@ var evicted := false
 var _day_id := 0  # stale customer timers from a previous day are ignored
 var _day_earned := 0.0
 var _start_fuel_value := 1.0
-var _counts := {ScoreTiers.PERFECT: 0, ScoreTiers.GOOD: 0, ScoreTiers.OK: 0, ScoreTiers.MISS: 0}
+var _counts := {ScoreTiers.SUPER_PERFECT: 0, ScoreTiers.PERFECT: 0, ScoreTiers.GOOD: 0, ScoreTiers.OK: 0, ScoreTiers.MISS: 0}
 var _best_combo := 1
 
 var _combo_label: Label
@@ -74,7 +76,6 @@ func _ready() -> void:
 	tank.emptied.connect(_close_day)
 	clock.time_changed.connect(_on_time_changed)
 	clock.closed.connect(_close_day)
-	sound.watch_combo(combo)
 	start_run()
 
 
@@ -154,11 +155,13 @@ func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
 	wallet.add(receipt.earned)
 	wallet.add_xp(xp)
 	sound.play_tier(tier)
+	if tier == ScoreTiers.SUPER_PERFECT:
+		bay.show_amount(target)
 	_counts[tier] += 1
 	bay.show_result(_receipt_text(tier, final_amount - target, receipt, xp, paid_multiplier, lost), TIER_COLORS[tier])
-	_stats_label.text = "Perfect %d   Good %d   OK %d   Miss %d   |   Best combo x%d" % [
-		_counts[ScoreTiers.PERFECT], _counts[ScoreTiers.GOOD], _counts[ScoreTiers.OK],
-		_counts[ScoreTiers.MISS], _best_combo]
+	_stats_label.text = "Super %d   Perfect %d   Good %d   OK %d   Miss %d   |   Best combo x%d" % [
+		_counts[ScoreTiers.SUPER_PERFECT], _counts[ScoreTiers.PERFECT], _counts[ScoreTiers.GOOD],
+		_counts[ScoreTiers.OK], _counts[ScoreTiers.MISS], _best_combo]
 	if cleaning_enabled and receipt.overshoot > combo.tiers.ok_window:
 		bay.start_cleaning(cleaning_seconds)  # the next customer comes when cleaning finishes
 	elif state == State.OPEN:
@@ -169,7 +172,7 @@ func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
 
 ## Three short lines under the pump: tier and distance, cash and why, XP (and combo lost).
 func _receipt_text(tier: String, diff: float, r: FuelEconomy.Receipt, xp: int, paid_multiplier: int, lost: int) -> String:
-	var distance := "on the dot" if absf(diff) < 0.005 else "$%.2f %s" % [absf(diff), "over" if diff > 0 else "short"]
+	var distance := "on the dot" if absf(diff) < 0.005 or tier == ScoreTiers.SUPER_PERFECT else "$%.2f %s" % [absf(diff), "over" if diff > 0 else "short"]
 	var text := "%s  %s\n+$%.2f" % [tier.to_upper(), distance, r.earned]
 	if r.short:
 		text += "  no tip"
@@ -348,7 +351,7 @@ func _build_station() -> void:
 	_xp_label = Greybox.label(self, "XP\n0", 28, Vector2(952, 340), Vector2(200, 90))
 	_on_multiplier_changed(1)
 
-	_stats_label = Greybox.label(self, "Perfect 0   Good 0   OK 0   Miss 0   |   Best combo x1", 20, Vector2(0, 572), Vector2(1152, 30))
+	_stats_label = Greybox.label(self, "Super 0   Perfect 0   Good 0   OK 0   Miss 0   |   Best combo x1", 20, Vector2(0, 572), Vector2(1152, 30))
 	_hint_label = Greybox.label(self, "", 18, Vector2(0, 606), Vector2(1152, 30))
 	_hint_label.modulate = Color(1, 1, 1, 0.6)
 	var version := Greybox.label(self, "v%s" % ProjectSettings.get_setting("application/config/version", "dev"), 16, Vector2(952, 618), Vector2(190, 26))

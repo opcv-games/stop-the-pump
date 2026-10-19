@@ -14,10 +14,12 @@ class Receipt:
 
 
 @export_group("At the pump")
+@export var super_perfect_tip := 8.0
 @export var perfect_tip := 5.0
 @export var good_tip := 2.0
 @export var ok_tip := 0.0
 @export_group("XP (multiplied by the combo)")
+@export var super_perfect_xp := 200
 @export var perfect_xp := 100
 @export var good_xp := 50
 @export var ok_xp := 10
@@ -34,7 +36,7 @@ func settle(final_amount: float, target: float, tier: String) -> Receipt:
 	var r := Receipt.new()
 	r.sale = minf(final_amount, target)
 	r.overshoot = maxf(0.0, final_amount - target)
-	r.short = final_amount < target and tier != ScoreTiers.PERFECT
+	r.short = final_amount < target and tier != ScoreTiers.PERFECT and tier != ScoreTiers.SUPER_PERFECT
 	r.tip = 0.0 if r.short else tip_for(tier)
 	r.earned = r.sale + r.tip
 	return r
@@ -42,6 +44,8 @@ func settle(final_amount: float, target: float, tier: String) -> Receipt:
 
 func tip_for(tier: String) -> float:
 	match tier:
+		ScoreTiers.SUPER_PERFECT:
+			return super_perfect_tip
 		ScoreTiers.PERFECT:
 			return perfect_tip
 		ScoreTiers.GOOD:
@@ -53,6 +57,8 @@ func tip_for(tier: String) -> float:
 
 func xp_for(tier: String, multiplier: int) -> int:
 	match tier:
+		ScoreTiers.SUPER_PERFECT:
+			return super_perfect_xp * multiplier
 		ScoreTiers.PERFECT:
 			return perfect_xp * multiplier
 		ScoreTiers.GOOD:

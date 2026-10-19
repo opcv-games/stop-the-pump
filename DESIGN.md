@@ -47,7 +47,7 @@ Two currencies, kept separate so the fiction holds (a customer doesn't pay more 
 - **The day:** the station is open 7am–11pm, which runs for 3 real minutes. One shared tank (400 L) feeds every pump. The day ends when the clock runs out or the tank is empty. If cash is below zero after costs, the run ends (evicted).
 - **Overshoot:** the customer pays only for the amount requested; the extra fuel drains the tank (less fuel left to sell) and is paid for at refill. Next hypothesis: a car-cleaning delay as an extra time penalty.
 - **Undershoot:** the player sells less and gets no tip unless the stop is Perfect. The top-up request waits for customer patience.
-- **Scoring tiers:** Perfect / Good / OK / Miss. Thresholds are tunable values (±$0.10 / ±$0.50 / ±$1.00).
+- **Scoring tiers:** Super Perfect / Perfect / Good / OK / Miss. Thresholds are tunable (±$0.03 / ±$0.10 / ±$0.50 / ±$1.00). Super Perfect = the best possible frame at 60 fps; the display snaps to the exact target. Super Perfect pays an $8 tip and 200 XP.
 
 ## 4. Genre, Mood & Audience
 - **Genre / comparables:** short-run roguelite with a number-go-up build layer. Balatro, Bills Must Be Paid, 9 Kings, Ball x Pit, sports management games.

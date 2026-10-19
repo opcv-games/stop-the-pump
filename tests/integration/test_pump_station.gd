@@ -74,11 +74,11 @@ func test_given_new_run_then_cash_is_starting_cash() -> void:
 	assert_almost_eq(station.wallet.cash, station.starting_cash, 0.001)
 
 
-func test_given_x1_when_stopped_exactly_then_cash_gains_full_sale_plus_tip_and_xp_gains_100() -> void:
+func test_given_x1_when_stopped_exactly_then_cash_gains_full_sale_plus_tip_and_xp_gains_200() -> void:
 	var target: float = _pump(0).target
 	_stop_exactly_on_target(0)
-	assert_almost_eq(station.wallet.cash, station.starting_cash + target + 5.0, 0.001)
-	assert_eq(station.wallet.xp, 100)
+	assert_almost_eq(station.wallet.cash, station.starting_cash + target + 8.0, 0.001)
+	assert_eq(station.wallet.xp, 200)
 
 
 func test_given_x2_when_stopped_exactly_then_xp_doubles_but_tip_does_not() -> void:
@@ -86,9 +86,9 @@ func test_given_x2_when_stopped_exactly_then_xp_doubles_but_tip_does_not() -> vo
 	var cash_before: float = station.wallet.cash
 	var target: float = _pump(1).target
 	_stop_exactly_on_target(1)
-	assert_almost_eq(station.wallet.cash - cash_before, target + 5.0, 0.001)
-	assert_eq(station.wallet.xp, 300)
-	assert_string_contains(station.bays[1].result_label.text, "+200 XP (x2)")
+	assert_almost_eq(station.wallet.cash - cash_before, target + 8.0, 0.001)
+	assert_eq(station.wallet.xp, 600)
+	assert_string_contains(station.bays[1].result_label.text, "+400 XP (x2)")
 
 
 # --- Tank and day (#8) ---
@@ -131,7 +131,7 @@ func test_given_day_ends_then_refill_and_rent_are_taken_from_cash() -> void:
 	_stop_exactly_on_target(0)
 	var liters: float = station.tank.liters_used()
 	_end_day_by_clock()
-	var expected: float = station.starting_cash + target + 5.0 - station.economy.refill_cost(liters) - station.economy.rent_for(1)
+	var expected: float = station.starting_cash + target + 8.0 - station.economy.refill_cost(liters) - station.economy.rent_for(1)
 	assert_almost_eq(station.wallet.cash, expected, 0.001)
 
 
@@ -193,8 +193,19 @@ func test_given_cleaning_switched_off_when_big_overshoot_then_bay_is_not_cleanin
 	assert_false(station.bays[0].cleaning)
 
 
-func test_given_station_then_version_is_0_9() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.9")
+func test_given_station_then_version_is_0_10() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.10")
+
+
+# --- Super Perfect (#12) ---
+
+func test_given_stop_2_cents_over_then_super_perfect_and_display_snaps_to_target() -> void:
+	var target: float = _pump(0).target
+	_pump(0).start_pour()
+	_pump(0).tick((target + 0.02) / _pump(0).flow_rate)
+	_pump(0).stop_pour()
+	assert_string_contains(station.bays[0].result_label.text, "SUPER PERFECT  on the dot")
+	assert_eq(station.bays[0].amount_label.text, "$%.2f" % target)
 
 
 # --- Random arrivals (#10) ---

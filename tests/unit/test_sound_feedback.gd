@@ -1,9 +1,21 @@
 extends GutTest
-## Good stops walk a chord progression; a broken chain falls apart (playtest 7). Refs #10, #11
+## A backing band plays the 12-bar blues; stops add melody notes that fit the bar. Refs #12
 
 
-func test_given_chain_of_13_then_chords_walk_a_12_bar_blues_and_loop() -> void:
-	var names := []
-	for length in range(1, 14):
-		names.append(SoundFeedback.chord_for(length))
-	assert_eq(names, ["A7", "A7", "A7", "A7", "D7", "D7", "A7", "A7", "E7", "D7", "A7", "E7", "A7"])
+func test_given_backing_at_start_then_bar_1_is_a7() -> void:
+	assert_eq(SoundFeedback.chord_at(0.0), "A7")
+
+
+func test_given_backing_in_bar_5_then_chord_is_d7() -> void:
+	assert_eq(SoundFeedback.chord_at(SoundFeedback.bar_seconds() * 4.5), "D7")
+
+
+func test_given_backing_past_one_chorus_then_it_loops_to_bar_1() -> void:
+	assert_eq(SoundFeedback.chord_at(SoundFeedback.bar_seconds() * 12.2), "A7")
+
+
+func test_given_tiers_then_note_counts_are_3_2_1_0() -> void:
+	assert_eq(SoundFeedback.note_count(ScoreTiers.SUPER_PERFECT), 3)
+	assert_eq(SoundFeedback.note_count(ScoreTiers.PERFECT), 2)
+	assert_eq(SoundFeedback.note_count(ScoreTiers.GOOD), 1)
+	assert_eq(SoundFeedback.note_count(ScoreTiers.OK), 0)

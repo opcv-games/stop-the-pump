@@ -5,6 +5,9 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
+- [ ] `[innovation]` **Super Perfect tier and backing band** (#12, v0.10.0, awaiting playtest)
+  - Given a target of $20.00, When the pump stops at $20.03, Then the tier is Super Perfect and the display shows $20.00.
+  - Given the band is on bar 5, When I stop with a Good, Then one note of D7 plays.
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.

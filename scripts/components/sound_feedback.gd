@@ -1,12 +1,21 @@
 class_name SoundFeedback
 extends Node
 ## Listens to game signals and plays placeholder sounds. Gameplay never calls audio directly,
-## so sound can be muted or swapped in Phase 4 without touching rules. Serves: Mastery (feel). Refs #7
+## so sound can be muted or swapped in Phase 4 without touching rules. Serves: Mastery (feel).
+## A backing band loops a 12-bar blues; each stop adds melody notes that fit the current bar,
+## so the song never stops and the player's notes are always in key. Refs #7, #12
 
 const DIR := "res://assets/audio/placeholder/"
-## Good stops walk a 12-bar blues in A; a broken chain starts it again from bar 1 (#10, #11).
-const CHORDS := ["A7", "D7", "E7"]
+const BPM := 90.0
 const TWELVE_BAR := ["A7", "A7", "A7", "A7", "D7", "D7", "A7", "A7", "E7", "D7", "A7", "E7"]
+const CHORDS := ["A7", "D7", "E7"]
+## Melody file suffix for each tier that plays notes (OK plays nothing).
+const TIER_NOTES := {
+	ScoreTiers.SUPER_PERFECT: "super",
+	ScoreTiers.PERFECT: "perfect",
+	ScoreTiers.GOOD: "good",
+	ScoreTiers.MISS: "bad",
+}
 
 ## Toggled with M during playtests so sound can be judged on its own.
 @export var enabled := true:
@@ -15,29 +24,35 @@ const TWELVE_BAR := ["A7", "A7", "A7", "A7", "D7", "D7", "A7", "A7", "E7", "D7",
 		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), not value)
 ## Play a click every time the meter passes a whole dollar.
 @export var tick_every_dollar := true
-
 ## Each extra pump hums and clicks a little higher so pumps can be told apart by ear.
 @export var pitch_step_per_pump := 0.12
+@export var backing_volume_db := -9.0
 
 var _players := {}
 var _loop: AudioStreamWAV
 var _tick: AudioStream
+var _backing: AudioStreamPlayer
 
 
 func _ready() -> void:
-	var names := ["ok", "miss", "chord_break"]
 	for chord in CHORDS:
-		names.append("chord_" + chord)
-		names.append("chord_" + chord + "_perfect")
-	for sfx in names:
-		var p := AudioStreamPlayer.new()
-		p.stream = load(DIR + sfx + ".wav")
-		add_child(p)
-		_players[sfx] = p
+		for suffix in TIER_NOTES.values():
+			var p := AudioStreamPlayer.new()
+			p.stream = load(DIR + "note_%s_%s.wav" % [chord, suffix])
+			add_child(p)
+			_players["%s_%s" % [chord, suffix]] = p
 	_tick = load(DIR + "tick.wav")
 	_loop = load(DIR + "pour_loop.wav")
 	_loop.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	_loop.loop_end = 44100
+	var band: AudioStreamWAV = load(DIR + "backing_12bar.wav")
+	band.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	band.loop_end = band.data.size() / 2  # 16-bit mono: 2 bytes per sample
+	_backing = AudioStreamPlayer.new()
+	_backing.stream = band
+	_backing.volume_db = backing_volume_db
+	add_child(_backing)
+	_backing.play()
 
 
 ## Gives a pump its own hum and click players. index sets its pitch.
@@ -63,26 +78,33 @@ func watch_pump(pump: PumpComponent, index := 0) -> void:
 	pump.stopped.connect(func(_final: float) -> void: hum.stop())
 
 
-func watch_combo(combo: ComboComponent) -> void:
-	combo.chained.connect(_on_chained)
-	combo.combo_broken.connect(func(_lost: int) -> void: _play("chord_break"))
-
-
-## Only OK and Miss have their own sound; good stops play the next chord instead.
+## Plays this stop's melody notes in the chord the band is on right now.
 func play_tier(tier: String) -> void:
-	if tier == ScoreTiers.OK or tier == ScoreTiers.MISS:
-		_play(tier.to_lower())
+	if not TIER_NOTES.has(tier):
+		return
+	var position := _backing.get_playback_position() if _backing and _backing.playing else 0.0
+	var key := "%s_%s" % [chord_at(position), TIER_NOTES[tier]]
+	if _players.has(key):
+		_players[key].play()
 
 
-func _on_chained(length: int, tier: String) -> void:
-	_play("chord_%s%s" % [chord_for(length), "_perfect" if tier == ScoreTiers.PERFECT else ""])
+static func bar_seconds() -> float:
+	return 4.0 * 60.0 / BPM
 
 
-## The Nth good stop in a row plays bar N of the 12-bar blues, then the chorus repeats.
-static func chord_for(chain_length: int) -> String:
-	return TWELVE_BAR[(chain_length - 1) % TWELVE_BAR.size()]
+## The chord the band is playing `seconds` into the loop.
+static func chord_at(seconds: float) -> String:
+	var bar := int(floor(seconds / bar_seconds())) % TWELVE_BAR.size()
+	return TWELVE_BAR[bar]
 
 
-func _play(sfx: String) -> void:
-	if _players.has(sfx):
-		_players[sfx].play()
+## Super Perfect 3, Perfect 2, Good 1, OK and Miss 0 (a Miss plays a sour note instead).
+static func note_count(tier: String) -> int:
+	match tier:
+		ScoreTiers.SUPER_PERFECT:
+			return 3
+		ScoreTiers.PERFECT:
+			return 2
+		ScoreTiers.GOOD:
+			return 1
+	return 0
