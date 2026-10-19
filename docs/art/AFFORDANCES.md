@@ -13,7 +13,10 @@ Rule: the things you act on are saturated and lit; the world around them is mute
 | **Road** | "Cars come from here." | Runs along the bottom of the station; aprons at both ends lead into and out of the lanes. |
 | **Lane** | "Cars flow this way, one lane per pump." | A dark asphalt strip with white arrows pointing bottom-left (direction of travel). |
 | **Pump island** | "The pump belongs to this lane." | A low kerb beside each lane carrying its pump. |
-| **Footprint expansion** | "The station got bigger." | A newer, slightly lighter concrete slab with two more lanes. |
+| **Vacant lot** | "There is room to grow here" (the expansion upgrade). | Weedy gravel beside the forecourt with a small LOT FOR SALE sign. |
+| **Footprint expansion** | "The station got bigger." | A newer, slightly lighter concrete slab with two more lanes, replacing the vacant lot. |
+| **Name pylon** | "This station is yours." | Tall roadside sign at the entrance with the player's chosen name on a board; starts tilted, rusty, a panel missing, a dead bulb. |
+| **Potholes, oil stains, cracks, grime** | "This place has seen better days." Never mistaken for something to act on. | Dark, flat, low-contrast shapes on the ground and walls; nothing glows or uses red. |
 | **Broken-down car** | Comedy and mood. Must never look like a customer. | Up on blocks, a flat tyre, a missing door, grass around it, rust brown (low saturation, never the pumps' red). Beside the house, away from the lanes. |
 | **Tyre pile, oil barrels, bench, vending machine, air pump, phone booth** | Place and mood. Not interactive. | Muted colours, small, at the edges of the forecourt and around the house. The vending machine glows softly at night, never brighter than the pump globes. |
 | **Woods** | Mood and frame. Not interactive. | Dark, dense masses of trees behind the station; deepest values in the scene, so everything in front pops. |

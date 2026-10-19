@@ -8,7 +8,7 @@
 - [x] `[art]` **Look test: Hopper station kit in Blender, isometric renders at morning, afternoon, night** (#21, approved)
 - [x] `[art]` **Look test in Godot: isometric 3D station behind the HUD, light from the day clock, rain** (#22, v0.20.0; painterly filter rejected)
 - [ ] `[art]` **Lanes kit (Blender): parallel lanes, modular pump/island/car props, footprint expansion, decor** (#23, awaiting designer review: docs/art/lanes_3.png, lanes_5.png)
-- [ ] `[art]` **Lanes in Godot: remove the painterly filter, one lane per pump, cars drive in top right and out bottom left, footprint expansion upgrade** (after #23 is approved)
+- [ ] `[art]` **Lanes in Godot: remove the painterly filter, one lane per pump, cars drive in top right and out bottom left, footprint expansion upgrade (paves the vacant lot), player names the station on the pylon** (after #23 is approved)
 - [ ] `[art]` **Step 3: 3D pumps match the game's pumps (labels anchored to them, globes glow when pouring), cars per customer drive in from the road**
 - [x] `[standard]` **Endless mode and auto on/off per pump** (#20, v0.19.0, kept; endless parked until balance)
   - Given day 10 is survived, When I press E, Then the run keeps going (endless) with rising rent.
@@ -35,6 +35,7 @@
 - [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (playtest 3: clicks are too fast to count at $4/s, so this needs rethinking)
 
 ## Later (deliberately vague)
+- Station looks upgrades in later levels (clean up the run-down station: paint, repair the sign, fix potholes)
 - New characters to replace the $20 Guy; customers that matter to automated pumps too
 - Balance the run arc: manual clearly worth it on days 1–3, mostly automated by day 4 (bot harness #6)
 - `[art]` Phase 4: isometric impressionist station after Hopper's *Gas*; light follows the day clock (morning, afternoon, night); rain cycles; cars drive in from the street
