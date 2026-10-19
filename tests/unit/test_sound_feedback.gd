@@ -27,3 +27,12 @@ func test_given_swing_then_eighth_notes_fall_on_the_beat_and_two_thirds_through(
 	assert_eq(SoundFeedback.eighth_index(beat * 0.5), 0)
 	assert_eq(SoundFeedback.eighth_index(beat * 0.7), 1)
 	assert_eq(SoundFeedback.eighth_index(beat * 1.01), 2)
+
+
+func test_given_roadside_track_then_every_bar_uses_the_safe_note_set() -> void:
+	assert_eq(SoundFeedback.chord_at(0.0, 1), "Roadside")
+	assert_eq(SoundFeedback.chord_at(77.0, 1), "Roadside")
+
+
+func test_given_roadside_track_then_tempo_is_92() -> void:
+	assert_eq(SoundFeedback.TRACKS[1].bpm, 92.0)

@@ -5,9 +5,9 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[standard]` **Night shop: 3 random cash upgrades between days** (#14, v0.12.0, awaiting playtest)
-  - Given the day ends and I'm not evicted, When I press Enter, Then the night shop offers 3 different upgrades.
-  - Given I'm evicted, Then the new run starts with no upgrades.
+- [ ] `[standard]` **Upgrade tree between days, cash-only costs; real backing track** (#15, v0.13.0, awaiting playtest)
+  - Given the tree, When I press 3, Then I pay for the next TANK upgrade and the tank grows.
+  - Given I'm evicted, Then the tree resets.
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.
@@ -30,9 +30,7 @@
 - Ten-pump ladder tuning
 - Between-day costs: inspections, pump calibration
 - XP upgrade tree between runs (Bills-style), bought on the eviction screen
-- Marketing upgrade branch: more cars at once; shorter min–max wait between cars
 - Rethink the gauge: the player has no time to watch it mid-day (playtest 7)
-- Shop upgrade ideas: bigger tank (downside: bigger refill bill), faster pour (built-in downside: harder to stop precisely)
 - Gas price variation
 - On-release procs
 
@@ -52,6 +50,7 @@
 - Tips as a third, personal currency for the attendant's own things (company money vs. personal money)
 
 ## Done
+- [x] ~~Night shop with random offers and gameplay downsides (#14)~~, reworked into the tree (#15) after playtest 11
 - [x] Designer tools: dev mode, tuning panel, on-the-beat clicks, audio inbox (#13), v0.11.0
 - [x] Super Perfect tier and backing band (#12), v0.10.0, playtest 2026-10-19: kept
 - [x] Gas Bar Blues rename and 12-bar blues (#11), v0.9.0, playtest 2026-10-19: kept

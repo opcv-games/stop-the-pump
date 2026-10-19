@@ -5,7 +5,7 @@ extends Control
 ## Kept: #9 car-cleaning delay after a big overshoot (C toggles it), one fuel-to-cash gauge.
 ## Kept: #10 random car arrivals, #11 the blues.
 ## Kept: #12 Super Perfect tier; backing band with stops as melody (M toggles sound). #13 designer tools.
-## Testing: #14 night shop, 3 random cash upgrades between days.
+## Testing: #15 cash upgrade tree between days (Bills-style, cost only); real backing track.
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP }
 
@@ -28,10 +28,8 @@ enum State { OPEN, CLOSING, SUMMARY, SHOP }
 @export var tuning_file := "user://tuning.cfg"
 ## Cash the player starts a run with.
 @export var starting_cash := 50.0
-## Night shop (#14): cost of rolling 3 new offers, and a multiplier on every upgrade price.
-@export var reroll_cost := 20.0
+## Upgrade tree (#15): a multiplier on every upgrade price.
 @export var shop_price_scale := 1.0
-@export var offers_per_night := 3
 @export var economy: FuelEconomy = FuelEconomy.new()
 
 const TIER_COLORS := {
@@ -58,12 +56,10 @@ const DEV_KEYS := {
 
 var bays: Array[PumpBay] = []
 var dev_mode := false
-## Run upgrades bought so far: id -> how many. Wiped on eviction.
+## Upgrade tree progress: branch id -> how many of its upgrades are owned. Wiped on eviction.
 var owned := {}
-var shop_offers: Array[String] = []
-## Squeegee: cash charged each time a car is cleaned.
-var cleaning_fee := 0.0
-var _sold: Array[bool] = []
+## "Turbo everywhere": pumps added later get the turbo too.
+var turbo_everywhere := false
 ## Numbers at the start of a run (after the designer's tuning), restored when a new run starts.
 var _base := {}
 var _base_targets: Array[float] = []
@@ -142,11 +138,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == State.SHOP:
 		if event is InputEventKey and event.pressed:
-			if event.physical_keycode >= KEY_1 and event.physical_keycode < KEY_1 + offers_per_night:
+			if event.physical_keycode >= KEY_1 and event.physical_keycode < KEY_1 + Upgrades.BRANCHES.size():
 				buy(event.physical_keycode - KEY_1)
-				return
-			if event.physical_keycode == KEY_R:
-				reroll()
 				return
 		if event.is_action_pressed("continue") and not (event is InputEventKey and event.physical_keycode == KEY_SPACE):
 			continue_pressed()
@@ -228,80 +221,63 @@ func continue_pressed() -> void:
 			start_next_day()
 
 
-# --- Night shop (#14) ---------------------------------------------------------
+# --- Upgrade tree (#15) -------------------------------------------------------
 
 func open_shop() -> void:
 	state = State.SHOP
 	_overlay.visible = false
-	_roll_offers()
+	_refresh_shop()
 	_shop.visible = true
 	_update_hint()
 
 
-func set_offers(ids: Array) -> void:
-	shop_offers.assign(ids)
-	_sold.assign(ids.map(func(_i): return false))
-	_refresh_shop()
-
-
-func buy(slot: int) -> bool:
-	if state != State.SHOP or slot >= shop_offers.size() or _sold[slot]:
+## Buys the next upgrade in a branch (0..4). False if the branch is complete or cash is short.
+func buy(branch: int) -> bool:
+	if state != State.SHOP or branch >= Upgrades.BRANCHES.size():
 		return false
-	var id := shop_offers[slot]
-	var price := Upgrades.price(self, id)
+	var node := Upgrades.next_node(self, branch)
+	if node.is_empty():
+		return false
+	var price := Upgrades.next_price(self, branch)
 	if wallet.cash < price:
-		_shop_footer.text = "Not enough cash for the %s." % Upgrades.info(id).name
+		_shop_footer.text = "Not enough cash for the %s ($%.0f)." % [node.name, price]
 		return false
 	wallet.add(-price)
+	var id: String = Upgrades.BRANCHES[branch].id
 	owned[id] = owned.get(id, 0) + 1
-	Upgrades.apply(self, id)
-	_sold[slot] = true
+	Upgrades.apply(self, node.id)
 	_refresh_shop()
 	return true
 
 
-func reroll() -> bool:
-	if state != State.SHOP or wallet.cash < reroll_cost:
-		return false
-	wallet.add(-reroll_cost)
-	_roll_offers()
-	return true
-
-
-func shop_card_text(slot: int) -> String:
-	return _shop_cards[slot].text
-
-
-func _roll_offers() -> void:
-	var pool := Upgrades.available(self)
-	pool.shuffle()
-	set_offers(pool.slice(0, offers_per_night))
+func shop_card_text(branch: int) -> String:
+	return _shop_cards[branch].text
 
 
 func _refresh_shop() -> void:
 	if not _shop:
 		return
-	_shop_title.text = "NIGHT SHOP   after day %d      cash $%.0f" % [day, wallet.cash]
-	for i in _shop_cards.size():
-		var card := _shop_cards[i]
-		if i >= shop_offers.size():
-			card.text = ""
-			continue
-		var u := Upgrades.info(shop_offers[i])
-		var price := Upgrades.price(self, u.id)
-		if _sold[i]:
-			card.text = "[%d]\n%s\n\nSOLD" % [i + 1, u.name.to_upper()]
-			card.modulate = Color(1, 1, 1, 0.4)
-		else:
-			card.text = "[%d]\n%s\n\n%s\n\nbut: %s\n\n$%.0f%s" % [
-				i + 1, u.name.to_upper(), u.helps, u.downside, price,
-				"" if wallet.cash >= price else "  (can't afford)"]
-			card.modulate = Color.WHITE if wallet.cash >= price else Color(1, 1, 1, 0.55)
-	var have := []
-	for id in owned:
-		have.append("%s x%d" % [Upgrades.info(id).name, owned[id]])
-	_shop_footer.text = "Owned: %s\n1–%d buy     R reroll ($%.0f)     ENTER open the station for day %d  (rent $%.0f)" % [
-		", ".join(have) if have else "nothing yet", shop_offers.size(), reroll_cost, day + 1, economy.rent_for(day + 1)]
+	_shop_title.text = "UPGRADES   after day %d      cash $%.0f" % [day, wallet.cash]
+	for i in Upgrades.BRANCHES.size():
+		var b: Dictionary = Upgrades.BRANCHES[i]
+		var level: int = owned.get(b.id, 0)
+		var lines := ["[%d]  %s" % [i + 1, b.name], ""]
+		for n in b.nodes.size():
+			var node: Dictionary = b.nodes[n]
+			if n < level:
+				lines.append("✓ %s" % node.name)
+			elif n == level:
+				var price := Upgrades.next_price(self, i)
+				lines.append("> %s\n   %s\n   $%.0f%s" % [node.name, node.helps, price, "" if wallet.cash >= price else "  (short)"])
+			else:
+				lines.append("· %s" % node.name)
+		if level >= b.nodes.size():
+			lines.append("\nCOMPLETE")
+		_shop_cards[i].text = "\n".join(lines)
+		var next_price := Upgrades.next_price(self, i)
+		_shop_cards[i].modulate = Color.WHITE if level < b.nodes.size() and wallet.cash >= next_price else Color(1, 1, 1, 0.6)
+	_shop_footer.text = "1–%d buy the next upgrade in a branch      ENTER open the station for day %d  (rent $%.0f)" % [
+		Upgrades.BRANCHES.size(), day + 1, economy.rent_for(day + 1)]
 
 
 ## Eviction: the run's upgrades are gone; the station goes back to its starting setup.
@@ -310,9 +286,8 @@ func _reset_run_upgrades() -> void:
 		return
 	Tuning.apply_snapshot(self, _base)
 	possible_targets.assign(_base_targets)
-	economy.rent_extra = 0.0
 	economy.tip_bonus = 0.0
-	cleaning_fee = 0.0
+	turbo_everywhere = false
 	owned.clear()
 	while bays.size() > pump_count:
 		var bay: PumpBay = bays.pop_back()
@@ -330,6 +305,8 @@ func _reset_run_upgrades() -> void:
 func add_pump() -> void:
 	pump_count += 1
 	_add_bay(bays.size())
+	if turbo_everywhere:
+		bays[-1].set_turbo(Upgrades.TURBO)
 	_layout_bays()
 
 
@@ -353,9 +330,6 @@ func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
 		_counts[ScoreTiers.OK], _counts[ScoreTiers.MISS], _best_combo]
 	if cleaning_enabled and receipt.overshoot > combo.tiers.ok_window:
 		bay.start_cleaning(cleaning_seconds)  # the next customer comes when cleaning finishes
-		if cleaning_fee > 0.0:
-			wallet.add(-cleaning_fee)
-			_day_earned -= cleaning_fee
 	elif state == State.OPEN:
 		_customer_after(bay, next_arrival_delay())
 	if state != State.OPEN:
@@ -372,8 +346,6 @@ func _receipt_text(tier: String, diff: float, r: FuelEconomy.Receipt, xp: int, p
 		text += "  wasted %.1f L" % (r.overshoot / economy.price_per_liter)
 	elif r.tip > 0.0:
 		text += "  incl. tip $%.0f" % r.tip
-	elif r.tip < 0.0:
-		text += "  tip jar -$%.0f" % -r.tip
 	if lost:
 		text += "\nCOMBO LOST  x%d" % lost
 	elif xp > 0:
@@ -471,7 +443,7 @@ func _update_hint() -> void:
 		_hint_label.text = "ENTER to continue.     M: sound %s" % ("ON" if sound.enabled else "OFF")
 		return
 	if state == State.SHOP:
-		_hint_label.text = "1–%d buy     R reroll     ENTER open the station" % shop_offers.size()
+		_hint_label.text = "1–%d buy     ENTER open the station" % Upgrades.BRANCHES.size()
 		return
 	var keys := "1" if bays.size() == 1 else "1–%d" % mini(bays.size(), 9)
 	_hint_label.text = "Hold %s to pour.  Release to stop.    M sound %s    C cleaning %s    F1 dev    F2 tuning" % [
@@ -592,18 +564,18 @@ func _build_station() -> void:
 	shop_dim.color = Color(0.08, 0.08, 0.1, 0.94)
 	shop_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_shop.add_child(shop_dim)
-	_shop_title = Greybox.label(_shop, "", 30, Vector2(0, 40), Vector2(1152, 44))
-	for i in offers_per_night:
+	_shop_title = Greybox.label(_shop, "", 30, Vector2(0, 30), Vector2(1152, 44))
+	for i in Upgrades.BRANCHES.size():
 		var card_bg := ColorRect.new()
 		card_bg.color = Color(0.16, 0.16, 0.19)
-		card_bg.position = Vector2(96 + i * 330, 110)
-		card_bg.size = Vector2(300, 330)
+		card_bg.position = Vector2(26 + i * 222, 90)
+		card_bg.size = Vector2(212, 400)
 		_shop.add_child(card_bg)
-		var card := Greybox.label(card_bg, "", 22, Vector2(10, 10), Vector2(280, 310))
-		card.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		var card := Greybox.label(card_bg, "", 17, Vector2(10, 10), Vector2(192, 380))
+		card.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_shop_cards.append(card)
-	_shop_footer = Greybox.label(_shop, "", 20, Vector2(0, 470), Vector2(1152, 80))
+	_shop_footer = Greybox.label(_shop, "", 20, Vector2(0, 510), Vector2(1152, 60))
 	_shop.visible = false
 
 	_dev_label = Greybox.label(self, "DEV   Q super   W perfect   E good   R ok   T -$10   Y +$10", 16, Vector2(8, 6), Vector2(400, 24))

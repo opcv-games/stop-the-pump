@@ -50,11 +50,7 @@ write("tick.wav", [0.6 * env(i, 900, attack=0.0005, release=0.9) * random.unifor
 
 # --- Melody: the player's stops, on top of the band (#12) ----------------------
 # Gas Bar Blues is a 12-bar blues in A: three dominant-7th chords, A7, D7, E7.
-# Super Perfect: 3 notes strummed (root, 3rd, flat 7th). Perfect: root + 5th. Good: root.
-# Miss: two notes that clash with the chord. OK plays nothing.
-MELODY_ROOTS = {"A7": 69, "D7": 62, "E7": 64}
-
-
+# Super Perfect: 3 notes strummed. Perfect: 2. Good: 1. Miss: two clashing notes. OK plays nothing.
 def strum(midis, gap=0.025, dur=0.9, vol=0.5):
     n = int(RATE * (dur + gap * len(midis)))
     out = [0.0] * n
@@ -66,15 +62,23 @@ def strum(midis, gap=0.025, dur=0.9, vol=0.5):
     return out
 
 
-for name, root in MELODY_ROOTS.items():
-    write("note_%s_good.wav" % name, strum([root]))
-    write("note_%s_perfect.wav" % name, strum([root, root + 7]))
-    write("note_%s_super.wav" % name, strum([root, root + 4, root + 10]))
+# Each entry: the notes for Good, Perfect, Super Perfect and Miss (MIDI numbers).
+# A7/D7/E7 follow the placeholder band's 12-bar. "Roadside" sits over the whole "Roadside At Two"
+# track (B-flat major / D minor, bass rocking between E-flat and F): B-flat, D and F fit both.
+MELODY = {}
+for name, root in {"A7": 69, "D7": 62, "E7": 64}.items():
+    MELODY[name] = {"good": [root], "perfect": [root, root + 7], "super": [root, root + 4, root + 10], "bad": [root + 1, root + 6]}
+MELODY["Roadside"] = {"good": [70], "perfect": [70, 77], "super": [70, 74, 77], "bad": [71, 76]}
+
+for name, sets in MELODY.items():
+    write("note_%s_good.wav" % name, strum(sets["good"]))
+    write("note_%s_perfect.wav" % name, strum(sets["perfect"]))
+    write("note_%s_super.wav" % name, strum(sets["super"]))
     bad = []
     for i in range(int(RATE * 0.5)):
         t = i / RATE
         e = min(1, t / 0.005) * math.exp(-5 * t)
-        bad.append(0.3 * e * (square(2 * math.pi * note(root + 1) * t) + square(2 * math.pi * note(root + 6) * t)) / 2)
+        bad.append(0.3 * e * sum(square(2 * math.pi * note(m) * t) for m in sets["bad"]) / len(sets["bad"]))
     write("note_%s_bad.wav" % name, bad)
 
 # --- Backing band: one 12-bar chorus in A at 90 BPM, shuffle feel, loops seamlessly ----

@@ -1,7 +1,12 @@
 extends GutTest
-## Spec: features/night_shop.feature. Refs #14
+## Spec: features/night_shop.feature (upgrade tree). Refs #15
 
 const SCENE := preload("res://scenes/greybox/pump_station.tscn")
+const MARKETING := 0
+const PUMPS := 1
+const TANK := 2
+const SERVICE := 3
+const VIBE := 4
 
 var station: Control
 
@@ -21,26 +26,18 @@ func after_each() -> void:
 	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), false)
 
 
-func _to_shop(cash := 1000.0) -> void:
+func _to_shop(cash := 5000.0) -> void:
 	station.wallet.add(cash)
 	station.clock.running = true
 	station.clock.tick(station.clock.day_seconds)
 	station.continue_pressed()
 
 
-func _buy(id: String) -> bool:
-	station.set_offers([id, "squeegee", "tip_jar"])
-	return station.buy(0)
-
-
-func test_given_day_survived_when_enter_pressed_then_shop_offers_3_different_upgrades() -> void:
+func test_given_day_survived_when_enter_pressed_then_tree_shows_5_branches() -> void:
 	_to_shop()
 	assert_eq(station.state, station.State.SHOP)
-	assert_eq(station.shop_offers.size(), 3)
-	var unique := {}
-	for id in station.shop_offers:
-		unique[id] = true
-	assert_eq(unique.size(), 3)
+	assert_eq(Upgrades.BRANCHES.size(), 5)
+	assert_string_contains(station.shop_card_text(TANK), "+100 L")
 
 
 func test_given_shop_when_enter_pressed_then_day_2_opens() -> void:
@@ -50,92 +47,95 @@ func test_given_shop_when_enter_pressed_then_day_2_opens() -> void:
 	assert_eq(station.day, 2)
 
 
-func test_given_enough_cash_when_bigger_tank_bought_then_paid_and_tank_and_rent_grow() -> void:
+func test_given_cash_when_tank_branch_bought_then_paid_tank_grows_and_rent_does_not() -> void:
 	_to_shop()
 	var cash: float = station.wallet.cash
 	var rent: float = station.economy.rent_for(2)
-	assert_true(_buy("bigger_tank"))
-	assert_almost_eq(station.wallet.cash, cash - Upgrades.price(station, "bigger_tank"), 0.001)
+	var price: float = Upgrades.next_price(station, TANK)
+	assert_true(station.buy(TANK))
+	assert_almost_eq(station.wallet.cash, cash - price, 0.001)
 	assert_eq(station.tank.capacity_liters, 500.0)
-	assert_almost_eq(station.economy.rent_for(2), rent + 20.0, 0.001)
-	assert_string_contains(station.shop_card_text(0), "SOLD")
+	assert_almost_eq(station.economy.rent_for(2), rent, 0.001, "no gameplay downside")
+	assert_eq(station.owned.get("tank", 0), 1)
 
 
 func test_given_too_little_cash_when_buying_then_nothing_happens() -> void:
 	_to_shop(0.0)
 	station.wallet.add(-station.wallet.cash + 10.0)
-	assert_false(_buy("extra_pump"))
-	assert_eq(station.bays.size(), 2)
+	assert_false(station.buy(PUMPS))
 	assert_almost_eq(station.wallet.cash, 10.0, 0.001)
+	assert_eq(station.owned.get("pumps", 0), 0)
 
 
-func test_given_shop_when_reroll_then_reroll_price_paid_and_3_offers() -> void:
+func test_given_branch_complete_then_card_says_complete_and_buying_does_nothing() -> void:
 	_to_shop()
-	var cash: float = station.wallet.cash
-	assert_true(station.reroll())
-	assert_almost_eq(station.wallet.cash, cash - station.reroll_cost, 0.001)
-	assert_eq(station.shop_offers.size(), 3)
+	assert_true(station.buy(VIBE))
+	assert_true(station.buy(VIBE))
+	assert_false(station.buy(VIBE))
+	assert_string_contains(station.shop_card_text(VIBE), "COMPLETE")
+	assert_eq(station.combo.max_multiplier, 7)
 
 
-func test_given_turbo_bought_then_one_pump_pours_30_percent_faster_even_after_tuning() -> void:
+func test_given_marketing_branch_then_cars_come_sooner_then_bigger_orders() -> void:
 	_to_shop()
-	_buy("turbo")
-	Tuning.set_value(station, "station/flow_rate", 4.0)
-	assert_almost_eq(station.bays[0].pump.flow_rate, 5.2, 0.001)
-	assert_almost_eq(station.bays[1].pump.flow_rate, 4.0, 0.001)
-
-
-func test_given_flyers_bought_then_cars_arrive_sooner_and_bigger_orders_join() -> void:
-	_to_shop()
-	_buy("flyers")
-	assert_almost_eq(station.arrival_max, 60.0 * 0.7, 0.001)
+	station.buy(MARKETING)
+	assert_almost_eq(station.arrival_max, 60.0 * 0.8, 0.001)
+	station.buy(MARKETING)
+	assert_almost_eq(station.arrival_max, 60.0 * 0.64, 0.001)
+	station.buy(MARKETING)
 	assert_true(station.possible_targets.has(60.0))
 
 
-func test_given_extra_pump_bought_then_three_pumps_and_rent_plus_40() -> void:
+func test_given_pumps_branch_then_turbo_extra_pump_turbo_everywhere_another_pump() -> void:
 	_to_shop()
-	var rent: float = station.economy.rent_for(2)
-	_buy("extra_pump")
+	station.buy(PUMPS)
+	assert_almost_eq(station.bays[0].pump.flow_rate, station.flow_rate * 1.3, 0.001)
+	assert_almost_eq(station.bays[1].pump.flow_rate, station.flow_rate, 0.001)
+	station.buy(PUMPS)
 	assert_eq(station.bays.size(), 3)
-	assert_almost_eq(station.economy.rent_for(2), rent + 40.0, 0.001)
-	station.continue_pressed()
-	assert_false(station.bays[2].waiting, "pump 3 gets a customer on day 2")
+	station.buy(PUMPS)
+	for bay in station.bays:
+		assert_almost_eq(bay.pump.flow_rate, station.flow_rate * 1.3, 0.001)
+	station.buy(PUMPS)
+	assert_eq(station.bays.size(), 4)
+	assert_almost_eq(station.bays[3].pump.flow_rate, station.flow_rate * 1.3, 0.001, "new pumps get turbo too")
+	Tuning.set_value(station, "station/flow_rate", 4.0)
+	assert_almost_eq(station.bays[3].pump.flow_rate, 5.2, 0.001, "turbo survives retuning")
 
 
-func test_given_squeegee_bought_when_big_overshoot_then_2s_cleaning_and_5_dollar_fee() -> void:
+func test_given_extra_pump_then_day_2_gives_it_a_customer() -> void:
 	_to_shop()
-	_buy("squeegee")
+	station.buy(PUMPS)
+	station.buy(PUMPS)
 	station.continue_pressed()
-	var pump: PumpComponent = station.bays[0].pump
-	var cash_before: float = station.wallet.cash
-	pump.finish_at(pump.target + 3.0)
-	assert_almost_eq(station.bays[0]._cleaning_left, 2.0, 0.001)
-	assert_almost_eq(station.wallet.cash, cash_before + pump.target - 5.0, 0.001)
+	assert_false(station.bays[2].waiting)
 
 
-func test_given_tip_jar_bought_then_good_earns_2_more_and_ok_costs_2() -> void:
+func test_given_service_branch_then_cleaning_2s_then_tip_jar_then_cleaning_1s() -> void:
 	_to_shop()
-	_buy("tip_jar")
-	station.continue_pressed()
-	var r: FuelEconomy.Receipt = station.economy.settle(20.3, 20.0, ScoreTiers.GOOD)
-	assert_almost_eq(r.tip, station.economy.good_tip + 2.0, 0.001)
-	var bad: FuelEconomy.Receipt = station.economy.settle(20.8, 20.0, ScoreTiers.OK)
-	assert_almost_eq(bad.earned, 20.0 - 2.0, 0.001)
+	station.buy(SERVICE)
+	assert_almost_eq(station.cleaning_seconds, 2.0, 0.001)
+	station.buy(SERVICE)
+	var good: FuelEconomy.Receipt = station.economy.settle(20.3, 20.0, ScoreTiers.GOOD)
+	assert_almost_eq(good.tip, station.economy.good_tip + 2.0, 0.001)
+	var ok: FuelEconomy.Receipt = station.economy.settle(20.8, 20.0, ScoreTiers.OK)
+	assert_almost_eq(ok.earned, 20.0, 0.001, "no penalty on OK")
+	station.buy(SERVICE)
+	assert_almost_eq(station.cleaning_seconds, 1.0, 0.001)
 
 
-func test_given_radio_bought_then_max_combo_up_and_good_window_narrower() -> void:
+func test_given_vibe_branch_then_max_combo_up_and_good_window_unchanged() -> void:
 	_to_shop()
-	_buy("radio")
+	station.buy(VIBE)
 	assert_eq(station.combo.max_multiplier, 6)
-	assert_almost_eq(station.combo.tiers.good_window, 0.45, 0.001)
+	assert_almost_eq(station.combo.tiers.good_window, 0.5, 0.001)
 
 
-func test_given_upgrades_when_evicted_then_new_run_has_none() -> void:
+func test_given_upgrades_when_evicted_then_new_run_starts_clean() -> void:
 	_to_shop()
-	_buy("extra_pump")
-	station.set_offers(["bigger_tank", "radio", "flyers"])
-	station.buy(0)
-	station.buy(1)
+	for branch in 5:
+		station.buy(branch)
+		station.buy(branch)
 	station.continue_pressed()
 	station.wallet.add(-station.wallet.cash - 5000.0)
 	station.clock.running = true
@@ -145,19 +145,21 @@ func test_given_upgrades_when_evicted_then_new_run_has_none() -> void:
 	assert_eq(station.bays.size(), 2)
 	assert_eq(station.tank.capacity_liters, 400.0)
 	assert_eq(station.combo.max_multiplier, 5)
-	assert_almost_eq(station.combo.tiers.good_window, 0.5, 0.001)
-	assert_almost_eq(station.economy.rent_for(1), station.economy.rent_base, 0.001)
+	assert_almost_eq(station.cleaning_seconds, 4.0, 0.001)
+	assert_almost_eq(station.arrival_max, 60.0, 0.001)
+	assert_almost_eq(station.bays[0].pump.flow_rate, station.flow_rate, 0.001)
 	assert_true(station.owned.is_empty())
-
-
-func test_given_station_then_version_is_0_12() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.12")
 
 
 func test_given_day_2_after_shop_then_every_bay_is_drawn_in_front_of_the_background() -> void:
 	_to_shop()
-	_buy("extra_pump")
+	station.buy(PUMPS)
+	station.buy(PUMPS)
 	station.continue_pressed()
 	for bay in station.bays:
 		assert_gt(bay.get_index(), station._bg.get_index())
 		assert_lt(bay.get_index(), station._overlay.get_index())
+
+
+func test_given_station_then_version_is_0_13() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.13")
