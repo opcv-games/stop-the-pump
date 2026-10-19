@@ -2,6 +2,13 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.19.0 Endless mode, auto on/off per pump  (#20)
+Hypothesis: Switching a pump between auto and manual lets the player push for combos when a day is at risk (9 Kings' manual attack).
+Variable: auto locked on → auto on/off per pump; endless mode after day 10
+Sessions: 1 (self: 1, others: 0)
+Observed: Switching to manual is worth it "when it feels like you'll lose the round"; making that true is a balance question. Endless mode is for later.
+Decision: KEPT. **Phase 3 complete**: core declared fun (playtest 8) and confirmed through playtest 17. Move to Phase 4 (art).
+
 ## 2026-10-19 — v0.18.0 Run arc: 10 days, speed, full automation  (#19)
 Hypothesis: Manual early, automated later, with speed control, gives the run an arc (9 Kings).
 Variable: endless days → 10-day run; 1x/2x/3x; full automation allowed

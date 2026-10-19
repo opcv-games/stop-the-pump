@@ -1,6 +1,6 @@
 # Gas Bar Blues — Design Document
 
-> **Current phase:** 3 — Ugly Prototype
+> **Current phase:** 4 — Affordances & Art
 > **Last updated:** 2026-10-18
 > This file is the Committee's memory. Read it before every Godot or Blender action. Update it after every approved decision.
 
@@ -167,3 +167,5 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | $20 Guy retired (all customers pay cash anyway) | Designer: makes no sense; new characters later | Playtest 15 (#5) |
 | 2026-10-19 | Run arc kept; automated days feel like an auto-battler | Playtest 16 | Playtest 16 (#19) |
 | 2026-10-19 | Endless mode after day 10; auto on/off per pump | Designer request | Playtest 16 (#20) |
+| 2026-10-19 | Phase 3 complete; Phase 4 begins | Core loop fun (playtests 8–17); slice mechanics in grey | Playtest 17 |
+| 2026-10-19 | Endless mode parked until balance | Designer: later | Playtest 17 (#20) |
