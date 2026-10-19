@@ -10,10 +10,12 @@ const BRANCHES := [
 		{"id": "radio_ad", "name": "Radio ad", "helps": "cars arrive 20% sooner", "price": 150.0},
 		{"id": "billboard", "name": "Billboard", "helps": "$50 and $60 orders", "price": 220.0},
 	]},
+	# Turbo nozzle removed after playtest 12: faster pumps made combos harder (#17).
 	{"id": "pumps", "name": "PUMPS", "nodes": [
-		{"id": "turbo", "name": "Turbo nozzle", "helps": "pump 1 pours 30% faster", "price": 120.0},
 		{"id": "extra_pump", "name": "Extra pump", "helps": "one more pump", "price": 250.0},
-		{"id": "turbo_all", "name": "Turbo everywhere", "helps": "every pump pours 30% faster", "price": 300.0},
+		{"id": "self_service", "name": "Self-service", "helps": "your newest pump serves cars on its own (card fee, slow)", "price": 200.0},
+		{"id": "faster_self_serve", "name": "Faster self-serve", "helps": "self-service pumps pour 50% faster", "price": 200.0},
+		{"id": "card_deal", "name": "Card deal", "helps": "card fee 3% > 1.5%", "price": 250.0},
 		{"id": "another_pump", "name": "Another pump", "helps": "one more pump", "price": 400.0},
 	]},
 	{"id": "tank", "name": "TANK", "nodes": [
@@ -31,8 +33,6 @@ const BRANCHES := [
 		{"id": "jukebox", "name": "Jukebox", "helps": "max combo +1", "price": 300.0},
 	]},
 ]
-
-const TURBO := 1.3
 
 
 ## The next upgrade to buy in a branch, or {} when the branch is complete.
@@ -56,14 +56,14 @@ static func apply(station: Node, id: String) -> void:
 			for order in [50.0, 60.0]:
 				if not station.possible_targets.has(order):
 					station.possible_targets.append(order)
-		"turbo":
-			station.bays[0].set_turbo(TURBO)
 		"extra_pump", "another_pump":
 			station.add_pump()
-		"turbo_all":
-			station.turbo_everywhere = true
-			for bay in station.bays:
-				bay.set_turbo(TURBO)
+		"self_service":
+			station.bays[-1].make_self_service()
+		"faster_self_serve":
+			station.self_service_speed = 0.75
+		"card_deal":
+			station.card_fee = 0.015
 		"tank_1", "tank_2", "tank_3":
 			station.tank.capacity_liters += 100.0  # filled at the next morning's refill
 		"squeegee":

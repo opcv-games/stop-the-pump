@@ -6,7 +6,8 @@ extends Control
 ## Kept: #10 random car arrivals, #11 the blues.
 ## Kept: #12 Super Perfect tier (M toggles sound). #13 designer tools.
 ## Kept: #15 cash upgrade tree between days (Bills-style, cost only).
-## Testing: #16 plain SFX + background music (Roadside At Two).
+## Kept: #16 plain SFX + background music (Roadside At Two).
+## Testing: #17 self-service pumps (replace the Turbo nozzle).
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP }
 
@@ -31,6 +32,9 @@ enum State { OPEN, CLOSING, SUMMARY, SHOP }
 @export var starting_cash := 50.0
 ## Upgrade tree (#15): a multiplier on every upgrade price.
 @export var shop_price_scale := 1.0
+## Self-service pumps (#17): share of the normal pour speed, and the card fee taken from each sale.
+@export var self_service_speed := 0.5
+@export var card_fee := 0.03
 @export var economy: FuelEconomy = FuelEconomy.new()
 
 const TIER_COLORS := {
@@ -59,8 +63,7 @@ var bays: Array[PumpBay] = []
 var dev_mode := false
 ## Upgrade tree progress: branch id -> how many of its upgrades are owned. Wiped on eviction.
 var owned := {}
-## "Turbo everywhere": pumps added later get the turbo too.
-var turbo_everywhere := false
+
 ## Numbers at the start of a run (after the designer's tuning), restored when a new run starts.
 var _base := {}
 var _base_targets: Array[float] = []
@@ -165,7 +168,7 @@ func release(i: int) -> void:
 ## Dev mode: the first pump with a customer stops at a chosen distance from its target.
 func dev_force(result: String) -> void:
 	for bay in bays:
-		if not bay.waiting and not bay.pump.is_done:
+		if not bay.waiting and not bay.pump.is_done and not bay.self_service:
 			bay.pump.finish_at(maxf(0.0, bay.pump.target + DEV_RESULTS[result]))
 			return
 
@@ -174,6 +177,7 @@ func dev_force(result: String) -> void:
 func apply_tuning() -> void:
 	tank.price_per_liter = economy.price_per_liter
 	for bay in bays:
+		bay.flow_multiplier = self_service_speed if bay.self_service else 1.0
 		bay.pump.flow_rate = flow_rate * bay.flow_multiplier
 	sound.apply_tuning()
 
@@ -289,7 +293,6 @@ func _reset_run_upgrades() -> void:
 	Tuning.apply_snapshot(self, _base)
 	possible_targets.assign(_base_targets)
 	economy.tip_bonus = 0.0
-	turbo_everywhere = false
 	owned.clear()
 	while bays.size() > pump_count:
 		var bay: PumpBay = bays.pop_back()
@@ -298,7 +301,7 @@ func _reset_run_upgrades() -> void:
 	while bays.size() < pump_count:
 		_add_bay(bays.size())
 	for bay in bays:
-		bay.set_turbo(1.0)
+		bay.make_manual()
 	_layout_bays()
 	apply_tuning()
 
@@ -307,12 +310,13 @@ func _reset_run_upgrades() -> void:
 func add_pump() -> void:
 	pump_count += 1
 	_add_bay(bays.size())
-	if turbo_everywhere:
-		bays[-1].set_turbo(Upgrades.TURBO)
 	_layout_bays()
 
 
 func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
+	if bay.self_service:
+		_check_day_over()  # self-service is settled when the customer pays
+		return
 	var target := bay.pump.target
 	var tier := combo.tiers.evaluate(final_amount, target)
 	var lost := combo.multiplier if not combo.tiers.extends_combo(tier) and combo.multiplier > 1 else 0
@@ -357,6 +361,21 @@ func _receipt_text(tier: String, diff: float, r: FuelEconomy.Receipt, xp: int, p
 	return text
 
 
+## A self-service customer paid and drove off: the sale minus the card fee. No tip, combo or XP.
+func _on_self_service_paid(bay: PumpBay, amount: float) -> void:
+	var fee := amount * card_fee
+	var earned := amount - fee
+	_day_earned += earned
+	wallet.add(earned)
+	bay.show_result("SELF-SERVE  $%.2f\n+$%.2f  card fee -$%.2f" % [amount, earned, fee], Color(0.45, 0.6, 1.0))
+	bay.waiting = true
+	if state == State.OPEN:
+		_customer_after(bay, next_arrival_delay())
+	else:
+		bay.show_empty()
+		_check_day_over()
+
+
 func next_arrival_delay() -> float:
 	return randf_range(arrival_min, arrival_max)
 
@@ -376,7 +395,7 @@ func _close_day() -> void:
 		return
 	state = State.CLOSING
 	for bay in bays:
-		if not bay.pump.is_pouring:
+		if not bay.pump.is_pouring and not _self_service_busy(bay):
 			bay.show_empty()
 	_update_hint()
 	_check_day_over()
@@ -386,9 +405,17 @@ func _check_day_over() -> void:
 	if state != State.CLOSING:
 		return
 	for bay in bays:
-		if bay.pump.is_pouring:
+		if bay.pump.is_pouring or _self_service_busy(bay):
 			return
 	_settle_day()
+
+
+## A self-service customer who is pumping or paying finishes before the day closes.
+func _self_service_busy(bay: PumpBay) -> bool:
+	if not bay.self_service:
+		return false
+	var phase := bay.self_service_component.phase
+	return phase == SelfServiceComponent.Phase.PUMPING or phase == SelfServiceComponent.Phase.PAYING
 
 
 func _settle_day() -> void:
@@ -447,7 +474,11 @@ func _update_hint() -> void:
 	if state == State.SHOP:
 		_hint_label.text = "1–%d buy     ENTER open the station" % Upgrades.BRANCHES.size()
 		return
-	var keys := "1" if bays.size() == 1 else "1–%d" % mini(bays.size(), 9)
+	var played: Array[String] = []
+	for bay in bays:
+		if not bay.self_service:
+			played.append(str((bay.index + 1) % 10))
+	var keys := ", ".join(played)
 	_hint_label.text = "Hold %s to pour.  Release to stop.    M sound %s    C cleaning %s    F1 dev    F2 tuning" % [
 		keys, "ON" if sound.enabled else "OFF", "ON" if cleaning_enabled else "OFF"]
 
@@ -477,6 +508,7 @@ func _add_bay(i: int) -> void:
 	bay.pump.tank = tank
 	bay.pump_stopped.connect(_on_bay_stopped)
 	bay.cleaning_finished.connect(func(b: PumpBay) -> void: _customer_after(b, next_arrival_delay()))
+	bay.self_service_paid.connect(_on_self_service_paid)
 	sound.watch_pump(bay.pump, i)
 	bays.append(bay)
 

@@ -5,7 +5,7 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[innovation]` **Self-service pumps** (proposed, replaces Turbo in the Pumps branch): a pump you convert runs on its own with a 3% card fee, slower pumping and slow customers; upgrades raise its speed and lower the fee. Guardrails: earns less than a played pump, no tips, no combo or XP
+- [ ] `[innovation]` **Self-service pumps** (#17, v0.15.0, awaiting playtest; replaces Turbo in the Pumps branch): a pump you convert runs on its own with a 3% card fee, slower pumping and slow customers; upgrades raise its speed and lower the fee. Guardrails: earns less than a played pump, no tips, no combo or XP
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.

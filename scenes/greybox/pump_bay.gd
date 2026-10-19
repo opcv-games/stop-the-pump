@@ -5,6 +5,8 @@ extends Control
 
 signal pump_stopped(bay: PumpBay, final_amount: float)
 signal cleaning_finished(bay: PumpBay)
+## A self-service customer has paid for `amount` and left.
+signal self_service_paid(bay: PumpBay, amount: float)
 
 const IDLE_LIGHT := Color(0.3, 0.3, 0.32)
 const POUR_LIGHT := Color(0.35, 0.9, 0.45)
@@ -16,8 +18,11 @@ var pump: PumpComponent
 var waiting := true
 var result_label: Label
 var target_label: Label
-## Turbo nozzle (#14) multiplies this pump's pour speed.
+## Pour speed relative to the station's (self-service pumps are slower, #17).
 var flow_multiplier := 1.0
+## Converted to self-service (#17): customers serve themselves; the player's key does nothing.
+var self_service := false
+var self_service_component: SelfServiceComponent
 ## Out of service while the attendant cleans an overshoot off the car (#9).
 var cleaning := false
 
@@ -44,6 +49,8 @@ func setup(bay_index: int, flow_rate: float) -> void:
 func show_empty() -> void:
 	cleaning = false
 	waiting = true
+	if self_service:
+		self_service_component.phase = SelfServiceComponent.Phase.IDLE
 	pump.reset(0.0)
 	target_label.text = "PUMP %d\nno customer" % (index + 1)
 	target_label.modulate = Color(1, 1, 1, 0.4)
@@ -58,6 +65,8 @@ func new_customer(target: float) -> void:
 	target_label.modulate = Color.WHITE
 	result_label.text = ""
 	_light.color = IDLE_LIGHT
+	if self_service:
+		self_service_component.begin()
 
 
 func _process(delta: float) -> void:
@@ -93,7 +102,7 @@ func _show_cleaning() -> void:
 
 
 func press() -> void:
-	if waiting:
+	if waiting or self_service:
 		return
 	pump.start_pour()
 	if pump.is_pouring:
@@ -104,9 +113,48 @@ func release() -> void:
 	pump.stop_pour()
 
 
-func set_turbo(multiplier: float) -> void:
-	flow_multiplier = multiplier
-	_key_label.text = "[ %d ]  TURBO" % ((index + 1) % 10) if multiplier != 1.0 else "[ %d ]" % ((index + 1) % 10)
+func make_self_service() -> void:
+	if self_service:
+		return
+	self_service = true
+	self_service_component = SelfServiceComponent.new()
+	self_service_component.name = "SelfService"
+	add_child(self_service_component)
+	self_service_component.attach(pump)
+	self_service_component.phase_changed.connect(_on_self_service_phase)
+	self_service_component.paid.connect(func(amount: float) -> void: self_service_paid.emit(self, amount))
+	_key_label.text = "[ %d ]  SELF-SERVE" % ((index + 1) % 10)
+	if not waiting and not pump.is_done:
+		self_service_component.begin()
+
+
+## Back to a pump the player pours (new run).
+func make_manual() -> void:
+	if not self_service:
+		return
+	self_service = false
+	self_service_component.detach()
+	self_service_component.queue_free()
+	self_service_component = null
+	_key_label.text = "[ %d ]" % ((index + 1) % 10)
+
+
+func _on_self_service_phase(phase: SelfServiceComponent.Phase) -> void:
+	var line := ""
+	match phase:
+		SelfServiceComponent.Phase.CARD:
+			line = "fumbling with the card..."
+			_light.color = Color(0.45, 0.6, 1.0)
+		SelfServiceComponent.Phase.PUMPING:
+			line = "pumping (self-serve)"
+			_light.color = POUR_LIGHT
+		SelfServiceComponent.Phase.PAYING:
+			line = "paying..."
+			_light.color = Color(0.45, 0.6, 1.0)
+		SelfServiceComponent.Phase.IDLE:
+			_light.color = IDLE_LIGHT
+			return
+	target_label.text = "PUMP %d  WANTS $%.2f\n%s" % [index + 1, pump.target, line]
 
 
 ## Super Perfect: the display shows the exact target ("on the dot").

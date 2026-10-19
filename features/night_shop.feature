@@ -33,7 +33,7 @@ Feature: The upgrade tree
     Examples:
       | n | branch    | upgrades                                                                                     |
       | 1 | Marketing | Flyers (cars 20% sooner), Radio ad (20% sooner), Billboard ($50 and $60 orders)              |
-      | 2 | Pumps     | Turbo nozzle (pump 1 +30%), Extra pump, Turbo everywhere (+30% all), Another pump            |
+      | 2 | Pumps     | Extra pump, Self-service (newest pump runs itself), Faster self-serve (+50%), Card deal (fee 1.5%), Another pump |
       | 3 | Tank      | +100 L, +100 L, +100 L                                                                       |
       | 4 | Service   | Squeegee (cleaning 2 s), Tip jar (+$2 on Good or better), Pressure washer (cleaning 1 s)     |
       | 5 | Vibe      | Bluesy radio (max combo +1), Jukebox (max combo +1)                                          |

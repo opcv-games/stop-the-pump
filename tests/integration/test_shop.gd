@@ -86,21 +86,83 @@ func test_given_marketing_branch_then_cars_come_sooner_then_bigger_orders() -> v
 	assert_true(station.possible_targets.has(60.0))
 
 
-func test_given_pumps_branch_then_turbo_extra_pump_turbo_everywhere_another_pump() -> void:
+func _make_self_service() -> PumpBay:
 	_to_shop()
-	station.buy(PUMPS)
-	assert_almost_eq(station.bays[0].pump.flow_rate, station.flow_rate * 1.3, 0.001)
-	assert_almost_eq(station.bays[1].pump.flow_rate, station.flow_rate, 0.001)
+	station.buy(PUMPS)  # extra pump
+	station.buy(PUMPS)  # self-service
+	station.continue_pressed()
+	return station.bays[2]
+
+
+func test_given_pumps_branch_then_extra_pump_then_newest_pump_goes_self_service() -> void:
+	_to_shop()
 	station.buy(PUMPS)
 	assert_eq(station.bays.size(), 3)
 	station.buy(PUMPS)
-	for bay in station.bays:
-		assert_almost_eq(bay.pump.flow_rate, station.flow_rate * 1.3, 0.001)
+	assert_true(station.bays[2].self_service)
+	assert_false(station.bays[0].self_service)
+	assert_string_contains(station.bays[2]._key_label.text, "SELF-SERVE")
+
+
+func test_given_self_service_sale_then_cash_minus_card_fee_and_no_combo_or_xp() -> void:
+	var bay := _make_self_service()
+	var combo_before: int = station.combo.multiplier
+	var xp_before: int = station.wallet.xp
+	var cash_before: float = station.wallet.cash
+	var tank_before: float = station.tank.liters
+	var target: float = bay.pump.target
+	bay.self_service_component.tick(10.0)
+	bay.self_service_component.tick(100.0)
+	bay.self_service_component.tick(10.0)
+	assert_almost_eq(station.wallet.cash - cash_before, target * 0.97, 0.001)
+	assert_eq(station.combo.multiplier, combo_before)
+	assert_eq(station.wallet.xp, xp_before)
+	assert_almost_eq(tank_before - station.tank.liters, target / station.economy.price_per_liter, 0.001)
+	assert_string_contains(bay.result_label.text, "SELF-SERVE")
+
+
+func test_given_self_service_customer_paying_when_day_ends_then_summary_waits_for_payment() -> void:
+	var bay := _make_self_service()
+	var ss: SelfServiceComponent = bay.self_service_component
+	while ss.phase != SelfServiceComponent.Phase.PAYING:
+		ss.tick(0.1)  # small steps so the customer can't pump and pay in a single step
+	assert_eq(ss.phase, SelfServiceComponent.Phase.PAYING)
+	station.clock.running = true
+	station.clock.tick(station.clock.day_seconds)
+	assert_eq(station.state, station.State.CLOSING)
+	ss.tick(10.0)
+	assert_eq(station.state, station.State.SUMMARY)
+
+
+func test_given_self_service_pump_then_hint_lists_only_played_keys() -> void:
+	_make_self_service()
+	assert_string_contains(station._hint_label.text, "Hold 1, 2 to pour")
+
+
+func test_given_dev_mode_then_it_never_forces_a_self_service_pump() -> void:
+	var bay := _make_self_service()
+	for i in 3:
+		station.dev_force("good")
+	assert_false(bay.pump.is_done)
+
+
+func test_given_self_service_pump_when_its_key_is_pressed_then_nothing_pours() -> void:
+	var bay := _make_self_service()
+	station.press(2)
+	bay.pump.tick(1.0)
+	assert_eq(bay.pump.amount, 0.0)
+
+
+func test_given_faster_self_serve_and_card_deal_then_speed_up_and_fee_down() -> void:
+	_to_shop()
+	for i in 4:
+		station.buy(PUMPS)
+	assert_almost_eq(station.bays[2].pump.flow_rate, station.flow_rate * station.self_service_speed, 0.001)
+	assert_almost_eq(station.self_service_speed, 0.75, 0.001)
+	assert_almost_eq(station.card_fee, 0.015, 0.0001)
 	station.buy(PUMPS)
 	assert_eq(station.bays.size(), 4)
-	assert_almost_eq(station.bays[3].pump.flow_rate, station.flow_rate * 1.3, 0.001, "new pumps get turbo too")
-	Tuning.set_value(station, "station/flow_rate", 4.0)
-	assert_almost_eq(station.bays[3].pump.flow_rate, 5.2, 0.001, "turbo survives retuning")
+	assert_false(station.bays[3].self_service, "the last pump in the branch is a normal pump")
 
 
 func test_given_extra_pump_then_day_2_gives_it_a_customer() -> void:
@@ -147,7 +209,9 @@ func test_given_upgrades_when_evicted_then_new_run_starts_clean() -> void:
 	assert_eq(station.combo.max_multiplier, 5)
 	assert_almost_eq(station.cleaning_seconds, 4.0, 0.001)
 	assert_almost_eq(station.arrival_max, 60.0, 0.001)
-	assert_almost_eq(station.bays[0].pump.flow_rate, station.flow_rate, 0.001)
+	for bay in station.bays:
+		assert_false(bay.self_service)
+	assert_almost_eq(station.card_fee, 0.03, 0.0001)
 	assert_true(station.owned.is_empty())
 
 
@@ -161,5 +225,5 @@ func test_given_day_2_after_shop_then_every_bay_is_drawn_in_front_of_the_backgro
 		assert_lt(bay.get_index(), station._overlay.get_index())
 
 
-func test_given_station_then_version_is_0_14() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.14")
+func test_given_station_then_version_is_0_15() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.15")

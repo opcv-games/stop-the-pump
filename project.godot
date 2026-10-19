@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Gas Bar Blues"
-config/version="0.14.0"
+config/version="0.15.0"
 run/main_scene="res://scenes/greybox/pump_station.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
