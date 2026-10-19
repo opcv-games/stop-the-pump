@@ -11,6 +11,8 @@ const PARAMS := [
 	{"key": "station/arrival_max", "label": "Car arrives after, max (s)", "min": 0.0, "max": 15.0, "step": 0.25},
 	{"key": "station/cleaning_seconds", "label": "Car cleaning (s)", "min": 0.0, "max": 10.0, "step": 0.5},
 	{"key": "station/starting_cash", "label": "Starting cash ($)", "min": 0.0, "max": 500.0, "step": 10.0, "restart": true},
+	{"key": "station/special_customer_chance", "label": "Special customers (share)", "min": 0.0, "max": 1.0, "step": 0.05},
+	{"key": "station/businessman_patience", "label": "Businessman patience (s)", "min": 1.0, "max": 10.0, "step": 0.5},
 	{"key": "station/self_service_speed", "label": "Self-service speed (x pour speed)", "min": 0.1, "max": 1.5, "step": 0.05},
 	{"key": "station/card_fee", "label": "Self-service card fee (share)", "min": 0.0, "max": 0.2, "step": 0.005},
 	{"key": "station/shop_price_scale", "label": "Shop prices (x)", "min": 0.25, "max": 3.0, "step": 0.05},

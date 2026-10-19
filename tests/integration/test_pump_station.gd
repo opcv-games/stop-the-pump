@@ -10,6 +10,7 @@ var station: Control
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.special_customer_chance = 0.0  # Regulars only: these tests are about other rules
 	station.pump_count = 2
 	station.arrival_min = 60.0  # keep results on screen for the assertions
 	station.arrival_max = 60.0

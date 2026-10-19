@@ -7,7 +7,7 @@
 ## Now (committed, top = highest priority)
 - [x] `[standard]` **Upgrade tree per pump** (#18, v0.16.1, kept): PUMPS branch builds pumps 3–5; Tab opens "Your pumps", each with Self-service > Faster self-serve > Card deal; the last played pump can't convert.
 - [x] `[innovation]` **Self-service pumps** (#17, v0.15.2; freeze bug fixed, awaiting a clean playtest; replaces Turbo in the Pumps branch): a pump you convert runs on its own with a 3% card fee, slower pumping and slow customers; upgrades raise its speed and lower the fee. Guardrails: earns less than a played pump, no tips, no combo or XP
-- [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
+- [ ] `[innovation]` **Customers with rules: $20 Guy, Confused Grandpa, Impatient Businessman; grey car + speech bubble** (#5, v0.17.0, awaiting playtest)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.
 - [ ] `[tech]` **Bot player harness** (#6)

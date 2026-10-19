@@ -1,12 +1,14 @@
 class_name PumpBay
 extends Control
-## One pump station slot: a pump, its current customer, its display and its last result.
-## The station owns as many bays as it likes; scoring and combo stay at the station. Refs #4
+## One pump station slot: a pump, its current customer (car + speech bubble), its display and its
+## last result. The station owns as many bays as it likes; scoring and combo stay at the station. Refs #4, #5
 
 signal pump_stopped(bay: PumpBay, final_amount: float)
 signal cleaning_finished(bay: PumpBay)
 ## A self-service customer has paid for `amount` and left.
 signal self_service_paid(bay: PumpBay, amount: float)
+## The customer gave up and drove off without buying (Impatient Businessman, #5).
+signal customer_left(bay: PumpBay)
 
 const IDLE_LIGHT := Color(0.3, 0.3, 0.32)
 const POUR_LIGHT := Color(0.35, 0.9, 0.45)
@@ -25,6 +27,8 @@ var self_service := false
 ## How far up its own upgrade tree this pump is (#18): 1 self-service, 2 faster, 3 card deal.
 var pump_level := 0
 var self_service_component: SelfServiceComponent
+## The car at this pump and its rules (#5).
+var customer: CustomerComponent
 ## Out of service while the attendant cleans an overshoot off the car (#9).
 var cleaning := false
 
@@ -33,6 +37,11 @@ var _cleaning_left := 0.0
 var amount_label: Label
 var _light: ColorRect
 var _key_label: Label
+var _bubble: ColorRect
+var _bubble_label: Label
+var _car: Control
+var _car_body: ColorRect
+var _car_roof: ColorRect
 
 
 func setup(bay_index: int, flow_rate: float) -> void:
@@ -45,6 +54,13 @@ func setup(bay_index: int, flow_rate: float) -> void:
 	_build()
 	pump.amount_changed.connect(func(a: float) -> void: amount_label.text = "$%.2f" % a)
 	pump.stopped.connect(_on_stopped)
+	customer = CustomerComponent.new()
+	customer.name = "Customer"
+	add_child(customer)
+	customer.attach(pump)
+	customer.said.connect(say)
+	customer.order_changed.connect(_on_order_changed)
+	customer.drove_off.connect(_on_drove_off)
 	show_empty()
 
 
@@ -53,22 +69,66 @@ func show_empty() -> void:
 	waiting = true
 	if self_service:
 		self_service_component.phase = SelfServiceComponent.Phase.IDLE
+	customer.clear()
 	pump.reset(0.0)
 	target_label.text = "PUMP %d\nno customer" % (index + 1)
 	target_label.modulate = Color(1, 1, 1, 0.4)
 	_light.color = IDLE_LIGHT
+	_car.visible = false
+	_bubble.visible = false
 
 
-func new_customer(target: float) -> void:
+## A car pulls in. `type` is a Customers.TYPES id; self-service pumps only get Regulars.
+func new_customer(target: float, type := "regular") -> void:
 	cleaning = false
 	waiting = false
 	pump.reset(target)
-	target_label.text = "PUMP %d\nWANTS  $%.2f" % [index + 1, target]
-	target_label.modulate = Color.WHITE
+	_show_order(false)
 	result_label.text = ""
 	_light.color = IDLE_LIGHT
+	_car_body.color = Customers.TYPES[type].car
+	_car_roof.color = _car_body.color.darkened(0.25)
+	_car.visible = true
+	customer.begin(type)
 	if self_service:
 		self_service_component.begin()
+
+
+func say(text: String) -> void:
+	_bubble_label.text = text
+	_bubble.visible = text != ""
+
+
+func bubble_text() -> String:
+	return _bubble_label.text if _bubble.visible else ""
+
+
+func car_visible() -> bool:
+	return _car.visible
+
+
+## The served car pulls away after a moment (the reaction stays in the bubble a little longer).
+func car_leaves(after := 1.2) -> void:
+	await get_tree().create_timer(after).timeout
+	if waiting and not cleaning:
+		_car.visible = false
+
+
+func _show_order(changed: bool) -> void:
+	var tag := "  SELF" if self_service else ""
+	target_label.text = "PUMP %d%s\nWANTS  $%.2f%s" % [index + 1, tag, pump.target, "  (changed!)" if changed else ""]
+	target_label.modulate = Color(1.0, 0.85, 0.4) if changed else Color.WHITE
+
+
+func _on_order_changed(_new_target: float) -> void:
+	_show_order(true)
+
+
+func _on_drove_off() -> void:
+	waiting = true
+	_car.visible = false
+	_light.color = IDLE_LIGHT
+	customer_left.emit(self)
 
 
 func _process(delta: float) -> void:
@@ -93,14 +153,17 @@ func tick_cleaning(delta: float) -> void:
 		cleaning = false
 		_light.color = IDLE_LIGHT
 		target_label.text = "PUMP %d\nclean, next car..." % (index + 1)
+		_car.visible = false
+		_bubble.visible = false
 		cleaning_finished.emit(self)
 	else:
 		_show_cleaning()
 
 
 func _show_cleaning() -> void:
-	target_label.text = "PUMP %d   CLEANING  %ds\n\"Hey! My paint!\"" % [index + 1, ceili(_cleaning_left)]
+	target_label.text = "PUMP %d\nCLEANING  %ds" % [index + 1, ceili(_cleaning_left)]
 	target_label.modulate = Color(0.95, 0.45, 0.4)
+	say("Hey! My paint!")
 
 
 func press() -> void:
@@ -145,21 +208,18 @@ func make_manual() -> void:
 
 
 func _on_self_service_phase(phase: SelfServiceComponent.Phase) -> void:
-	var line := ""
 	match phase:
 		SelfServiceComponent.Phase.CARD:
-			line = "fumbling with the card..."
+			say("*fumbles with the card*")
 			_light.color = Color(0.45, 0.6, 1.0)
 		SelfServiceComponent.Phase.PUMPING:
-			line = "pumping (self-serve)"
+			say("*pumps their own gas*")
 			_light.color = POUR_LIGHT
 		SelfServiceComponent.Phase.PAYING:
-			line = "paying..."
+			say("*taps the card... again*")
 			_light.color = Color(0.45, 0.6, 1.0)
 		SelfServiceComponent.Phase.IDLE:
 			_light.color = IDLE_LIGHT
-			return
-	target_label.text = "PUMP %d  WANTS $%.2f\n%s" % [index + 1, pump.target, line]
 
 
 ## Super Perfect: the display shows the exact target ("on the dot").
@@ -179,28 +239,58 @@ func _on_stopped(final_amount: float) -> void:
 
 
 func _build() -> void:
-	target_label = Greybox.label(self, "", 26, Vector2(0, 0), Vector2(SIZE.x, 70))
+	target_label = Greybox.label(self, "", 22, Vector2(0, 0), Vector2(SIZE.x, 58))
+
+	# Speech bubble: what the customer says (flavour; the rules live in CustomerComponent).
+	_bubble = ColorRect.new()
+	_bubble.color = Color(0.93, 0.91, 0.86)
+	_bubble.position = Vector2(14, 62)
+	_bubble.size = Vector2(272, 46)
+	add_child(_bubble)
+	_bubble_label = Greybox.label(_bubble, "", 15, Vector2(6, 2), Vector2(260, 42))
+	_bubble_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_bubble_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_bubble_label.add_theme_color_override("font_color", Color(0.1, 0.1, 0.12))
 
 	var body := ColorRect.new()
 	body.color = Color(0.55, 0.55, 0.58)
-	body.position = Vector2(25, 80)
-	body.size = Vector2(250, 280)
+	body.position = Vector2(25, 114)
+	body.size = Vector2(250, 214)
 	add_child(body)
 
 	var screen := ColorRect.new()
 	screen.color = Color(0.08, 0.08, 0.09)
-	screen.position = Vector2(15, 30)
-	screen.size = Vector2(220, 100)
+	screen.position = Vector2(15, 16)
+	screen.size = Vector2(220, 92)
 	body.add_child(screen)
-	amount_label = Greybox.label(screen, "$0.00", 54, Vector2.ZERO, screen.size)
+	amount_label = Greybox.label(screen, "$0.00", 50, Vector2.ZERO, screen.size)
 	amount_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 
 	_light = ColorRect.new()
-	_light.position = Vector2(100, 160)
-	_light.size = Vector2(50, 50)
+	_light.position = Vector2(105, 120)
+	_light.size = Vector2(40, 40)
 	body.add_child(_light)
 
-	_key_label = Greybox.label(body, "[ %d ]" % ((index + 1) % 10), 26, Vector2(0, 225), Vector2(250, 40))
+	_key_label = Greybox.label(body, "[ %d ]" % ((index + 1) % 10), 24, Vector2(0, 170), Vector2(250, 36))
 	_key_label.add_theme_color_override("font_color", Color(0.15, 0.15, 0.17))
 
-	result_label = Greybox.label(self, "", 21, Vector2(-10, 368), Vector2(SIZE.x + 20, 100))
+	# The car parked in front of the pump: flat boxes, colour = customer type (#5).
+	_car = Control.new()
+	_car.position = Vector2(60, 334)
+	_car.size = Vector2(180, 44)
+	add_child(_car)
+	_car_roof = _box(_car, Vector2(45, 0), Vector2(90, 16), Color.GRAY)
+	_car_body = _box(_car, Vector2(0, 14), Vector2(180, 22), Color.GRAY)
+	_box(_car, Vector2(22, 30), Vector2(28, 14), Color(0.08, 0.08, 0.09))
+	_box(_car, Vector2(130, 30), Vector2(28, 14), Color(0.08, 0.08, 0.09))
+
+	result_label = Greybox.label(self, "", 18, Vector2(-10, 384), Vector2(SIZE.x + 20, 86))
+
+
+func _box(parent: Control, at: Vector2, box_size: Vector2, color: Color) -> ColorRect:
+	var r := ColorRect.new()
+	r.position = at
+	r.size = box_size
+	r.color = color
+	parent.add_child(r)
+	return r

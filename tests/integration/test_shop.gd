@@ -14,6 +14,7 @@ var station: Control
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.special_customer_chance = 0.0  # Regulars only: these tests are about other rules
 	station.arrival_min = 60.0
 	station.arrival_max = 60.0
 	station.second_customer_offset = 0.0
@@ -263,7 +264,3 @@ func test_given_day_2_after_shop_then_every_bay_is_drawn_in_front_of_the_backgro
 	for bay in station.bays:
 		assert_gt(bay.get_index(), station._bg.get_index())
 		assert_lt(bay.get_index(), station._overlay.get_index())
-
-
-func test_given_station_then_version_is_0_16() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.16")

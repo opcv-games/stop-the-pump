@@ -8,7 +8,8 @@ extends Control
 ## Kept: #15 cash upgrade tree between days (Bills-style, cost only).
 ## Kept: #16 plain SFX + background music (Roadside At Two).
 ## Kept: #17 self-service pumps (replace the Turbo nozzle).
-## Testing: #18 an upgrade tree per pump (shop page 2, Tab).
+## Kept: #18 an upgrade tree per pump (shop page 2, Tab).
+## Testing: #5 customers with rules ($20 Guy, Grandpa, Businessman), grey car + speech bubble.
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP }
 enum ShopPage { STATION, PUMPS }
@@ -32,6 +33,10 @@ enum ShopPage { STATION, PUMPS }
 @export var tuning_file := "user://tuning.cfg"
 ## Cash the player starts a run with.
 @export var starting_cash := 50.0
+## Customers (#5): chance a car is a special customer instead of a Regular, and how long the
+## Impatient Businessman waits for the pour to start.
+@export_range(0.0, 1.0) var special_customer_chance := 0.45
+@export var businessman_patience := 4.0
 ## Upgrade tree (#15): a multiplier on every upgrade price.
 @export var shop_price_scale := 1.0
 ## Self-service pumps (#17): share of the normal pour speed, and the card fee taken from each sale.
@@ -224,6 +229,7 @@ func apply_tuning() -> void:
 		bay.flow_multiplier = 1.0
 		if bay.self_service:
 			bay.flow_multiplier = self_service_speed * (1.5 if bay.pump_level >= 2 else 1.0)
+		bay.customer.patience_seconds = businessman_patience
 		bay.pump.flow_rate = flow_rate * bay.flow_multiplier
 	sound.apply_tuning()
 
@@ -440,26 +446,35 @@ func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
 		_check_day_over()  # self-service is settled when the customer pays
 		return
 	var target := bay.pump.target
+	var customer_type := bay.customer.type
 	var tier := combo.tiers.evaluate(final_amount, target)
 	var lost := combo.multiplier if not combo.tiers.extends_combo(tier) and combo.multiplier > 1 else 0
 	var paid_multiplier := combo.register(tier)
 	var receipt := economy.settle(final_amount, target, tier)
 	var xp := economy.xp_for(tier, paid_multiplier)
-	_day_earned += receipt.earned
-	wallet.add(receipt.earned)
+	# $20 Guy (#5): whatever went over comes out of the player's own pocket.
+	var pocket := receipt.overshoot if bay.customer.out_of_pocket() else 0.0
+	_day_earned += receipt.earned - pocket
+	wallet.add(receipt.earned - pocket)
 	wallet.add_xp(xp)
 	sound.play_tier(tier)
 	if tier == ScoreTiers.SUPER_PERFECT:
 		bay.show_amount(target)
 	_counts[tier] += 1
-	bay.show_result(_receipt_text(tier, final_amount - target, receipt, xp, paid_multiplier, lost), TIER_COLORS[tier])
+	var text := _receipt_text(tier, final_amount - target, receipt, xp, paid_multiplier, lost)
+	if pocket > 0.0:
+		text = text.insert(text.find("\n"), "  out of your pocket -$%.2f" % pocket)
+	bay.show_result(text, TIER_COLORS[tier])
+	bay.say(Customers.reaction(customer_type if customer_type != "" else "regular", tier, receipt.overshoot))
 	_stats_label.text = "Super %d   Perfect %d   Good %d   OK %d   Miss %d   |   Best combo x%d" % [
 		_counts[ScoreTiers.SUPER_PERFECT], _counts[ScoreTiers.PERFECT], _counts[ScoreTiers.GOOD],
 		_counts[ScoreTiers.OK], _counts[ScoreTiers.MISS], _best_combo]
 	if cleaning_enabled and receipt.overshoot > combo.tiers.ok_window:
 		bay.start_cleaning(cleaning_seconds)  # the next customer comes when cleaning finishes
-	elif state == State.OPEN:
-		_customer_after(bay, next_arrival_delay())
+	else:
+		bay.car_leaves()
+		if state == State.OPEN:
+			_customer_after(bay, next_arrival_delay())
 	if state != State.OPEN:
 		_check_day_over()
 
@@ -491,10 +506,24 @@ func _on_self_service_paid(bay: PumpBay, amount: float) -> void:
 	wallet.add(earned)
 	bay.show_result("SELF-SERVE  $%.2f\n+$%.2f  card fee -$%.2f" % [amount, earned, fee], Color(0.45, 0.6, 1.0))
 	bay.waiting = true
+	bay.car_leaves()
 	if state == State.OPEN:
 		_customer_after(bay, next_arrival_delay())
 	else:
 		bay.show_empty()
+		_check_day_over()
+
+
+## The Impatient Businessman gave up (#5): no sale, and the chain breaks like a miss.
+func _on_customer_left(bay: PumpBay) -> void:
+	var lost := combo.multiplier
+	if lost > 1:
+		combo.register(ScoreTiers.MISS)
+	sound.play_tier(ScoreTiers.MISS)
+	bay.show_result("DROVE OFF\nno sale%s" % ("\nCOMBO LOST  x%d" % lost if lost > 1 else ""), TIER_COLORS[ScoreTiers.MISS])
+	if state == State.OPEN:
+		_customer_after(bay, next_arrival_delay())
+	else:
 		_check_day_over()
 
 
@@ -512,7 +541,11 @@ func _customer_after(bay: PumpBay, delay: float) -> void:
 	if delay > 0.0:
 		await get_tree().create_timer(delay).timeout
 	if is_instance_valid(bay) and state == State.OPEN and id == _day_id:
-		bay.new_customer(possible_targets.pick_random())
+		if bay.self_service:
+			bay.new_customer(possible_targets.pick_random())  # self-service only gets Regulars
+		else:
+			var c := Customers.roll(special_customer_chance, possible_targets)
+			bay.new_customer(c.target, c.type)
 
 
 ## The clock ran out or the tank is empty: no new customers, unserved ones drive off,
@@ -636,6 +669,8 @@ func _add_bay(i: int) -> void:
 	bay.pump_stopped.connect(_on_bay_stopped)
 	bay.cleaning_finished.connect(func(b: PumpBay) -> void: _customer_after(b, next_arrival_delay()))
 	bay.self_service_paid.connect(_on_self_service_paid)
+	bay.customer_left.connect(_on_customer_left)
+	bay.customer.patience_seconds = businessman_patience
 	sound.watch_pump(bay.pump, i)
 	bays.append(bay)
 

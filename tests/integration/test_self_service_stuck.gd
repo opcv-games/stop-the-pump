@@ -11,6 +11,7 @@ var ss: SelfServiceComponent
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.special_customer_chance = 0.0  # Regulars only: these tests are about other rules
 	station.arrival_min = 60.0
 	station.arrival_max = 60.0
 	station.second_customer_offset = 0.0
