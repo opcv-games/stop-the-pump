@@ -179,3 +179,6 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Station starts run-down (grime, potholes, faded paint); player-named pylon sign; 3 lanes plus a vacant lot for expansion | Designer request; looks upgrades come in later levels | Review of lanes kit (#23) |
 | 2026-10-19 | Pump HUD is a compact card pinned to each 3D lane, in a staircase so cards never overlap or cover pumps; combo and XP move to the top right | Designer request (#25) | v0.22.0 |
 | 2026-10-19 | Lanes, cars, named pylon and lane-pinned HUD kept; 10x speed added | "The art looks good"; pumps and cards read at a glance | Playtest 18 (#24, #25) |
+| 2026-10-19 | Juice kept (stream, sparkle, cash pops, road cars, shake) | "Feels much better"; "the shake is fun" | Playtest 19 (#26) |
+| 2026-10-19 | A customer can only be served once their car is parked at the pump; cars drive smoothly | Serving cars that hadn't arrived broke the illusion | Playtest 19 (#27) |
+| 2026-10-19 | Every upgrade shows on the station (cosmetic prop) and pops in | Designer request: upgrades should look like upgrades | Playtest 19 (#27, #28) |

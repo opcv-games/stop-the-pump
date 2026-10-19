@@ -2,6 +2,13 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.23.0 Juice pass  (#26)
+Hypothesis: Stream, sparkle, cash pops, road cars and world shake make stops feel better without hurting readability.
+Variable: no juice → five juice effects (each switchable in F2)
+Sessions: 1 (self: 1, others: 0)
+Observed: "Feels much better." "The shake is fun." Cars don't feel natural: you can pump a car as soon as it enters the frame, before it reaches the pump; cars turn at 90° without slowing. The nozzle sound is extremely annoying and clicky: wants a glug-glug fuel sound and a crick-crack-crock counter. Wants upgrade juice: a new pump should rise from the ground and pop out like an inflatable; every upgrade should change how the station looks.
+Decision: KEPT all five effects. Next (v0.24): cars gate service and drive smoothly; glug and counter sounds; pumps pop in. Then a Blender step for cosmetic props per upgrade.
+
 ## 2026-10-19 — v0.21–v0.22 Lanes, cars, station name, HUD pinned to lanes  (#24, #25)
 Hypothesis: A 3D station with one lane per pump and each pump's HUD pinned to its lane stays readable while looking like a real place.
 Variable: grey 2D panels → 3D lanes + compact lane cards
