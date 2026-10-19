@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/greybox/pump_station.gd" id="1_station"]
+[ext_resource type="Script" path="res://scripts/components/combo_component.gd" id="2_combo"]
+[ext_resource type="Script" path="res://scripts/components/sound_feedback.gd" id="3_sound"]
+
+[node name="PumpStation" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_station")
+
+[node name="ComboComponent" type="Node" parent="."]
+script = ExtResource("2_combo")
+
+[node name="SoundFeedback" type="Node" parent="."]
+script = ExtResource("3_sound")

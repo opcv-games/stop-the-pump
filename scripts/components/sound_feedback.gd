@@ -13,29 +13,47 @@ const DIR := "res://assets/audio/placeholder/"
 ## Play a click every time the meter passes a whole dollar.
 @export var tick_every_dollar := true
 
+## Each extra pump hums and clicks a little higher so pumps can be told apart by ear.
+@export var pitch_step_per_pump := 0.12
+
 var _players := {}
-var _pour: AudioStreamPlayer
-var _last_dollar := 0
+var _loop: AudioStreamWAV
+var _tick: AudioStream
 
 
 func _ready() -> void:
-	for sfx in ["tick", "perfect", "good", "ok", "miss", "combo_up", "combo_break"]:
+	for sfx in ["perfect", "good", "ok", "miss", "combo_up", "combo_break"]:
 		var p := AudioStreamPlayer.new()
 		p.stream = load(DIR + sfx + ".wav")
 		add_child(p)
 		_players[sfx] = p
-	var loop: AudioStreamWAV = load(DIR + "pour_loop.wav")
-	loop.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	loop.loop_end = 44100
-	_pour = AudioStreamPlayer.new()
-	_pour.stream = loop
-	_pour.volume_db = -8.0
-	add_child(_pour)
+	_tick = load(DIR + "tick.wav")
+	_loop = load(DIR + "pour_loop.wav")
+	_loop.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	_loop.loop_end = 44100
 
 
-func watch_pump(pump: PumpComponent) -> void:
-	pump.amount_changed.connect(_on_amount_changed.bind(pump))
-	pump.stopped.connect(func(_final: float) -> void: _pour.stop())
+## Gives a pump its own hum and click players. index sets its pitch.
+func watch_pump(pump: PumpComponent, index := 0) -> void:
+	var pitch := 1.0 + pitch_step_per_pump * index
+	var hum := AudioStreamPlayer.new()
+	hum.stream = _loop
+	hum.volume_db = -10.0
+	hum.pitch_scale = pitch
+	add_child(hum)
+	var tick := AudioStreamPlayer.new()
+	tick.stream = _tick
+	tick.pitch_scale = pitch
+	add_child(tick)
+	var state := {"last_dollar": 0}
+	pump.amount_changed.connect(func(amount: float) -> void:
+		if pump.is_pouring and not hum.playing:
+			hum.play()
+		var dollar := int(amount)
+		if tick_every_dollar and dollar > state.last_dollar:
+			tick.play()
+		state.last_dollar = dollar)
+	pump.stopped.connect(func(_final: float) -> void: hum.stop())
 
 
 func watch_combo(combo: ComboComponent) -> void:
@@ -45,15 +63,6 @@ func watch_combo(combo: ComboComponent) -> void:
 
 func play_tier(tier: String) -> void:
 	_play(tier.to_lower())
-
-
-func _on_amount_changed(amount: float, pump: PumpComponent) -> void:
-	if pump.is_pouring and not _pour.playing:
-		_pour.play()
-	var dollar := int(amount)
-	if tick_every_dollar and dollar > _last_dollar:
-		_play("tick")
-	_last_dollar = dollar
 
 
 func _on_multiplier_changed(multiplier: int) -> void:
