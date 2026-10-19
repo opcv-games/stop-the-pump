@@ -12,9 +12,10 @@ extends Control
 ## Kept: #5 customers with rules (Grandpa, Businessman), grey car + speech bubble.
 ## Kept: #19 run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed.
 ## Kept: #20 endless mode after day 10; auto on/off per pump (Shift + number).
-## Phase 4 (#22): the painted 3D station world sits behind this HUD, lit by the clock, with rain.
+## Phase 4 (#22, #24): the 3D station sits behind this HUD: one lane per pump, cars come and go,
+## lit by the clock, with rain. The player names the station at the start of a run.
 
-enum State { OPEN, CLOSING, SUMMARY, SHOP }
+enum State { OPEN, CLOSING, SUMMARY, SHOP, NAMING }
 enum ShopPage { STATION, PUMPS }
 
 ## How many pumps the station runs. The difficulty ladder (1 to 10) is this one number.
@@ -34,6 +35,8 @@ enum ShopPage { STATION, PUMPS }
 @export var cleaning_enabled := true
 ## Where the tuning panel saves the designer's numbers ("" = don't load or save, used by tests).
 @export var tuning_file := "user://tuning.cfg"
+## Where the player's station name is kept ("" = no naming screen, used by tests) (#24).
+@export var profile_file := "user://profile.cfg"
 ## Cash the player starts a run with.
 @export var starting_cash := 50.0
 ## Days in a run (#19). Surviving the last one completes the run.
@@ -88,6 +91,11 @@ var evicted := false
 var run_complete := false
 ## Endless mode (#20): kept going after the last day; only eviction ends the run.
 var endless := false
+## Footprint expansion bought this run (#24): room for pumps 4 and 5.
+var expanded := false
+## The player's station name, shown on the pylon (#24).
+var station_name := "Gas Bar Blues"
+var name_input: LineEdit
 ## Game speed picked by the player: 1, 2 or 3 (#19).
 var speed := 1
 
@@ -111,6 +119,7 @@ var _overlay: Control
 var _dev_label: Label
 var _tuning_panel: TuningPanel
 var _shop: Control
+var _naming: Control
 var _bg: ColorRect
 ## The painted 3D station behind the HUD (#22).
 var world_view: WorldView
@@ -173,6 +182,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		cleaning_enabled = not cleaning_enabled
 		_update_hint()
 		return
+	if state == State.NAMING:
+		return  # the name field takes the keyboard
 	if state == State.SUMMARY:
 		if run_complete and event is InputEventKey and event.pressed and event.physical_keycode == KEY_E:
 			go_endless()
@@ -210,10 +221,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func press(i: int) -> void:
 	bays[i].press()
+	world_view.world.set_pouring(i, bays[i].pump.is_pouring)
 
 
 func release(i: int) -> void:
 	bays[i].release()
+	world_view.world.set_pouring(i, bays[i].pump.is_pouring)
 
 
 ## Dev mode: the first pump with a customer stops at a chosen distance from its target.
@@ -312,6 +325,7 @@ func _exit_tree() -> void:
 
 
 ## A new run: starting cash, day 1. XP is kept (it is the run-to-run currency).
+## The player names the station first (prefilled with the last name), unless naming is off.
 func start_run() -> void:
 	_reset_run_upgrades()
 	evicted = false
@@ -320,7 +334,50 @@ func start_run() -> void:
 	_run_earned = 0.0
 	day = 0
 	wallet.add(starting_cash - wallet.cash)
+	if profile_file != "":
+		_show_naming()
+	else:
+		start_next_day()
+
+
+func set_station_name(text: String) -> void:
+	station_name = text
+	world_view.world.set_station_name(text)
+
+
+## The player pressed Enter on the naming screen: keep the name, open day 1.
+func confirm_name(text: String) -> void:
+	var n := text.strip_edges()
+	set_station_name(n if n != "" else "Gas Bar Blues")
+	if profile_file != "":
+		var cfg := ConfigFile.new()
+		cfg.load(profile_file)
+		cfg.set_value("station", "name", station_name)
+		cfg.save(profile_file)
+	_naming.visible = false
 	start_next_day()
+
+
+func _show_naming() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(profile_file) == OK:
+		station_name = cfg.get_value("station", "name", station_name)
+	set_station_name(station_name)
+	name_input.text = station_name
+	state = State.NAMING
+	clock.running = false
+	_overlay.visible = false
+	_naming.visible = true
+	_update_hint()
+	if name_input.is_inside_tree():
+		name_input.grab_focus()
+		name_input.caret_column = name_input.text.length()
+
+
+## Footprint expansion (#24): the vacant lot is paved; pumps 4 and 5 can be built.
+func set_expanded(on: bool) -> void:
+	expanded = on
+	world_view.world.set_expanded(on)
 
 
 func start_next_day() -> void:
@@ -485,6 +542,7 @@ func _reset_run_upgrades() -> void:
 	Tuning.apply_snapshot(self, _base)
 	possible_targets.assign(_base_targets)
 	economy.tip_bonus = 0.0
+	set_expanded(false)
 	owned.clear()
 	shop_page = ShopPage.STATION
 	while bays.size() > pump_count:
@@ -496,6 +554,7 @@ func _reset_run_upgrades() -> void:
 	for bay in bays:
 		bay.make_manual()
 	_layout_bays()
+	world_view.world.set_lane_count(bays.size())
 	apply_tuning()
 
 
@@ -504,6 +563,7 @@ func add_pump() -> void:
 	pump_count += 1
 	_add_bay(bays.size())
 	_layout_bays()
+	world_view.world.set_lane_count(bays.size())
 
 
 func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
@@ -713,6 +773,9 @@ func _update_hint() -> void:
 	if state == State.SUMMARY:
 		_hint_label.text = "ENTER to continue.     M: sound %s" % ("ON" if sound.enabled else "OFF")
 		return
+	if state == State.NAMING:
+		_hint_label.text = "Type your station's name, then ENTER."
+		return
 	if state == State.SHOP:
 		_hint_label.text = "1–%d buy     TAB switch page     ENTER open the station" % (Upgrades.BRANCHES.size() if shop_page == ShopPage.STATION else bays.size())
 		return
@@ -758,6 +821,9 @@ func _add_bay(i: int) -> void:
 	bay.self_service_paid.connect(_on_self_service_paid)
 	bay.customer_left.connect(_on_customer_left)
 	bay.auto_toggle_requested.connect(func(b: PumpBay) -> void: toggle_auto(b.index))
+	bay.car_arrived.connect(func(b: PumpBay, colour: Color) -> void: world_view.world.car_arrive(b.index, colour))
+	bay.car_departed.connect(func(b: PumpBay) -> void: world_view.world.car_depart(b.index))
+	bay.pump.stopped.connect(func(_f: float) -> void: world_view.world.set_pouring(bay.index, false))
 	bay.customer.patience_seconds = businessman_patience
 	sound.watch_pump(bay.pump, i)
 	bays.append(bay)
@@ -842,6 +908,28 @@ func _build_station() -> void:
 	summary_label = Greybox.label(panel, "", 26, Vector2(0, 20), Vector2(640, 380))
 	summary_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_overlay.visible = false
+
+	# Naming screen (#24): name the station at the start of a run.
+	_naming = Control.new()
+	_naming.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_naming)
+	var name_dim := ColorRect.new()
+	name_dim.color = Color(0.08, 0.08, 0.1, 0.85)
+	name_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_naming.add_child(name_dim)
+	Greybox.label(_naming, "NAME YOUR GAS STATION", 34, Vector2(0, 210), Vector2(1152, 50))
+	Greybox.label(_naming, "It goes up on the sign out front.", 20, Vector2(0, 262), Vector2(1152, 30)).modulate = Color(1, 1, 1, 0.7)
+	name_input = LineEdit.new()
+	name_input.max_length = 22
+	name_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_input.placeholder_text = "Gas Bar Blues"
+	name_input.position = Vector2(326, 310)
+	name_input.size = Vector2(500, 56)
+	name_input.add_theme_font_size_override("font_size", 30)
+	name_input.text_submitted.connect(confirm_name)
+	_naming.add_child(name_input)
+	Greybox.label(_naming, "ENTER to open the station", 20, Vector2(0, 384), Vector2(1152, 30)).modulate = Color(1, 1, 1, 0.6)
+	_naming.visible = false
 
 	# Night shop screen (#14).
 	_shop = Control.new()

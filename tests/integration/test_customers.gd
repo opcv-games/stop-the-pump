@@ -9,6 +9,7 @@ var station: Control
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.profile_file = ""  # skip the naming screen in tests
 	station.arrival_min = 60.0
 	station.arrival_max = 60.0
 	station.second_customer_offset = 0.0

@@ -17,9 +17,11 @@ const BRANCHES := [
 		{"id": "radio_ad", "name": "Radio ad", "helps": "cars arrive 20% sooner", "price": 150.0},
 		{"id": "billboard", "name": "Billboard", "helps": "$50 and $60 orders", "price": 220.0},
 	]},
-	# Builds pumps only; each pump then has its own tree (PUMP_TREE, #18). Turbo removed (#17).
+	# Builds pumps; each pump then has its own tree (PUMP_TREE, #18). Turbo removed (#17).
+	# The station starts 3 lanes wide: the footprint expansion comes before pumps 4 and 5 (#24).
 	{"id": "pumps", "name": "PUMPS", "nodes": [
 		{"id": "pump_3", "name": "Pump 3", "helps": "build a third pump", "price": 250.0},
+		{"id": "expand", "name": "Expand the footprint", "helps": "pave the vacant lot: room for pumps 4 and 5", "price": 350.0},
 		{"id": "pump_4", "name": "Pump 4", "helps": "build a fourth pump", "price": 400.0},
 		{"id": "pump_5", "name": "Pump 5", "helps": "build a fifth pump", "price": 550.0},
 	]},
@@ -73,6 +75,8 @@ static func apply(station: Node, id: String) -> void:
 					station.possible_targets.append(order)
 		"pump_3", "pump_4", "pump_5":
 			station.add_pump()
+		"expand":
+			station.set_expanded(true)
 		"tank_1", "tank_2", "tank_3":
 			station.tank.capacity_liters += 100.0  # filled at the next morning's refill
 		"squeegee":

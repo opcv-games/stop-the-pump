@@ -14,6 +14,7 @@ var station: Control
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.profile_file = ""  # skip the naming screen in tests
 	station.special_customer_chance = 0.0  # Regulars only: these tests are about other rules
 	station.arrival_min = 60.0
 	station.arrival_max = 60.0
@@ -95,10 +96,16 @@ func _make_self_service() -> PumpBay:
 	return station.bays[2]
 
 
-func test_given_pumps_branch_then_it_only_builds_pumps_up_to_5() -> void:
+func test_given_pumps_branch_then_pump_3_expansion_pump_4_pump_5() -> void:
 	_to_shop()
-	for i in 3:
-		assert_true(station.buy(PUMPS))
+	assert_true(station.buy(PUMPS))
+	assert_eq(station.bays.size(), 3)
+	assert_false(station.expanded)
+	assert_true(station.buy(PUMPS))
+	assert_true(station.expanded, "the footprint expansion comes before pump 4")
+	assert_eq(station.bays.size(), 3)
+	assert_true(station.buy(PUMPS))
+	assert_true(station.buy(PUMPS))
 	assert_eq(station.bays.size(), 5)
 	assert_false(station.buy(PUMPS))
 	for bay in station.bays:
@@ -175,8 +182,9 @@ func test_given_self_service_pump_when_its_key_is_pressed_then_nothing_pours() -
 
 func test_given_faster_self_serve_on_pump_3_then_only_pump_3_speeds_up() -> void:
 	_to_shop()
-	station.buy(PUMPS)
-	station.buy(PUMPS)
+	station.buy(PUMPS)  # pump 3
+	station.buy(PUMPS)  # expansion
+	station.buy(PUMPS)  # pump 4
 	station.buy_pump(2)
 	station.buy_pump(3)
 	assert_true(station.buy_pump(2))  # pump 3: faster self-serve
@@ -243,6 +251,8 @@ func test_given_upgrades_when_evicted_then_new_run_starts_clean() -> void:
 	for bay in station.bays:
 		assert_false(bay.self_service)
 		assert_eq(bay.pump_level, 0)
+	assert_false(station.expanded)
+	assert_false(station.world_view.world.scenery.get_node("ForecourtExpansion").visible)
 	assert_true(station.owned.is_empty())
 	assert_eq(station.shop_page, station.ShopPage.STATION)
 

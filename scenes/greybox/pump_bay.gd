@@ -9,6 +9,9 @@ signal cleaning_finished(bay: PumpBay)
 signal self_service_paid(bay: PumpBay, amount: float)
 ## The player clicked this pump's AUTO button (#20).
 signal auto_toggle_requested(bay: PumpBay)
+## A car pulled in (`colour` = customer type) or left this pump: the 3D world follows these (#24).
+signal car_arrived(bay: PumpBay, colour: Color)
+signal car_departed(bay: PumpBay)
 ## The customer gave up and drove off without buying (Impatient Businessman, #5).
 signal customer_left(bay: PumpBay)
 
@@ -78,6 +81,8 @@ func show_empty() -> void:
 	target_label.text = "PUMP %d\nno customer" % (index + 1)
 	target_label.modulate = Color(1, 1, 1, 0.4)
 	_light.color = IDLE_LIGHT
+	if _car.visible:
+		car_departed.emit(self)
 	_car.visible = false
 	_bubble.visible = false
 
@@ -93,6 +98,7 @@ func new_customer(target: float, type := "regular") -> void:
 	_car_body.color = Customers.TYPES[type].car
 	_car_roof.color = _car_body.color.darkened(0.25)
 	_car.visible = true
+	car_arrived.emit(self, _car_body.color)
 	customer.begin(type)
 	if self_service:
 		self_service_component.begin()
@@ -113,6 +119,7 @@ func car_visible() -> bool:
 
 ## The served car pulls away after a moment (the reaction stays in the bubble a little longer).
 func car_leaves(after := 1.2) -> void:
+	car_departed.emit(self)  # the 3D car pulls away at once
 	await get_tree().create_timer(after).timeout
 	if waiting and not cleaning:
 		_car.visible = false
@@ -131,6 +138,7 @@ func _on_order_changed(_new_target: float) -> void:
 func _on_drove_off() -> void:
 	waiting = true
 	_car.visible = false
+	car_departed.emit(self)
 	_light.color = IDLE_LIGHT
 	customer_left.emit(self)
 
@@ -158,6 +166,7 @@ func tick_cleaning(delta: float) -> void:
 		_light.color = IDLE_LIGHT
 		target_label.text = "PUMP %d\nclean, next car..." % (index + 1)
 		_car.visible = false
+		car_departed.emit(self)
 		_bubble.visible = false
 		cleaning_finished.emit(self)
 	else:

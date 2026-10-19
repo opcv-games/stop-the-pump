@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://nso28667m5cl"
-path="res://.godot/imported/station_kit.glb-1a5d997b0c5824434b32083cc62b5d6f.scn"
+uid="uid://b4vjuxebsdtnn"
+path="res://.godot/imported/station_scenery.glb-ec02735ea8d27dcd840e69a06394d954.scn"
 
 [deps]
 
-source_file="res://assets/art/export/station_kit.glb"
-dest_files=["res://.godot/imported/station_kit.glb-1a5d997b0c5824434b32083cc62b5d6f.scn"]
+source_file="res://assets/art/export/station_scenery.glb"
+dest_files=["res://.godot/imported/station_scenery.glb-ec02735ea8d27dcd840e69a06394d954.scn"]
 
 [params]
 

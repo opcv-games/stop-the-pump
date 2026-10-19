@@ -11,6 +11,7 @@ var ss: SelfServiceComponent
 func before_each() -> void:
 	station = SCENE.instantiate()
 	station.tuning_file = ""
+	station.profile_file = ""  # skip the naming screen in tests
 	station.special_customer_chance = 0.0  # Regulars only: these tests are about other rules
 	station.arrival_min = 60.0
 	station.arrival_max = 60.0
@@ -63,6 +64,7 @@ func test_given_two_self_service_pumps_pumping_when_end_day_clicked_then_summary
 	station.dev_end_day()
 	assert_eq(station.state, station.State.SUMMARY, "end day with one self-service pump pouring")
 	station.continue_pressed()
+	station.buy(1)  # expand the footprint
 	station.buy(1)  # build pump 4
 	station.toggle_shop_page()
 	station.buy_pump(3)  # pump 4: self-service
