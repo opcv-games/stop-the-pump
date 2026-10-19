@@ -9,6 +9,8 @@ signal stopped(final_amount: float)
 
 ## Dollars poured per second while the key is held.
 @export var flow_rate := 4.0
+## Optional shared tank. When set, fuel comes out of it and an empty tank stops the pour (#8).
+var tank: TankComponent
 
 var amount := 0.0
 var target := 0.0
@@ -24,8 +26,13 @@ func _process(delta: float) -> void:
 func tick(delta: float) -> void:
 	if not is_pouring:
 		return
-	amount += flow_rate * delta
+	var dollars := flow_rate * delta
+	if tank:
+		dollars = tank.draw(dollars)
+	amount += dollars
 	amount_changed.emit(amount)
+	if tank and tank.is_empty():
+		stop_pour()
 
 
 func start_pour() -> void:

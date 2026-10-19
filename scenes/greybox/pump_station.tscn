@@ -1,9 +1,11 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/greybox/pump_station.gd" id="1_station"]
 [ext_resource type="Script" path="res://scripts/components/combo_component.gd" id="2_combo"]
 [ext_resource type="Script" path="res://scripts/components/sound_feedback.gd" id="3_sound"]
 [ext_resource type="Script" path="res://scripts/components/wallet_component.gd" id="4_wallet"]
+[ext_resource type="Script" path="res://scripts/components/tank_component.gd" id="5_tank"]
+[ext_resource type="Script" path="res://scripts/components/day_clock.gd" id="6_clock"]
 
 [node name="PumpStation" type="Control"]
 layout_mode = 3
@@ -20,3 +22,9 @@ script = ExtResource("3_sound")
 
 [node name="WalletComponent" type="Node" parent="."]
 script = ExtResource("4_wallet")
+
+[node name="TankComponent" type="Node" parent="."]
+script = ExtResource("5_tank")
+
+[node name="DayClock" type="Node" parent="."]
+script = ExtResource("6_clock")

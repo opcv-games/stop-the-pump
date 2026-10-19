@@ -54,3 +54,27 @@ func test_given_stopped_pump_when_reset_for_new_customer_then_amount_is_zero_and
 	pump.reset(35.0)
 	assert_eq(pump.amount, 0.0)
 	assert_eq(pump.target, 35.0)
+
+
+func test_given_pump_fed_by_tank_when_pouring_then_tank_drains() -> void:
+	var tank := TankComponent.new()
+	tank.price_per_liter = 2.0
+	add_child_autofree(tank)
+	pump.tank = tank
+	pump.start_pour()
+	pump.tick(1.0)
+	assert_almost_eq(tank.liters, tank.capacity_liters - 2.0, 0.001)
+
+
+func test_given_tank_with_1_litre_when_pouring_past_it_then_pump_stops_at_2_dollars() -> void:
+	var tank := TankComponent.new()
+	tank.price_per_liter = 2.0
+	add_child_autofree(tank)
+	tank.liters = 1.0
+	pump.tank = tank
+	watch_signals(pump)
+	pump.start_pour()
+	pump.tick(5.0)
+	assert_almost_eq(pump.amount, 2.0, 0.001)
+	assert_true(pump.is_done)
+	assert_signal_emitted_with_parameters(pump, "stopped", [2.0])

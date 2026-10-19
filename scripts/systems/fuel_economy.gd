@@ -1,35 +1,42 @@
 class_name FuelEconomy
 extends Resource
-## Turns one finished pour into money: margin on fuel sold, plus a tip, minus overshoot fuel.
-## A Resource so prices and tips can be tuned in the inspector. Serves: Advancement. Refs #3
+## What a stop pays (cash + XP) and what a day costs (refill + rent).
+## A Resource so every price can be tuned in the inspector. Serves: Advancement. Refs #3, #8
 
 
-## What one stop earned, shown to the player as a breakdown.
+## What one stop earned, shown to the player under the pump.
 class Receipt:
 	var sale := 0.0       ## What the customer pays: never more than they asked for.
-	var fuel_cost := 0.0  ## Wholesale cost of every drop pumped, overshoot included.
-	var tip := 0.0        ## Tier tip times the combo multiplier.
-	var overshoot := 0.0  ## Dollars pumped past the target, given away.
+	var tip := 0.0        ## By tier only. The combo never changes cash.
+	var overshoot := 0.0  ## Dollars of fuel pumped past the target, given away from the tank.
 	var short := false    ## Stopped below the target outside the Perfect window: no tip.
-	var profit := 0.0
+	var earned := 0.0     ## sale + tip, paid in full at the pump.
 
 
-@export var tiers: ScoreTiers = ScoreTiers.new()
-## Wholesale fuel price as a share of the pump price. 0.8 means $20 of fuel costs the station $16.
-@export_range(0.0, 1.0) var wholesale_ratio := 0.8
+@export_group("At the pump")
 @export var perfect_tip := 5.0
 @export var good_tip := 2.0
 @export var ok_tip := 0.0
+@export_group("XP (multiplied by the combo)")
+@export var perfect_xp := 100
+@export var good_xp := 50
+@export var ok_xp := 10
+@export_group("Between days")
+## Wholesale fuel price as a share of the pump price. 0.8 means a $2 litre costs the station $1.60.
+@export_range(0.0, 1.0) var wholesale_ratio := 0.8
+@export var price_per_liter := 2.0
+@export var rent_base := 100.0
+## Added to the rent every new day of a run.
+@export var rent_growth := 40.0
 
 
-func settle(final_amount: float, target: float, tier: String, multiplier := 1) -> Receipt:
+func settle(final_amount: float, target: float, tier: String) -> Receipt:
 	var r := Receipt.new()
 	r.sale = minf(final_amount, target)
-	r.fuel_cost = final_amount * wholesale_ratio
 	r.overshoot = maxf(0.0, final_amount - target)
 	r.short = final_amount < target and tier != ScoreTiers.PERFECT
-	r.tip = 0.0 if r.short else tip_for(tier) * multiplier
-	r.profit = r.sale - r.fuel_cost + r.tip
+	r.tip = 0.0 if r.short else tip_for(tier)
+	r.earned = r.sale + r.tip
 	return r
 
 
@@ -42,3 +49,22 @@ func tip_for(tier: String) -> float:
 		ScoreTiers.OK:
 			return ok_tip
 	return 0.0
+
+
+func xp_for(tier: String, multiplier: int) -> int:
+	match tier:
+		ScoreTiers.PERFECT:
+			return perfect_xp * multiplier
+		ScoreTiers.GOOD:
+			return good_xp * multiplier
+		ScoreTiers.OK:
+			return ok_xp
+	return 0
+
+
+func refill_cost(liters: float) -> float:
+	return liters * price_per_liter * wholesale_ratio
+
+
+func rent_for(day: int) -> float:
+	return rent_base + rent_growth * (day - 1)

@@ -27,3 +27,9 @@ func register(tier: String) -> int:
 		multiplier = 1
 		multiplier_changed.emit(multiplier)
 	return 1
+
+
+## Back to x1 without counting as a broken chain (e.g. a new day).
+func reset() -> void:
+	multiplier = 1
+	multiplier_changed.emit(multiplier)
