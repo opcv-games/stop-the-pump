@@ -118,7 +118,3 @@ func test_given_shake_set_to_zero_then_no_shake() -> void:
 	var pump: PumpComponent = station.bays[0].pump
 	pump.finish_at(pump.target + 5.0)
 	assert_eq(_world().shake_amount, 0.0)
-
-
-func test_given_station_then_version_is_0_24() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.24")

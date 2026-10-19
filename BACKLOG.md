@@ -7,7 +7,7 @@
 ## Now (committed, top = highest priority)
 - [x] `[juice]` **Juice pass: pour stream, Perfect sparkle, cash pops, cars from the road, world shake** (#26, v0.23.0, kept)
 - [ ] `[juice]` **Cars serve only once parked, drive smoothly; glug + crick-crack-crock sounds; new pumps pop out of the ground** (#27, v0.24.0, awaiting playtest)
-- [ ] `[art]` **Cosmetic prop for every upgrade (Blender), popping in like the pumps** (#28; Blender props done, awaiting review: docs/art/upgrades_all.png; Godot wiring next) (tanks, billboard, radio antenna, jukebox, squeegee bucket, tip jar, card reader on self-serve pumps...)
+- [ ] `[art]` **Cosmetic prop for every upgrade, popping in the next morning; per-pump props on their pump; billboard shows the name** (#28, v0.25.0, awaiting playtest) (tanks, billboard, radio antenna, jukebox, squeegee bucket, tip jar, card reader on self-serve pumps...)
 - [x] `[art]` **Look test: Hopper station kit in Blender, isometric renders at morning, afternoon, night** (#21, approved)
 - [x] `[art]` **Look test in Godot: isometric 3D station behind the HUD, light from the day clock, rain** (#22, v0.20.0; painterly filter rejected)
 - [x] `[art]` **Lanes kit (Blender): parallel lanes, modular pump/island/car props, footprint expansion, decor** (#23, approved)
@@ -38,6 +38,7 @@
 - [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (playtest 3: clicks are too fast to count at $4/s, so this needs rethinking)
 
 ## Later (deliberately vague)
+- HUD: the left gauge partly covers the fuel tanks on a fully upgraded station (move the tanks or slim the gauge)
 - Scale past 5 pumps (10 and beyond): camera pulls back as the station grows; lane cards switch to a one-line compact mode past ~6 pumps
 - Station looks upgrades in later levels (clean up the run-down station: paint, repair the sign, fix potholes)
 - New characters to replace the $20 Guy; customers that matter to automated pumps too

@@ -14,6 +14,7 @@ extends Control
 ## Kept: #20 endless mode after day 10; auto on/off per pump (Shift + number).
 ## #25: each pump's card is pinned to its 3D lane (no grey panels, no 2D cars).
 ## #26 juice: pour streams, Perfect sparkles, cash pops, cars from the road, world shake (F2 switches).
+## #27, #28: new pumps and every upgrade's prop pop out of the ground the next morning.
 ## Phase 4 (#22, #24): the 3D station sits behind this HUD: one lane per pump, cars come and go,
 ## lit by the clock, with rain. The player names the station at the start of a run.
 
@@ -410,8 +411,14 @@ func start_next_day() -> void:
 	if _shop:
 		_shop.visible = false
 	state = State.OPEN
-	for lane in _pop_next_morning:
-		world_view.world.pop_in(lane)
+	var w := world_view.world
+	for item in _pop_next_morning:
+		if item.has("pump"):
+			w.pop_in(item.pump)
+		elif item.has("prop"):
+			w.show_prop(item.prop)
+		elif item.has("pump_prop"):
+			w.attach_pump_prop(item.lane, item.pump_prop)
 	_pop_next_morning.clear()
 	world_view.world.weather.begin_day()
 	clock.start()
@@ -459,6 +466,8 @@ func buy(branch: int) -> bool:
 	var id: String = Upgrades.BRANCHES[branch].id
 	owned[id] = owned.get(id, 0) + 1
 	Upgrades.apply(self, node.id)
+	if Upgrades.PROPS.has(node.id):
+		_pop_next_morning.append({"prop": Upgrades.PROPS[node.id]})
 	_refresh_shop()
 	return true
 
@@ -486,6 +495,8 @@ func buy_pump(index: int) -> bool:
 	owned["pump_%d" % (index + 1)] = bay.pump_level
 	if node.id == "self_service":
 		bay.make_self_service()
+	if Upgrades.PUMP_PROPS.has(node.id):
+		_pop_next_morning.append({"pump_prop": Upgrades.PUMP_PROPS[node.id], "lane": index})
 	apply_tuning()
 	_refresh_shop()
 	return true
@@ -564,6 +575,7 @@ func _reset_run_upgrades() -> void:
 	possible_targets.assign(_base_targets)
 	economy.tip_bonus = 0.0
 	_pop_next_morning.clear()
+	world_view.world.reset_props()
 	set_expanded(false)
 	owned.clear()
 	shop_page = ShopPage.STATION
@@ -580,12 +592,14 @@ func _reset_run_upgrades() -> void:
 	apply_tuning()
 
 
-## Extra pump upgrade: one more bay. Its 3D pump pops out of the ground when the next day opens (#27).
-var _pop_next_morning: Array[int] = []
+## What pops out of the ground when the next day opens (#27, #28): new pumps, station props and
+## per-pump props bought in the night shop.
+var _pop_next_morning: Array[Dictionary] = []
 
 
+## Extra pump upgrade: one more bay. Its 3D pump pops in the next morning (#27).
 func add_pump() -> void:
-	_pop_next_morning.append(bays.size())
+	_pop_next_morning.append({"pump": bays.size()})
 	pump_count += 1
 	_add_bay(bays.size())
 	world_view.world.set_lane_count(bays.size())

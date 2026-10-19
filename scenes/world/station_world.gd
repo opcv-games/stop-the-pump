@@ -10,6 +10,8 @@ extends Node3D
 
 const SCENERY := preload("res://assets/art/export/station_scenery.glb")
 const PROPS := preload("res://assets/art/export/station_props.glb")
+## One prop per upgrade (#28): station props sit in place; Pump* props attach to a pump.
+const UPGRADE_PROPS := preload("res://assets/art/export/station_upgrades.glb")
 
 const LANE_W := 3.4
 const LANE_Y0 := 5.0  # Blender y of lane 1
@@ -45,6 +47,8 @@ var day_light: DayLightComponent
 var weather: WeatherComponent
 var rain: GPUParticles3D
 var name_label: Label3D
+var billboard_label: Label3D
+var upgrades: Node3D
 var lane_count := 0
 var expanded := false
 ## One entry per lane: {"pump": Node3D, "island": Node3D, "globe": StandardMaterial3D, "light": OmniLight3D}
@@ -73,11 +77,17 @@ func _ready() -> void:
 	scenery = SCENERY.instantiate()
 	add_child(scenery)
 	_props = PROPS.instantiate()  # a library: Pump, Island and Car are copied from it
+	upgrades = UPGRADE_PROPS.instantiate()
+	upgrades.name = "Upgrades"
+	add_child(upgrades)
+	reset_props()
 	_build_camera()
 	_build_environment()
 	_build_lights()
 	_build_rain()
 	_build_name_label()
+	billboard_label = _sign_label(upgrades.get_node("BillboardAnchor"), 72, 0.0085, 760.0)
+	billboard_label.modulate = Color(0.16, 0.14, 0.12)
 	weather = WeatherComponent.new()
 	weather.name = "Weather"
 	add_child(weather)
@@ -103,15 +113,55 @@ signal pumped_up(lane: int)
 
 
 func pop_in(lane: int) -> void:
+	if lane < pumps.size():
+		_pop_nodes([pumps[lane].pump, pumps[lane].island], lane)
+
+
+## An upgrade's station prop appears (#28), popping in unless `pop` is false.
+func show_prop(prop_name: String, pop := true) -> void:
+	var n: Node3D = upgrades.get_node(prop_name)
+	n.visible = true
+	if pop:
+		_pop_nodes([n], -1)
+
+
+## A per-pump upgrade prop (card reader, speed band, sticker) attaches to `lane`'s pump (#28).
+func attach_pump_prop(lane: int, prop_name: String, pop := true) -> void:
 	if lane >= pumps.size():
 		return
-	var p: Dictionary = pumps[lane]
-	for key in ["pump", "island"]:
-		var n: Node3D = p[key]
+	var pump: Node3D = pumps[lane].pump
+	if pump.has_node(prop_name):
+		return
+	var prop: Node3D = upgrades.get_node(prop_name).duplicate()
+	prop.name = prop_name
+	prop.visible = true
+	prop.position = Vector3.ZERO
+	pump.add_child(prop)
+	if pop:
+		_pop_nodes([prop], lane)
+
+
+## New run: hide every station prop and take the per-pump props off the pumps.
+func reset_props() -> void:
+	for c in upgrades.get_children():
+		if c is MeshInstance3D:
+			c.visible = false
+	for p in pumps:
+		for c in p.pump.get_children():
+			if c.name.begins_with("Pump"):
+				c.queue_free()
+				p.pump.remove_child(c)
+	_pops.clear()
+
+
+## Rise out of the ground, then POP into shape with an elastic wobble, a dust puff and a sound.
+func _pop_nodes(nodes: Array, lane: int) -> void:
+	for n in nodes:
+		if not n.has_meta("rest_y"):
+			n.set_meta("rest_y", n.position.y)
 		n.scale = Vector3(1.0, 0.05, 1.0)
-		n.set_meta("rest_y", n.position.y)
-		n.position.y -= 1.6
-	_pops.append({"lane": lane, "t": 0.0, "popped": false})
+		n.position.y = n.get_meta("rest_y") - 1.6
+	_pops.append({"nodes": nodes, "lane": lane, "t": 0.0, "popped": false})
 
 
 ## Kept separate from _process so tests control time. Rise (0-0.45 s), POP with an elastic wobble
@@ -120,8 +170,8 @@ func tick_pop(delta: float) -> void:
 	for pop in _pops.duplicate():
 		pop.t += delta
 		var t: float = pop.t
-		var p: Dictionary = pumps[pop.lane] if pop.lane < pumps.size() else {}
-		if p.is_empty():
+		var nodes: Array = pop.nodes.filter(func(n): return is_instance_valid(n))
+		if nodes.is_empty():
 			_pops.erase(pop)
 			continue
 		var rise := clampf(t / 0.45, 0.0, 1.0)
@@ -131,17 +181,15 @@ func tick_pop(delta: float) -> void:
 			wobble = 0.35 * sin(k * PI * 3.0) * (1.0 - k)
 			if not pop.popped:
 				pop.popped = true
-				_puff(p.pump.position)
+				_puff((nodes[0] as Node3D).global_position)
 				pumped_up.emit(pop.lane)
-		for key in ["pump", "island"]:
-			var n: Node3D = p[key]
+		for n in nodes:
 			var rest: float = n.get_meta("rest_y")
 			n.position.y = lerpf(rest - 1.6, rest, ease(rise, 0.4))
 			var sy := lerpf(0.05, 1.0, rise) + wobble
 			n.scale = Vector3(1.0 - wobble * 0.5, sy, 1.0 - wobble * 0.5)
 		if t >= 1.2:
-			for key in ["pump", "island"]:
-				var n: Node3D = p[key]
+			for n in nodes:
 				n.position.y = n.get_meta("rest_y")
 				n.scale = Vector3.ONE
 			_pops.erase(pop)
@@ -153,7 +201,7 @@ func _puff(at: Vector3) -> void:
 	p.explosiveness = 1.0
 	p.amount = 18
 	p.lifetime = 0.8
-	p.position = at + Vector3(0, 0.2, 0)
+	p.position = Vector3(at.x, 0.2, at.z)
 	var pm := ParticleProcessMaterial.new()
 	pm.direction = Vector3(0, 0.4, 0)
 	pm.spread = 180.0
@@ -461,22 +509,29 @@ func _face(car: Node3D, direction: Vector3) -> void:
 
 func set_station_name(text: String) -> void:
 	name_label.text = text.to_upper()
+	if billboard_label:
+		billboard_label.text = "FILL UP AT\n%s" % text.to_upper()
 
 
 func _build_name_label() -> void:
-	var anchor: Node3D = scenery.get_node("NameAnchor")
-	name_label = Label3D.new()
+	name_label = _sign_label(scenery.get_node("NameAnchor"), 64, 0.0075, 560.0)  # wraps inside the 4.8 m board
 	name_label.text = "GAS BAR BLUES"
-	name_label.font_size = 64
-	name_label.pixel_size = 0.0075
-	name_label.width = 560.0  # wraps long names inside the 4.8 m board
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_label.modulate = Color(0.12, 0.11, 0.10)
-	name_label.outline_size = 0
-	name_label.double_sided = false
+
+
+## Text painted on a sign at a Blender empty.
+func _sign_label(anchor: Node3D, font_size: int, pixel: float, wrap_width: float) -> Label3D:
+	var l := Label3D.new()
+	l.font_size = font_size
+	l.pixel_size = pixel
+	l.width = wrap_width
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.modulate = Color(0.12, 0.11, 0.10)
+	l.outline_size = 0
+	l.double_sided = false
 	# The Blender empty faces the camera along its local +Y once in Godot; Label3D faces local +Z.
-	name_label.rotation = Vector3(-PI / 2, 0, 0)
-	anchor.add_child(name_label)
+	l.rotation = Vector3(-PI / 2, 0, 0)
+	anchor.add_child(l)
+	return l
 
 
 # --- Look: camera, light, weather ---------------------------------------------------------------

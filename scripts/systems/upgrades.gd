@@ -11,6 +11,18 @@ const PUMP_TREE := [
 	{"id": "card_deal", "name": "Card deal", "helps": "this pump's card fee halves", "price": 250.0},
 ]
 
+## The station prop each upgrade shows (#28), by upgrade id. It pops in the next morning.
+const PROPS := {
+	"flyers": "UpFlyers", "radio_ad": "UpRadioAd", "billboard": "UpBillboard",
+	"tank_1": "UpTank_1", "tank_2": "UpTank_2", "tank_3": "UpTank_3",
+	"squeegee": "UpSqueegee", "tip_jar": "UpTipJar", "pressure_washer": "UpPressureWasher",
+	"bluesy_radio": "UpRadio", "jukebox": "UpJukebox",
+}
+## The prop each per-pump upgrade attaches to its pump (#28).
+const PUMP_PROPS := {
+	"self_service": "PumpCardReader", "faster_self_serve": "PumpSpeedBand", "card_deal": "PumpDealSticker",
+}
+
 const BRANCHES := [
 	{"id": "marketing", "name": "MARKETING", "nodes": [
 		{"id": "flyers", "name": "Flyers", "helps": "cars arrive 20% sooner", "price": 80.0},

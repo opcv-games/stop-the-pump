@@ -46,3 +46,21 @@ Feature: Juice
     Given the player built a pump in the night shop
     When the next day opens
     Then the pump rises from the ground and pops out with a puff of dust
+
+  Scenario Outline: Every upgrade shows on the station (#28)
+    Given the player buys <upgrade> in the night shop
+    When the next day opens
+    Then <prop> pops out of the ground
+
+    Examples:
+      | upgrade         | prop                        |
+      | Bigger tank     | a white fuel tank           |
+      | Flyers          | a sandwich board            |
+      | Billboard       | a billboard with the name   |
+      | Jukebox         | a glowing jukebox           |
+      | Self-service    | a blue card reader on it    |
+
+  Scenario: Eviction clears the props (#28)
+    Given the player owns upgrades with props
+    When the player is evicted and a new run starts
+    Then the station is back to its run-down self
