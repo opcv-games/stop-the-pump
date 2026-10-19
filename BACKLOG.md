@@ -5,7 +5,7 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[innovation]` **Overshoot cleaning delay** (next hypothesis, judged against #8)
+- [ ] `[innovation]` **Overshoot cleaning delay** (#9, v0.7.0, with merged fuel-to-cash gauge and octave combo sound)
   As a player, I want an overshoot to lock the pump for a few seconds while I clean the car so that overshooting costs time (serves: Comedy, Mastery).
   - Given I overshoot by more than the OK window, When the pump stops, Then that pump is out of service for a few seconds.
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)

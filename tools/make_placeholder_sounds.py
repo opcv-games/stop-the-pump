@@ -45,7 +45,8 @@ write("perfect.wav", seq(tone([1318.5], 0.09, 0.5), tone([1975.5, 1318.5], 0.45,
 write("good.wav", tone([1046.5], 0.3, 0.45))
 write("ok.wav", tone([392.0], 0.18, 0.4, release=0.5))
 write("miss.wav", tone([110.0, 116.0], 0.4, 0.35, wave_fn=square, release=0.3))
-write("combo_up.wav", tone([880.0], 0.12, 0.35, release=0.6))
+# 220 Hz base: the game raises it one octave per combo step (x5 = 1760 Hz). Playtest 6.
+write("combo_up.wav", tone([220.0, 440.0], 0.16, 0.4, release=0.6))
 write("combo_break.wav", [0.4 * env(i, int(RATE * 0.5), release=0.4) * square(2 * math.pi * (600 - 900 * i / RATE) * i / RATE)
                           for i in range(int(RATE * 0.5))])
 print("ok")

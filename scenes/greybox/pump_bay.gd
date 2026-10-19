@@ -4,18 +4,24 @@ extends Control
 ## The station owns as many bays as it likes; scoring and combo stay at the station. Refs #4
 
 signal pump_stopped(bay: PumpBay, final_amount: float)
+signal cleaning_finished(bay: PumpBay)
 
 const IDLE_LIGHT := Color(0.3, 0.3, 0.32)
 const POUR_LIGHT := Color(0.35, 0.9, 0.45)
+const CLEANING_LIGHT := Color(0.95, 0.35, 0.3)
 const SIZE := Vector2(300, 470)
 
 var index := 0
 var pump: PumpComponent
 var waiting := true
 var result_label: Label
+var target_label: Label
+## Out of service while the attendant cleans an overshoot off the car (#9).
+var cleaning := false
+
+var _cleaning_left := 0.0
 
 var _amount_label: Label
-var _target_label: Label
 var _light: ColorRect
 
 
@@ -33,20 +39,54 @@ func setup(bay_index: int, flow_rate: float) -> void:
 
 
 func show_empty() -> void:
+	cleaning = false
 	waiting = true
 	pump.reset(0.0)
-	_target_label.text = "PUMP %d\nno customer" % (index + 1)
-	_target_label.modulate = Color(1, 1, 1, 0.4)
+	target_label.text = "PUMP %d\nno customer" % (index + 1)
+	target_label.modulate = Color(1, 1, 1, 0.4)
 	_light.color = IDLE_LIGHT
 
 
 func new_customer(target: float) -> void:
+	cleaning = false
 	waiting = false
 	pump.reset(target)
-	_target_label.text = "PUMP %d\nWANTS  $%.2f" % [index + 1, target]
-	_target_label.modulate = Color.WHITE
+	target_label.text = "PUMP %d\nWANTS  $%.2f" % [index + 1, target]
+	target_label.modulate = Color.WHITE
 	result_label.text = ""
 	_light.color = IDLE_LIGHT
+
+
+func _process(delta: float) -> void:
+	tick_cleaning(delta)
+
+
+## The pump is out of service for `seconds`; the station brings the next customer when it's done.
+func start_cleaning(seconds: float) -> void:
+	cleaning = true
+	waiting = true
+	_cleaning_left = seconds
+	_light.color = CLEANING_LIGHT
+	_show_cleaning()
+
+
+## Kept separate from _process so tests control time.
+func tick_cleaning(delta: float) -> void:
+	if not cleaning:
+		return
+	_cleaning_left -= delta
+	if _cleaning_left <= 0.0:
+		cleaning = false
+		_light.color = IDLE_LIGHT
+		target_label.text = "PUMP %d\nclean, next car..." % (index + 1)
+		cleaning_finished.emit(self)
+	else:
+		_show_cleaning()
+
+
+func _show_cleaning() -> void:
+	target_label.text = "PUMP %d   CLEANING  %ds\n\"Hey! My paint!\"" % [index + 1, ceili(_cleaning_left)]
+	target_label.modulate = Color(0.95, 0.45, 0.4)
 
 
 func press() -> void:
@@ -73,7 +113,7 @@ func _on_stopped(final_amount: float) -> void:
 
 
 func _build() -> void:
-	_target_label = Greybox.label(self, "", 26, Vector2(0, 0), Vector2(SIZE.x, 70))
+	target_label = Greybox.label(self, "", 26, Vector2(0, 0), Vector2(SIZE.x, 70))
 
 	var body := ColorRect.new()
 	body.color = Color(0.55, 0.55, 0.58)

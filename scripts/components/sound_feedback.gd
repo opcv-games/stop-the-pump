@@ -68,9 +68,13 @@ func play_tier(tier: String) -> void:
 func _on_multiplier_changed(multiplier: int) -> void:
 	if multiplier <= 1:
 		return
-	# Each step up the chain plays a little higher.
-	_players["combo_up"].pitch_scale = 1.0 + 0.15 * (multiplier - 2)
+	_players["combo_up"].pitch_scale = combo_pitch(multiplier)
 	_play("combo_up")
+
+
+## One octave up per combo step: x2 plays the base note, x3 an octave higher, and so on.
+static func combo_pitch(multiplier: int) -> float:
+	return pow(2.0, multiplier - 2)
 
 
 func _play(sfx: String) -> void:

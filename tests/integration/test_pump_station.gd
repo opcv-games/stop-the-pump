@@ -167,6 +167,30 @@ func test_given_costs_exceed_cash_then_evicted_and_continue_starts_new_run_keepi
 	assert_eq(station.wallet.xp, xp)
 
 
-func test_given_station_then_version_is_shown() -> void:
-	var label: Label = station.get_node("VersionLabel")
-	assert_string_contains(label.text, "v0.6")
+# --- Cleaning delay (#9) ---
+
+func _overshoot(i: int, by: float) -> void:
+	_pump(i).start_pour()
+	_pump(i).tick((_pump(i).target + by) / _pump(i).flow_rate)
+	_pump(i).stop_pour()
+
+
+func test_given_overshoot_of_3_dollars_then_bay_is_cleaning() -> void:
+	_overshoot(0, 3.0)
+	assert_true(station.bays[0].cleaning)
+	assert_string_contains(station.bays[0].target_label.text, "CLEANING")
+
+
+func test_given_overshoot_of_80_cents_then_bay_is_not_cleaning() -> void:
+	_overshoot(0, 0.8)
+	assert_false(station.bays[0].cleaning)
+
+
+func test_given_cleaning_switched_off_when_big_overshoot_then_bay_is_not_cleaning() -> void:
+	station.cleaning_enabled = false
+	_overshoot(0, 3.0)
+	assert_false(station.bays[0].cleaning)
+
+
+func test_given_station_then_version_is_0_7() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.7")

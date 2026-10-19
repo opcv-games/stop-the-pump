@@ -1,7 +1,8 @@
 extends Control
 ## Ugly Prototype: a station of pumps, keys 1..N, one shared combo, one shared tank. Flat colors only.
 ## Kept: #1 tiered stop, #7 combo + sound (M toggles), #4 two pumps.
-## Testing: #8 a full day (7am-11pm in 3 minutes), cash at the pump, XP from combos, costs at day end.
+## Kept: #8 a full day (7am-11pm in 3 minutes), cash at the pump, XP from combos, costs at day end.
+## Testing: #9 car-cleaning delay after a big overshoot (C toggles it), one fuel-to-cash gauge.
 
 enum State { OPEN, CLOSING, SUMMARY }
 
@@ -15,6 +16,10 @@ enum State { OPEN, CLOSING, SUMMARY }
 ## so pumps fall out of sync instead of all starting together.
 @export var second_customer_offset := 2.0
 @export var flow_rate := 4.0
+## Seconds a pump is out of service after an overshoot past the OK window (#9).
+@export var cleaning_seconds := 4.0
+## Playtest switch (C) so the cleaning delay can be judged on its own.
+@export var cleaning_enabled := true
 ## Cash the player starts a run with.
 @export var starting_cash := 50.0
 @export var economy: FuelEconomy = FuelEconomy.new()
@@ -25,8 +30,6 @@ const TIER_COLORS := {
 	ScoreTiers.OK: Color(0.95, 0.85, 0.4),
 	ScoreTiers.MISS: Color(0.95, 0.35, 0.3),
 }
-const CASH_COLOR := Color(0.35, 0.9, 0.45)
-const TANK_COLOR := Color(1.0, 0.65, 0.15)
 
 @onready var combo: ComboComponent = $ComboComponent
 @onready var sound: SoundFeedback = $SoundFeedback
@@ -41,7 +44,7 @@ var evicted := false
 
 var _day_id := 0  # stale customer timers from a previous day are ignored
 var _day_earned := 0.0
-var _cash_scale := 1.0
+var _start_fuel_value := 1.0
 var _counts := {ScoreTiers.PERFECT: 0, ScoreTiers.GOOD: 0, ScoreTiers.OK: 0, ScoreTiers.MISS: 0}
 var _best_combo := 1
 
@@ -51,8 +54,9 @@ var _clock_label: Label
 var _day_bar: ColorRect
 var _stats_label: Label
 var _hint_label: Label
-var _cash_gauge: VerticalGauge
-var _tank_gauge: VerticalGauge
+var _day_gauge: DayGauge
+var _cash_label: Label
+var _tank_label: Label
 var _overlay: Control
 var summary_label: Label
 
@@ -77,6 +81,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("toggle_sound"):
 		sound.enabled = not sound.enabled
+		_update_hint()
+		return
+	if event.is_action_pressed("toggle_cleaning"):
+		cleaning_enabled = not cleaning_enabled
 		_update_hint()
 		return
 	if state == State.SUMMARY:
@@ -113,7 +121,7 @@ func start_next_day() -> void:
 	_day_earned = 0.0
 	tank.refill()
 	combo.reset()  # every day starts at x1
-	_cash_scale = maxf(1.0, wallet.cash + tank.remaining_value())
+	_start_fuel_value = tank.remaining_value()
 	_overlay.visible = false
 	state = State.OPEN
 	clock.start()
@@ -140,18 +148,20 @@ func _on_bay_stopped(bay: PumpBay, final_amount: float) -> void:
 	var paid_multiplier := combo.register(tier)
 	var receipt := economy.settle(final_amount, target, tier)
 	var xp := economy.xp_for(tier, paid_multiplier)
+	_day_earned += receipt.earned
 	wallet.add(receipt.earned)
 	wallet.add_xp(xp)
-	_day_earned += receipt.earned
 	sound.play_tier(tier)
 	_counts[tier] += 1
 	bay.show_result(_receipt_text(tier, final_amount - target, receipt, xp, paid_multiplier, lost), TIER_COLORS[tier])
 	_stats_label.text = "Perfect %d   Good %d   OK %d   Miss %d   |   Best combo x%d" % [
 		_counts[ScoreTiers.PERFECT], _counts[ScoreTiers.GOOD], _counts[ScoreTiers.OK],
 		_counts[ScoreTiers.MISS], _best_combo]
-	if state == State.OPEN:
+	if cleaning_enabled and receipt.overshoot > combo.tiers.ok_window:
+		bay.start_cleaning(cleaning_seconds)  # the next customer comes when cleaning finishes
+	elif state == State.OPEN:
 		_customer_after(bay, next_customer_delay)
-	else:
+	if state != State.OPEN:
 		_check_day_over()
 
 
@@ -236,15 +246,12 @@ func _on_time_changed(_hour: float) -> void:
 
 
 func _update_gauges() -> void:
-	if not _cash_gauge:
+	if not _day_gauge:
 		return
-	var potential := wallet.cash + tank.remaining_value()
-	_cash_scale = maxf(_cash_scale, potential)
-	_cash_gauge.set_levels(wallet.cash / _cash_scale, potential / _cash_scale)
-	_cash_gauge.value_label.text = "%s$%.0f" % ["-" if wallet.cash < 0 else "", absf(wallet.cash)]
-	_cash_gauge.value_label.add_theme_color_override("font_color", Color.WHITE if wallet.cash >= 0 else TIER_COLORS[ScoreTiers.MISS])
-	_tank_gauge.set_levels(tank.liters / tank.capacity_liters)
-	_tank_gauge.value_label.text = "%.0f L" % tank.liters
+	_day_gauge.set_values(_day_earned, tank.remaining_value(), _start_fuel_value)
+	_tank_label.text = "%.0f L in tank" % tank.liters
+	_cash_label.text = "CASH\n%s$%.0f" % ["-" if wallet.cash < 0 else "", absf(wallet.cash)]
+	_cash_label.add_theme_color_override("font_color", Color.WHITE if wallet.cash >= 0 else TIER_COLORS[ScoreTiers.MISS])
 
 
 func _on_multiplier_changed(multiplier: int) -> void:
@@ -261,12 +268,13 @@ func _update_hint() -> void:
 		_hint_label.text = "ENTER to continue.     M: sound %s" % ("ON" if sound.enabled else "OFF")
 		return
 	var keys := "1" if bays.size() == 1 else "1–%d" % mini(bays.size(), 9)
-	_hint_label.text = "Hold keys %s to pour each pump.  Release to stop.     M: sound %s" % [keys, "ON" if sound.enabled else "OFF"]
+	_hint_label.text = "Hold keys %s to pour each pump.  Release to stop.     M: sound %s     C: cleaning %s" % [
+		keys, "ON" if sound.enabled else "OFF", "ON" if cleaning_enabled else "OFF"]
 
 
 ## Greybox input, done in code; moves to the Input Map later. Keys 1..9 then 0 for pump 10.
 func _ensure_input_actions() -> void:
-	var bindings := {"toggle_sound": [KEY_M], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
+	var bindings := {"toggle_sound": [KEY_M], "toggle_cleaning": [KEY_C], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
 	for i in 10:
 		bindings["pour_%d" % (i + 1)] = [KEY_1 + i if i < 9 else KEY_0]
 	bindings["pour_1"].append(KEY_SPACE)
@@ -315,16 +323,17 @@ func _build_station() -> void:
 		bay.scale = Vector2.ONE * scale_factor
 		bay.position = Vector2(area_left + (area_width - row_width) / 2.0 + i * (PumpBay.SIZE.x * scale_factor + gap), 62)
 		bay.pump_stopped.connect(_on_bay_stopped)
+		bay.cleaning_finished.connect(func(b: PumpBay) -> void: _customer_after(b, next_customer_delay))
 		sound.watch_pump(bay.pump, i)
 		bays.append(bay)
 
-	# Left: cash (with what the fuel left could still earn) and the tank.
-	_cash_gauge = VerticalGauge.new()
-	add_child(_cash_gauge)
-	_cash_gauge.setup("CASH", Vector2(30, 130), Vector2(56, 340), CASH_COLOR)
-	_tank_gauge = VerticalGauge.new()
-	add_child(_tank_gauge)
-	_tank_gauge.setup("TANK", Vector2(116, 130), Vector2(56, 340), TANK_COLOR)
+	# Left: one gauge where fuel (orange) turns into today's cash (green), plus the bank balance.
+	_day_gauge = DayGauge.new()
+	add_child(_day_gauge)
+	_day_gauge.setup(Vector2(60, 150), Vector2(80, 300))
+	_tank_label = Greybox.label(self, "", 16, Vector2(0, 482), Vector2(200, 24))
+	_tank_label.modulate = Color(1, 1, 1, 0.6)
+	_cash_label = Greybox.label(self, "", 22, Vector2(0, 505), Vector2(200, 60))
 
 	# Right: combo and XP.
 	_combo_label = Greybox.label(self, "", 48, Vector2(952, 110), Vector2(200, 160))
