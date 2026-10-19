@@ -7,7 +7,7 @@
 ## Now (committed, top = highest priority)
 - [x] `[art]` **Look test: Hopper station kit in Blender, isometric renders at morning, afternoon, night** (#21, approved)
 - [x] `[art]` **Look test in Godot: isometric 3D station behind the HUD, light from the day clock, rain** (#22, v0.20.0; painterly filter rejected)
-- [ ] `[art]` **Lanes kit (Blender): parallel lanes, modular pump/island/car props, footprint expansion, decor** (#23, Phase 4)
+- [ ] `[art]` **Lanes kit (Blender): parallel lanes, modular pump/island/car props, footprint expansion, decor** (#23, awaiting designer review: docs/art/lanes_3.png, lanes_5.png)
 - [ ] `[art]` **Lanes in Godot: remove the painterly filter, one lane per pump, cars drive in top right and out bottom left, footprint expansion upgrade** (after #23 is approved)
 - [ ] `[art]` **Step 3: 3D pumps match the game's pumps (labels anchored to them, globes glow when pouring), cars per customer drive in from the road**
 - [x] `[standard]` **Endless mode and auto on/off per pump** (#20, v0.19.0, kept; endless parked until balance)
