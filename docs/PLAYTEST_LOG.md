@@ -2,6 +2,15 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.9.0 Gas Bar Blues: 12-bar blues on good stops  (#11)
+Hypothesis: If good stops walk a 12-bar blues, the music carries the theme and a chain feels like playing the song.
+Variable: pop chord loop → 12-bar blues in A
+Sessions: 1 (self: 1, others: 0)
+Observed: The blues direction is right. But stops can be many seconds apart, which breaks the song. Wants tiers to map to how many notes play.
+Biggest weakness: the music has gaps; it only exists when the player stops a pump.
+Decision: KEPT the blues. Next (v0.10): a continuous backing band (walking bass + hi-hat) with the player's stops as melody; Super Perfect tier (3 notes), Perfect 2, Good 1, OK none, Miss a sour note.
+Ideas raised: Super Perfect tier for stopping on the dot (Now).
+
 ## 2026-10-19 — v0.8.0 Random arrivals, chord progression  (#10)
 Hypothesis: If cars arrive after a random 1–5 s, then the rhythm can't be memorized and the player stays alert, increasing Mastery. Juice: good stops walk C–G–Am–F; a break falls apart.
 Variable: fixed 1.5 s arrivals → random 1–5 s; octave combo → chord progression

@@ -47,6 +47,7 @@
 - Tips as a third, personal currency for the attendant's own things (company money vs. personal money)
 
 ## Done
+- [x] Gas Bar Blues rename and 12-bar blues (#11), v0.9.0, playtest 2026-10-19: kept
 - [x] Random car arrivals and chord progression (#10), v0.8.0, playtest 2026-10-19: kept; core loop declared fun
 - [x] Car-cleaning delay, merged gauge (#9), v0.7.0, playtest 2026-10-19: kept
 - [x] A full day: tank, clock, end-of-day costs, cash + XP (#8, #3), v0.6.0, playtest 2026-10-19: kept
