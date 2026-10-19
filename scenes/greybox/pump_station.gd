@@ -130,6 +130,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_tuning"):
 		_tuning_panel.toggle()
 		return
+	if event.is_action_pressed("dev_end_day"):
+		dev_end_day()
+		return
+	if event.is_action_pressed("dev_add_cash"):
+		dev_add_cash()
+		return
 	if dev_mode and state == State.OPEN and event is InputEventKey and event.pressed and DEV_KEYS.has(event.physical_keycode):
 		dev_force(DEV_KEYS[event.physical_keycode])
 		return
@@ -171,6 +177,30 @@ func dev_force(result: String) -> void:
 		if not bay.waiting and not bay.pump.is_done and not bay.self_service:
 			bay.pump.finish_at(maxf(0.0, bay.pump.target + DEV_RESULTS[result]))
 			return
+
+
+## Dev (F3 or the "End day" button): stop every pour, send waiting cars away, settle the day now.
+func dev_end_day() -> void:
+	if state != State.OPEN and state != State.CLOSING:
+		return
+	for bay in bays:
+		if bay.self_service:
+			bay.self_service_component.phase = SelfServiceComponent.Phase.IDLE
+		if bay.pump.is_pouring:
+			bay.release()
+	clock.elapsed = clock.day_seconds
+	clock.running = false
+	if state == State.OPEN:
+		_close_day()
+	else:
+		_check_day_over()
+
+
+## Dev (F4 or the "+$100" button): free cash, any time.
+func dev_add_cash() -> void:
+	wallet.add(100.0)
+	if state == State.SHOP:
+		_refresh_shop()
 
 
 ## Pushes tuned numbers out to the pieces that copy them (called by Tuning after any change).
@@ -485,7 +515,7 @@ func _update_hint() -> void:
 
 ## Greybox input, done in code; moves to the Input Map later. Keys 1..9 then 0 for pump 10.
 func _ensure_input_actions() -> void:
-	var bindings := {"toggle_sound": [KEY_M], "toggle_cleaning": [KEY_C], "toggle_dev": [KEY_F1], "toggle_tuning": [KEY_F2], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
+	var bindings := {"toggle_sound": [KEY_M], "toggle_cleaning": [KEY_C], "toggle_dev": [KEY_F1], "toggle_tuning": [KEY_F2], "dev_end_day": [KEY_F3], "dev_add_cash": [KEY_F4], "continue": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]}
 	for i in 10:
 		bindings["pour_%d" % (i + 1)] = [KEY_1 + i if i < 9 else KEY_0]
 	bindings["pour_1"].append(KEY_SPACE)
@@ -616,6 +646,19 @@ func _build_station() -> void:
 	_dev_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_dev_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.8))
 	_dev_label.visible = false
+	# Dev buttons: always on screen, top right, for one-click testing.
+	var dev_buttons := HBoxContainer.new()
+	dev_buttons.position = Vector2(930, 6)
+	dev_buttons.add_theme_constant_override("separation", 8)
+	add_child(dev_buttons)
+	for b in [["EndDayButton", "End day (F3)", dev_end_day], ["AddCashButton", "+$100 (F4)", dev_add_cash]]:
+		var button := Button.new()
+		button.name = b[0]
+		button.text = b[1]
+		button.focus_mode = Control.FOCUS_NONE  # never steals Space/Enter from the game
+		button.add_theme_font_size_override("font_size", 14)
+		button.pressed.connect(b[2])
+		dev_buttons.add_child(button)
 	_tuning_panel = TuningPanel.new()
 	add_child(_tuning_panel)
 	_tuning_panel.setup(self)

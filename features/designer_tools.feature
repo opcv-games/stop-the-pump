@@ -20,3 +20,11 @@ Feature: Designer tools
     When the designer sets the flow rate to $6/s
     Then every pump pours at $6/s
     And the value is still $6/s next session
+
+  Scenario: End the day at once
+    When the designer clicks "End day" (or presses F3)
+    Then pours stop, waiting customers leave and the end-of-day screen appears
+
+  Scenario: Free cash
+    When the designer clicks "+$100" (or presses F4)
+    Then cash goes up by $100, also in the upgrade tree

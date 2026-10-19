@@ -68,3 +68,30 @@ func test_given_tuning_then_copy_text_lists_every_value() -> void:
 	assert_string_contains(text, "economy/rent_base")
 
 
+
+
+func test_given_pumps_pouring_when_end_day_clicked_then_summary_appears() -> void:
+	station.bays[0].pump.start_pour()
+	station.bays[0].pump.tick(1.0)
+	station.dev_end_day()
+	assert_eq(station.state, station.State.SUMMARY)
+	assert_false(station.bays[0].pump.is_pouring)
+
+
+func test_given_any_time_when_plus_100_clicked_then_cash_goes_up_100() -> void:
+	var cash: float = station.wallet.cash
+	station.dev_add_cash()
+	assert_almost_eq(station.wallet.cash, cash + 100.0, 0.001)
+
+
+func test_given_upgrade_tree_when_plus_100_clicked_then_tree_shows_new_cash() -> void:
+	station.wallet.add(1000.0)
+	station.dev_end_day()
+	station.continue_pressed()
+	station.dev_add_cash()
+	assert_string_contains(station._shop_title.text, "cash $%.0f" % station.wallet.cash)
+
+
+func test_given_dev_buttons_then_both_exist() -> void:
+	assert_not_null(station.find_child("EndDayButton", true, false))
+	assert_not_null(station.find_child("AddCashButton", true, false))
