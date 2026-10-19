@@ -2,6 +2,15 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.7.0 Car-cleaning delay, merged gauge, octave combo  (#9)
+Hypothesis: If overshooting past the OK window locks that pump for 4 s (car cleaning), then overshoot costs time and finally feels costly, increasing Mastery.
+Variable: cleaning off → on (4 s); two gauges → one; combo sound pitch → octaves
+Sessions: 1 (self: 1, others: 0)
+Observed: Only two overshoots; the player is "getting good at this game". Cleaning made play more engaged and attentive, "wanting to stop on the button". No time to watch the gauge during play. Octaves fine but a chord progression would be better.
+Biggest weakness: arrivals are too regular (fixed 1.5 s), so there is no surprise in the rhythm.
+Decision: KEPT cleaning delay (necessary). Gauge kept but not watched (rethink later). Octaves replaced by a chord progression in v0.8.
+Ideas raised: random arrivals (Now), marketing upgrade branch: more cars, more often (Later), chord progression that breaks on a fail (Now).
+
 ## 2026-10-19 — v0.6.0 A full day: tank, clock, cash + XP  (#8)
 Hypothesis: If the day has hard limits (400 L tank, 7am–11pm in 3 minutes) and costs land at day end, then overshoots become visibly costly and each day becomes a unit of progress, increasing Advancement.
 Variable: v0.5 per-stop economy → v0.6 full day

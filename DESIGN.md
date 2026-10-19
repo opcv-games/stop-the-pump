@@ -130,3 +130,4 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Costs land between days (refill + rent), not per stop | Payout at the pump should be the full amount; spending happens at day end | Playtest 5 (#3) |
 | 2026-10-19 | A day is 7am–11pm in 3 minutes; ends on clock or empty tank (400 L) | Gives each round a shape and makes overshoot visible as wasted tank | Playtest 5 (#8) |
 | 2026-10-19 | Full day kept (v0.6.0) | Tank and clock end close together; day 1 felt rewarding | Playtest 6 (#8) |
+| 2026-10-19 | Car-cleaning delay kept (4 s past the OK window) | Made play more attentive; overshoot finally feels costly | Playtest 7 (#9) |

@@ -5,9 +5,6 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[innovation]` **Overshoot cleaning delay** (#9, v0.7.0, with merged fuel-to-cash gauge and octave combo sound)
-  As a player, I want an overshoot to lock the pump for a few seconds while I clean the car so that overshooting costs time (serves: Comedy, Mastery).
-  - Given I overshoot by more than the OK window, When the pump stops, Then that pump is out of service for a few seconds.
 - [ ] `[innovation]` **Moving-target customer (Confused Grandpa)** (#5)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.
@@ -30,6 +27,8 @@
 - Ten-pump ladder tuning
 - Between-day costs: inspections, pump calibration
 - Spending XP on permanent upgrades
+- Marketing upgrade branch: more cars at once, arriving more often
+- Rethink the gauge: the player has no time to watch it mid-day (playtest 7)
 - Shop upgrade ideas: bigger tank (downside: bigger refill bill), faster pour (built-in downside: harder to stop precisely)
 - Gas price variation
 - On-release procs
@@ -46,6 +45,7 @@
 - Tips as a third, personal currency for the attendant's own things (company money vs. personal money)
 
 ## Done
+- [x] Car-cleaning delay, merged gauge (#9), v0.7.0, playtest 2026-10-19: kept
 - [x] A full day: tank, clock, end-of-day costs, cash + XP (#8, #3), v0.6.0, playtest 2026-10-19: kept
 - [x] Second pump with shared combo (#4), playtest 2026-10-19: strategy emerged, kept
 - [x] ~~Rusty lever delay (#2)~~, cut after playtest 2026-10-18
