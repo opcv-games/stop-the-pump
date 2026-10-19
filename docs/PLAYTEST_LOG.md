@@ -2,6 +2,13 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.24–v0.25 Natural cars, glug sounds, pop-ins, upgrade props  (#27, #28)
+Hypothesis: Cars that park before service, softer pour sounds and props that pop in after each upgrade make the station feel alive and purchases feel rewarding.
+Variable: instant cars → curved, braking cars gated on parking; clicky nozzle → glug loop + counter knocks; static station → every upgrade pops in a prop the next morning
+Sessions: 1 (self: 1, others: 0)
+Observed: Cars arrive smoothly and can only be served once parked. "The pouring sound is pretty funny now." "The new pump animations are great." The billboard was misplaced: it stood on the road.
+Decision: KEPT all. Billboard moved onto the sand beside the road and shrunk so it clears the road and the COMBO/XP display (v0.25.1).
+
 ## 2026-10-19 — v0.23.0 Juice pass  (#26)
 Hypothesis: Stream, sparkle, cash pops, road cars and world shake make stops feel better without hurting readability.
 Variable: no juice → five juice effects (each switchable in F2)

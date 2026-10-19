@@ -398,16 +398,17 @@ def build_upgrades(col):
 		parts.append(box("Bar", (w, 0.05, 0.05), (sx + 2.6, sy + 1.2, 4.4 + k * 0.8), M["steel"], rot=(0, 0, -math.pi / 4)))
 	parts.append(sphere("Tip", 0.08, (sx + 2.6, sy + 1.2, 6.95), M["rim"]))
 	join(parts, "UpRadioAd", col)
-	bx, by = 3.5, ROAD_Y - 6.5
+	# Open sand right of the entrance, between apron and road: off the asphalt and clear of the HUD (playtest 20).
+	bx, by, k = 21.3, -9.0, 0.72  # k: billboard scale
 	join([
-		cylinder("LegL", 0.15, 4.2, (bx - 2.0, by + 2.0, 2.1), M["wood"], verts=6),
-		cylinder("LegR", 0.15, 4.2, (bx + 2.0, by - 2.0, 2.1), M["wood"], verts=6),
-		box("Board", (6.5, 0.25, 2.6), (bx, by, 4.7), M["board"], rot=(0, 0, -math.pi / 4)),
-		box("Frame", (6.8, 0.2, 2.9), (bx + 0.08, by + 0.08, 4.7), M["roof"], rot=(0, 0, -math.pi / 4)),
-		box("Stripe", (6.5, 0.27, 0.35), (bx - 0.01, by - 0.01, 5.65), M["rim"], rot=(0, 0, -math.pi / 4)),
+		cylinder("LegL", 0.15 * k, 4.2 * k, (bx - 2.0 * k, by + 2.0 * k, 2.1 * k), M["wood"], verts=6),
+		cylinder("LegR", 0.15 * k, 4.2 * k, (bx + 2.0 * k, by - 2.0 * k, 2.1 * k), M["wood"], verts=6),
+		box("Board", (6.5 * k, 0.25, 2.6 * k), (bx, by, 4.7 * k), M["board"], rot=(0, 0, -math.pi / 4)),
+		box("Frame", (6.8 * k, 0.2, 2.9 * k), (bx + 0.08, by + 0.08, 4.7 * k), M["roof"], rot=(0, 0, -math.pi / 4)),
+		box("Stripe", (6.5 * k, 0.27, 0.35 * k), (bx - 0.01, by - 0.01, 5.65 * k), M["rim"], rot=(0, 0, -math.pi / 4)),
 	], "UpBillboard", col)
 	anchor = bpy.data.objects.new("BillboardAnchor", None)  # Godot can write on the board here
-	anchor.location = (bx - 0.16, by - 0.16, 4.5)
+	anchor.location = (bx - 0.16, by - 0.16, 4.5 * k)
 	anchor.rotation_euler = (math.pi / 2, 0, -math.pi / 4)
 	col.objects.link(anchor)
 
