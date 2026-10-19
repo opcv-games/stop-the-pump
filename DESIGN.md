@@ -35,7 +35,8 @@
 ### Run arc (playtest 15, after 9 Kings)
 - **Days 1–3, manual:** the player pours every pump. Manual pumps earn tips, combo and XP; precision is the difference between surviving and thriving.
 - **About a third of the run in (day 3–4 of 10):** automation (self-service and its upgrades) becomes the main path; the player is mostly automated.
-- **Late run:** the player steers the machine: what to build and automate next, and the game speed (1x/2x/3x).
+- **Late run:** the player steers the machine: what to build and automate next, and the game speed (1x/2x/3x). The feel to protect is the auto-battler's: "make the right decision, let it run, hope you didn't overstretch" (playtest 16). A pump can be switched back to manual to chase combos.
+- **After day 10:** start a new run, or keep going in endless mode until the rent wins.
 - **Tuning target (for the balance phase):** manual is clearly worth it on days 1–3; by day 4 most pumps are automated.
 - **Risk:** automated days need decisions or the game becomes idle-watching. The upgrade tree must carry those decisions.
 
@@ -164,3 +165,5 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Run arc after 9 Kings: manual early, mostly automated by a third of the run; 1x/2x/3x speed; design rule 1 rewritten | Single fills don't matter enough to adapt per customer; manual clicking should be worth it early, then automated | Playtest 15 (#19) |
 | 2026-10-19 | A run is 10 days with a finish screen | "A third of the run" needs a run length | Playtest 15 (#19) |
 | 2026-10-19 | $20 Guy retired (all customers pay cash anyway) | Designer: makes no sense; new characters later | Playtest 15 (#5) |
+| 2026-10-19 | Run arc kept; automated days feel like an auto-battler | Playtest 16 | Playtest 16 (#19) |
+| 2026-10-19 | Endless mode after day 10; auto on/off per pump | Designer request | Playtest 16 (#20) |

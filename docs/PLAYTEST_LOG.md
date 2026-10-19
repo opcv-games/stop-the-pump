@@ -2,6 +2,13 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.18.0 Run arc: 10 days, speed, full automation  (#19)
+Hypothesis: Manual early, automated later, with speed control, gives the run an arc (9 Kings).
+Variable: endless days → 10-day run; 1x/2x/3x; full automation allowed
+Sessions: 1 (self: 1, others: 0)
+Observed: "Speeding up does make it feel like the machine is running." Automated days "feel like you automated... just like an auto-battler. Make the right decision, let it run, hope you didn't overstretch." Wants an endless mode, and to switch a pump between auto and manual to chase combos.
+Decision: KEPT. Next (v0.19): endless mode after day 10; auto on/off per pump.
+
 ## 2026-10-19 — v0.17.0 Customers with rules  (#5)
 Hypothesis: Customers who each change one variable of the stop (overshoot from your pocket, a changing order, a patience timer) add Comedy and make the player adapt.
 Variable: Regulars only → Regular, $20 Guy, Confused Grandpa, Impatient Businessman; grey car + speech bubble

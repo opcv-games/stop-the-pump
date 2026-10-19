@@ -5,7 +5,10 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[standard]` **Run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed** (#19, v0.18.0)
+- [ ] `[standard]` **Endless mode and auto on/off per pump** (#20, v0.19.0)
+  - Given day 10 is survived, When I press E, Then the run keeps going (endless) with rising rent.
+  - Given pump 1 has Self-service, When I press Shift+1, Then it switches to manual (and back).
+- [x] `[standard]` **Run arc: 10-day run with a finish line, 1x/2x/3x speed, full automation allowed** (#19, v0.18.0, kept)
   - Given day 10 ends and I'm not evicted, Then the run-complete screen shows my run and Enter starts a new run.
   - Given I click 2x, Then the whole game runs twice as fast.
   - Given every pump is self-service, Then the station still runs (no pump has to stay manual).
