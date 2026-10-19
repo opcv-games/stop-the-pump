@@ -17,7 +17,6 @@
 ## Next (likely, not committed)
 - [ ] Run structure: 8–10 days with rising rent
 - [ ] `[juice]` Combo gauge catches fire at high combos
-- [ ] Fire risk from overshoots
 - [ ] Upgrade shop with downsides
 - [ ] Customer queue and patience timer
 - [ ] Impatient Businessman (time pressure) and $20 Guy (costly overshoot)
@@ -25,6 +24,7 @@
 - [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (playtest 3: clicks are too fast to count at $4/s, so this needs rethinking)
 
 ## Later (deliberately vague)
+- `[art]` Phase 4: isometric impressionist station after Hopper's *Gas*; light follows the day clock (morning, afternoon, night); rain cycles; cars drive in from the street
 - Permanent upgrades between runs
 - Ten-pump ladder tuning
 - Between-day costs: inspections, pump calibration
@@ -40,6 +40,7 @@
 - Police callback, Rich Guy, other special customers
 - Fuel types (ethanol, diesel, premium)
 - Mobile version
+- Fire risk from overshoots (cut from the slice: the cleaning delay does that job)
 - Bonus for completing a full 12-bar blues chorus (12 good stops in a row)
 - Tony Hawk-style combo chains (variety and timing windows feed the chain)
 - `[art]` Cars drive in from the end of the street (Phase 4 animation)

@@ -74,7 +74,7 @@ Timing-precision skill stacked with attention-splitting across many pumps, insid
 | Multi-pump juggling (up to 10 keys) | Innovation | Mastery | Pump count is a difficulty ladder. Kept after playtest 4: it creates strategy, which single-pump play lacked |
 | Customer modifiers | Innovation | Comedy, Mastery | Every customer must change a micro-loop variable |
 | Upgrades with built-in downsides | Innovation | Mastery, Advancement | e.g. "let it run" drifts and loses precision |
-| Overshoot builds fire risk | Innovation | Comedy, Advancement | |
+| ~~Overshoot builds fire risk~~ | Cut | | Cut from the slice 2026-10-19: the car-cleaning delay already makes overshoot costly |
 | On-release procs | Innovation | Advancement | |
 | XP from combos (second currency) | Innovation | Advancement | For permanent upgrades; added after playtest 5 |
 | Shared tank + day clock as round limits | Standard | Advancement | Tank works like stamina in Bills Must Be Paid |
@@ -103,8 +103,16 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 
 ## 9. Vertical Slice Boundary
 **Target length:** ~30 minutes (two full runs).
-- **IN:** 1 to 10 pumps on keyboard; pump-feel tuning; combo multiplier; 4 customers (Regular, $20 Guy, Confused Grandpa with a moving target, Impatient Businessman with time pressure); fire risk from overshoots; rent, shop and about 8 upgrades with downsides; a small set of permanent upgrades; tutorial and the first 5 minutes.
-- **OUT (explicitly not building):** mobile and touch; pump as animated character; receipts, paperwork, inspections; police callback and special customers; fuel types; hiring attendants; meta-progression trees; any art beyond what Phase 4 covers.
+- **IN:** 1 to 10 pumps on keyboard; pump-feel tuning; combo multiplier; 4 customers (Regular, $20 Guy, Confused Grandpa with a moving target, Impatient Businessman with time pressure); car-cleaning delay on overshoot; rent and the cash upgrade tree (station branches + a tree per pump, cost only); self-service pumps; a small XP tree between runs; an end to a run; tutorial and the first 5 minutes; isometric impressionist art pass with day/night light and rain.
+- **OUT (explicitly not building):** fire risk from overshoots (cut 2026-10-19: the cleaning delay does that job); mobile and touch; pump as animated character; receipts, paperwork, inspections; police callback and special customers; fuel types; hiring attendants; meta-progression trees; any art beyond what Phase 4 covers.
+
+## 9b. Art Direction (Phase 4, decided 2026-10-19)
+- **View:** isometric, one fixed camera on the whole station (pumps, kiosk, street).
+- **Style:** impressionist painting, after Edward Hopper's *Gas* (1940): a lonely roadside station, warm light against dark woods, quiet melancholy. Soft brush texture, limited palette, light doing the storytelling.
+- **Time of day:** the day clock drives the light. Morning: low warm sun from the east, long shadows. Afternoon: high flat light, bleached colours. Night (toward 11 pm): pump lights and kiosk glow, deep blue sky.
+- **Weather:** rain cycles: wet asphalt reflections, streaks, darker palette.
+- **Readability first (affordances):** the pump display, the customer's order and the pump state must stay readable over any light or rain. Pumps in use glow; self-service pumps look different at a glance.
+- **Pipeline:** Blender (`.blend` in `assets/art/source/`, `.glb` to `assets/art/export/`) → Godot; painterly look from shaders/textures in Godot. Driven by Blender scripts (`blender -b -P`) and the Godot MCP.
 
 ## 10. Risks
 | Risk | Why it matters | How we test it early |
@@ -144,3 +152,5 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-19 | Music is plain background music + SFX; no tier notes, chord tracking or beat-synced clicks | Designer: the music engineering isn't wanted | Playtest 12 (#16) |
 | 2026-10-19 | Balance is out of scope until the slice's systems exist | Designer decision | Playtest 12 |
 | 2026-10-19 | Pump upgrades become a tree per pump | Designer: each pump should grow on its own | Playtest 13 (#17) |
+| 2026-10-19 | Fire risk from overshoots cut from the slice | The car-cleaning delay already makes overshoot costly | Designer decision |
+| 2026-10-19 | Art direction: isometric, impressionist after Hopper's *Gas*, day/night light from the clock, rain cycles | Designer decision; mood matches the blues | Designer decision |
