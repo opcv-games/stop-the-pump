@@ -5,8 +5,9 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[standard]` **Bills-style upgrade tree: one radial tree branching from the station in the centre; per-pump trees hang off their pump** (#31)
-- [ ] `[standard]` **Fuel order between days: choose whether to refill the tank and by how much** (#32)
+- [ ] `[standard]` **"Your station" tab in the night shop: build pumps, expand the lot and improve each pump on the station itself** (#33)
+- [x] `[standard]` **Bills-style upgrade tree: one radial tree branching from the station in the centre** (#31, v0.27.0, kept; pumps move to a station tab in #33)
+- [x] `[standard]` **Fuel order between days: choose whether to refill the tank and by how much** (#32, v0.27.0, kept; balance later)
 - [x] `[standard]` **Story intro: you inherit your late father's run-down station in Saint-Clin-Clin-des-Meuh-Meuh, Québec** (#29, v0.26.0, kept; to be improved)
 - [x] `[standard]` **Start the run with one pump; Pump 2 is the first PUMPS upgrade** (#30, v0.26.0, kept)
 - [x] `[juice]` **Juice pass: pour stream, Perfect sparkle, cash pops, cars from the road, world shake** (#26, v0.23.0, kept)

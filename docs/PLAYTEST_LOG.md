@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-19 — v0.27.0 Bills-style tree and nightly fuel order  (#31, #32)
+Hypothesis: One radial tree and a nightly fuel order make the night shop beautiful and add a real cash decision between rounds.
+Variable: branch cards + pumps page → one radial tree; automatic refill → fuel order
+Sessions: 1 (self: 1, others: 0)
+Observed: "This made the game much better. The tree looks great." But a branch per pump is the wrong design: pumps should be bought and improved in a gas-station view tab. The fuel order matters: you can play it just in time and min-max it (balance later).
+Biggest weakness: per-pump branches clutter the tree.
+Decision: KEPT both. Next (v0.28): a "Your station" tab where you build and improve pumps on the station itself; the tree keeps the station-wide branches. Then a balance simulator (bot harness #6) with an even share of Super/Perfect/Good/OK/Miss.
+
 ## 2026-10-19 — v0.26.0 Story intro and a one-pump start  (#29, #30)
 Hypothesis: A short inheritance story and a single starting pump make the first minutes clearer and give the run somewhere to grow from.
 Variable: no intro → captioned intro (Saint-Clin-Clin-des-Meuh-Meuh, Québec); 2 starting pumps → 1; day-1 rent $100 → $60
