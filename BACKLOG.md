@@ -30,7 +30,7 @@
 - [x] `[innovation]` **Customers with rules: Confused Grandpa, Impatient Businessman; grey car + speech bubble** (#5, v0.17.0, kept; $20 Guy retired; refine later)
   As a player, I want a customer who changes their order mid-pour so that I stay alert (serves: Comedy, Mastery).
   - Given a customer asks for $50, When the pour passes $30, Then the target changes and the display updates.
-- [ ] `[tech]` **Bot player harness** (#6)
+- [x] `[tech]` **Bot player harness** (#6, done: `tools/sim/run_balance.gd`, report in docs/balance/REPORT.md)
   As the designer, I want scripted bots to play headless so that I can test economy and balance numbers.
   - Given a bot with fixed reaction time, When it plays 100 rounds, Then the run produces a report of income, rent paid and failures.
 
@@ -43,6 +43,7 @@
 - [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (playtest 3: clicks are too fast to count at $4/s, so this needs rethinking)
 
 ## Later (deliberately vague)
+- Balance pass using the simulator: no strategy survives today's numbers with an even tier split; self-serve needs a bigger margin to make the automation arc work (docs/balance/REPORT.md)
 - HUD: the left gauge partly covers the fuel tanks on a fully upgraded station (move the tanks or slim the gauge)
 - Scale past 5 pumps (10 and beyond): camera pulls back as the station grows; lane cards switch to a one-line compact mode past ~6 pumps
 - Station looks upgrades in later levels (clean up the run-down station: paint, repair the sign, fix potholes)

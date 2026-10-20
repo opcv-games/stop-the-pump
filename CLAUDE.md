@@ -28,6 +28,8 @@ godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs 
 - Godot MCP: registered in `.mcp.json` (server built in `~/Tools/godot-mcp`). Approve it when a session starts.
 - Blender: installed with Homebrew; drive it with scripts (`blender -b -P script.py`) for Phase 4 assets.
 
+- Balance simulator (#6): `godot --headless -s tools/sim/run_balance.gd -- 5000 sweep` plays seeded bot runs per strategy (even tier split) and writes `docs/balance/REPORT.md`. Bot assumptions live in `scripts/sim/sim_station.gd`.
+
 ## Designer tools (in game)
 - **F1 dev mode:** Q Super Perfect, W Perfect, E Good, R OK, T miss $10 under, Y miss $10 over (next waiting pump).
 - **F3 / "End day" button:** settle the day now. **F4 / "+$100" button:** free cash (works in the upgrade tree too).

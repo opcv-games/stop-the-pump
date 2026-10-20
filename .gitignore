@@ -17,3 +17,4 @@ export_presets.cfg
 Thumbs.db
 .vscode/
 .idea/
+docs/balance/results.csv
