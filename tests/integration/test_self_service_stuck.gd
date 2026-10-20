@@ -68,7 +68,6 @@ func test_given_two_self_service_pumps_pumping_when_end_day_clicked_then_summary
 	station.continue_pressed()
 	station.buy(1)  # expand the footprint
 	station.buy(1)  # build pump 4
-	station.toggle_shop_page()
 	station.buy_pump(3)  # pump 4: self-service
 	station.continue_pressed()
 	station.clock.running = false

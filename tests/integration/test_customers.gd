@@ -69,7 +69,6 @@ func test_given_special_chance_1_then_self_service_pumps_still_get_regulars() ->
 	station.dev_end_day()
 	station.continue_pressed()
 	station.buy(1)
-	station.toggle_shop_page()
 	station.buy_pump(2)
 	station.continue_pressed()
 	assert_eq(station.bays[2].customer.type, "regular")

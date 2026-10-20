@@ -41,7 +41,7 @@ func test_given_day_survived_when_enter_pressed_then_tree_shows_5_branches() -> 
 	_to_shop()
 	assert_eq(station.state, station.State.SHOP)
 	assert_eq(Upgrades.BRANCHES.size(), 5)
-	assert_string_contains(station.shop_card_text(TANK), "+100 L")
+	assert_string_contains(station.tree_view.tooltip_for("b:tank:0"), "+100 L")
 
 
 func test_given_shop_when_enter_pressed_then_day_2_opens() -> void:
@@ -76,7 +76,7 @@ func test_given_branch_complete_then_card_says_complete_and_buying_does_nothing(
 	assert_true(station.buy(VIBE))
 	assert_true(station.buy(VIBE))
 	assert_false(station.buy(VIBE))
-	assert_string_contains(station.shop_card_text(VIBE), "COMPLETE")
+	assert_string_contains(station.tree_view.tooltip_for("b:vibe:1"), "OWNED")
 	assert_eq(station.combo.max_multiplier, 7)
 
 
@@ -114,14 +114,10 @@ func test_given_pumps_branch_then_pump_3_expansion_pump_4_pump_5() -> void:
 		assert_false(bay.self_service)
 
 
-func test_given_pumps_page_when_tab_then_cards_show_each_pump() -> void:
+func test_given_the_tree_then_each_pump_has_its_own_nodes() -> void:
 	_to_shop()
-	station.toggle_shop_page()
-	assert_eq(station.shop_page, station.ShopPage.PUMPS)
-	assert_string_contains(station.shop_card_text(0), "PUMP 1")
-	assert_string_contains(station.shop_card_text(0), "Self-service")
-	station.toggle_shop_page()
-	assert_eq(station.shop_page, station.ShopPage.STATION)
+	assert_string_contains(station.tree_view.tooltip_for("p:0:0"), "Pump 1")
+	assert_string_contains(station.tree_view.tooltip_for("p:0:0"), "Self-service")
 
 
 func test_given_pump_3_converted_then_only_pump_3_is_self_service() -> void:
@@ -201,8 +197,7 @@ func test_given_card_deal_on_pump_3_then_its_fee_halves() -> void:
 		assert_true(station.buy_pump(2))
 	assert_almost_eq(station.card_fee_for(station.bays[2]), 0.015, 0.0001)
 	assert_false(station.buy_pump(2), "pump tree complete")
-	station.toggle_shop_page()
-	assert_string_contains(station.shop_card_text(2), "COMPLETE")
+	assert_string_contains(station.tree_view.tooltip_for("p:2:2"), "OWNED")
 
 
 func test_given_extra_pump_then_day_2_gives_it_a_customer() -> void:
@@ -256,7 +251,6 @@ func test_given_upgrades_when_evicted_then_new_run_starts_clean() -> void:
 	assert_false(station.expanded)
 	assert_false(station.world_view.world.scenery.get_node("ForecourtExpansion").visible)
 	assert_eq(station.owned, {"pumps": 1}, "only the starting Pump 2 counts as owned (#30)")
-	assert_eq(station.shop_page, station.ShopPage.STATION)
 
 
 func test_given_day_2_after_shop_then_every_bay_is_drawn_in_front_of_the_background() -> void:

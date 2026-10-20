@@ -43,6 +43,12 @@ func remaining_value() -> float:
 	return liters * price_per_liter
 
 
+## The night's fuel order arrives (#32). Never past capacity.
+func add_fuel(amount: float) -> void:
+	liters = minf(liters + maxf(amount, 0.0), capacity_liters)
+	level_changed.emit(liters)
+
+
 ## Fills the tank back up and returns how many litres went in.
 func refill() -> float:
 	var added := liters_used()

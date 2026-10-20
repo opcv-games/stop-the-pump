@@ -19,7 +19,6 @@ extends Control
 ## lit by the clock, with rain. The player names the station at the start of a run.
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP, NAMING, INTRO }
-enum ShopPage { STATION, PUMPS }
 
 ## How many pumps the station runs. The difficulty ladder (1 to 10) is this one number.
 @export_range(1, 10) var pump_count := 1  # the run starts with one pump (#30)
@@ -92,7 +91,8 @@ var bays: Array[PumpBay] = []
 var dev_mode := false
 ## Upgrade tree progress: branch id -> how many of its upgrades are owned. Wiped on eviction.
 var owned := {}
-var shop_page := ShopPage.STATION
+## Litres ordered for the next morning (#32): paid when the station opens.
+var fuel_order_liters := 0.0
 
 ## Numbers at the start of a run (after the designer's tuning), restored when a new run starts.
 var _base := {}
@@ -145,7 +145,8 @@ var _speed_buttons: Array[Button] = []
 var cash_pops: Array[Label] = []
 var _pop_layer: Control
 var _shop_title: Label
-var _shop_cards: Array[Label] = []
+var tree_view: UpgradeTreeView
+var fuel_panel: FuelOrderPanel
 var _shop_footer: Label
 var summary_label: Label
 
@@ -218,15 +219,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == State.SHOP:
 		if event is InputEventKey and event.pressed:
-			if event.physical_keycode == KEY_TAB:
-				toggle_shop_page()
+			if event.physical_keycode == KEY_MINUS:
+				fuel_panel.nudge(-FuelOrderPanel.STEP)
 				return
-			if event.physical_keycode >= KEY_1 and event.physical_keycode <= KEY_9:
-				var i: int = event.physical_keycode - KEY_1
-				if shop_page == ShopPage.STATION:
-					buy(i)
-				else:
-					buy_pump(i)
+			if event.physical_keycode == KEY_EQUAL:
+				fuel_panel.nudge(FuelOrderPanel.STEP)
 				return
 		if event.is_action_pressed("continue") and not (event is InputEventKey and event.physical_keycode == KEY_SPACE):
 			continue_pressed()
@@ -358,6 +355,7 @@ func _exit_tree() -> void:
 ## The player names the station first (prefilled with the last name), unless naming is off.
 func start_run() -> void:
 	_reset_run_upgrades()
+	tank.refill()  # every run starts with a full tank; after that, fuel is ordered at night (#32)
 	evicted = false
 	run_complete = false
 	endless = false
@@ -446,7 +444,6 @@ func start_next_day() -> void:
 	day += 1
 	_day_id += 1
 	_day_earned = 0.0
-	tank.refill()
 	combo.reset()  # every day starts at x1
 	_start_fuel_value = tank.remaining_value()
 	_overlay.visible = false
@@ -469,6 +466,8 @@ func start_next_day() -> void:
 		_customer_after(bay, randf_range(0.0, second_customer_offset * bay.index))
 	_update_gauges()
 	_update_hint()
+	if tank.is_empty():
+		_close_day()  # no fuel was ordered: nothing to sell today (#32)
 
 
 func continue_pressed() -> void:
@@ -479,6 +478,7 @@ func continue_pressed() -> void:
 			else:
 				open_shop()
 		State.SHOP:
+			_pay_fuel_order()
 			start_next_day()
 
 
@@ -486,8 +486,9 @@ func continue_pressed() -> void:
 
 func open_shop() -> void:
 	state = State.SHOP
-	shop_page = ShopPage.STATION
 	_overlay.visible = false
+	fuel_order_liters = 0.0
+	set_fuel_order(INF)  # a fill-up by default, as far as the cash goes
 	_refresh_shop()
 	_shop.visible = true
 	_update_hint()
@@ -501,7 +502,7 @@ func buy(branch: int) -> bool:
 	if node.is_empty():
 		return false
 	var price := Upgrades.next_price(self, branch)
-	if wallet.cash < price:
+	if spendable_cash() < price:
 		_shop_footer.text = "Not enough cash for the %s ($%.0f)." % [node.name, price]
 		return false
 	wallet.add(-price)
@@ -514,10 +515,31 @@ func buy(branch: int) -> bool:
 	return true
 
 
-func toggle_shop_page() -> void:
-	shop_page = ShopPage.PUMPS if shop_page == ShopPage.STATION else ShopPage.STATION
+# --- Fuel order (#32) ---------------------------------------------------------
+
+## Sets the night's fuel order: never more than the tank can take or the cash can pay.
+func set_fuel_order(liters: float) -> void:
+	var room := maxf(tank.capacity_liters - tank.liters, 0.0)
+	var unit := economy.refill_cost(1.0)
+	var affordable := maxf(wallet.cash, 0.0) / unit if unit > 0.0 else room
+	fuel_order_liters = clampf(liters, 0.0, minf(room, affordable))
 	_refresh_shop()
-	_update_hint()
+
+
+func fuel_order_cost() -> float:
+	return economy.refill_cost(fuel_order_liters)
+
+
+## Cash the upgrade tree can use: what's left after the fuel order is set aside.
+func spendable_cash() -> float:
+	return wallet.cash - (fuel_order_cost() if state == State.SHOP else 0.0)
+
+
+func _pay_fuel_order() -> void:
+	if fuel_order_liters > 0.0:
+		wallet.add(-fuel_order_cost())
+		tank.add_fuel(fuel_order_liters)
+	fuel_order_liters = 0.0
 
 
 ## Buys the next upgrade in pump `index`'s own tree. The last pump the player pours can't convert.
@@ -529,7 +551,7 @@ func buy_pump(index: int) -> bool:
 	if node.is_empty():
 		return false
 	var price := Upgrades.next_pump_price(self, bay)
-	if wallet.cash < price:
+	if spendable_cash() < price:
 		_shop_footer.text = "Not enough cash for pump %d's %s ($%.0f)." % [index + 1, node.name, price]
 		return false
 	wallet.add(-price)
@@ -544,69 +566,14 @@ func buy_pump(index: int) -> bool:
 	return true
 
 
-func shop_card_text(branch: int) -> String:
-	return _shop_cards[branch].text
-
-
 func _refresh_shop() -> void:
 	if not _shop:
 		return
-	var page := "STATION" if shop_page == ShopPage.STATION else "YOUR PUMPS"
-	_shop_title.text = "UPGRADES: %s   after day %d      cash $%.0f" % [page, day, wallet.cash]
-	for i in _shop_cards.size():
-		if shop_page == ShopPage.STATION:
-			_fill_branch_card(i)
-		else:
-			_fill_pump_card(i)
-	var keys := Upgrades.BRANCHES.size() if shop_page == ShopPage.STATION else bays.size()
-	_shop_footer.text = "1–%d buy     TAB %s     ENTER open the station for day %d  (rent $%.0f)" % [
-		keys, "your pumps" if shop_page == ShopPage.STATION else "station upgrades", day + 1, economy.rent_for(day + 1)]
-
-
-func _fill_branch_card(i: int) -> void:
-	var b: Dictionary = Upgrades.BRANCHES[i]
-	var level: int = owned.get(b.id, 0)
-	var lines := ["[%d]  %s" % [i + 1, b.name], ""]
-	for n in b.nodes.size():
-		var node: Dictionary = b.nodes[n]
-		if n < level:
-			lines.append("✓ %s" % node.name)
-		elif n == level:
-			var price := Upgrades.next_price(self, i)
-			lines.append("> %s\n   %s\n   $%.0f%s" % [node.name, node.helps, price, "" if wallet.cash >= price else "  (short)"])
-		else:
-			lines.append("· %s" % node.name)
-	if level >= b.nodes.size():
-		lines.append("\nCOMPLETE")
-	_shop_cards[i].text = "\n".join(lines)
-	_shop_cards[i].modulate = Color.WHITE if level < b.nodes.size() and wallet.cash >= Upgrades.next_price(self, i) else Color(1, 1, 1, 0.6)
-
-
-func _fill_pump_card(i: int) -> void:
-	if i >= bays.size():
-		_shop_cards[i].text = "\n\n(build more pumps\nin the station's\nPUMPS branch)"
-		_shop_cards[i].modulate = Color(1, 1, 1, 0.35)
-		return
-	var bay := bays[i]
-	var mode := "you pour it"
-	if bay.pump_level >= 1:
-		mode = "self-serve (auto on)" if bay.self_service else "self-serve (auto off)"
-	var lines := ["[%d]  PUMP %d" % [i + 1, i + 1], mode, ""]
-	for n in Upgrades.PUMP_TREE.size():
-		var node: Dictionary = Upgrades.PUMP_TREE[n]
-		if n < bay.pump_level:
-			lines.append("✓ %s" % node.name)
-		elif n == bay.pump_level:
-			var price := Upgrades.next_pump_price(self, bay)
-			lines.append("> %s\n   %s\n   $%.0f%s" % [node.name, node.helps, price, "" if wallet.cash >= price else "  (short)"])
-		else:
-			lines.append("· %s" % node.name)
-	if bay.pump_level >= Upgrades.PUMP_TREE.size():
-		lines.append("\nCOMPLETE")
-	_shop_cards[i].text = "\n".join(lines)
-	var node := Upgrades.next_pump_node(bay)
-	var can: bool = not node.is_empty() and wallet.cash >= Upgrades.next_pump_price(self, bay)
-	_shop_cards[i].modulate = Color.WHITE if can else Color(1, 1, 1, 0.6)
+	_shop_title.text = "THE NIGHT AFTER DAY %d          cash $%.0f   ·   free for upgrades $%.0f" % [day, wallet.cash, spendable_cash()]
+	_shop_footer.text = "click a glowing node to buy     -/= fuel order     ENTER open the station for day %d  (rent $%.0f)" % [
+		day + 1, economy.rent_for(day + 1)]
+	tree_view.refresh()
+	fuel_panel.refresh()
 
 
 ## Eviction: the run's upgrades are gone; the station goes back to its starting setup.
@@ -623,7 +590,6 @@ func _reset_run_upgrades() -> void:
 	var start_level := Upgrades.starting_level("pumps", pump_count)
 	if start_level > 0:
 		owned["pumps"] = start_level
-	shop_page = ShopPage.STATION
 	while bays.size() > pump_count:
 		var bay: PumpBay = bays.pop_back()
 		sound.unwatch_pump(bay.pump)
@@ -844,10 +810,8 @@ func _self_service_busy(bay: PumpBay) -> bool:
 
 func _settle_day() -> void:
 	clock.running = false
-	var liters := tank.liters_used()
-	var refill := economy.refill_cost(liters)
 	var rent := economy.rent_for(day)
-	wallet.add(-(refill + rent))
+	wallet.add(-rent)  # fuel is bought at night now (#32)
 	evicted = wallet.cash < 0.0
 	run_complete = not evicted and not endless and day >= run_days
 	_run_earned += _day_earned
@@ -870,8 +834,8 @@ func _settle_day() -> void:
 		reason,
 		"",
 		"Earned today         +$%.2f" % _day_earned,
-		"Refill %3.0f L         -$%.2f" % [liters, refill],
 		"Rent                   -$%.2f" % rent,
+		"Fuel left            %.0f L of %.0f" % [tank.liters, tank.capacity_liters],
 		"",
 		"Cash   %s$%.2f        XP   %d" % ["-" if wallet.cash < 0 else "", absf(wallet.cash), wallet.xp],
 		"",
@@ -919,7 +883,7 @@ func _update_hint() -> void:
 		_hint_label.text = "Type your station's name, then ENTER."
 		return
 	if state == State.SHOP:
-		_hint_label.text = "1–%d buy     TAB switch page     ENTER open the station" % (Upgrades.BRANCHES.size() if shop_page == ShopPage.STATION else bays.size())
+		_hint_label.text = ""
 		return
 	var played: Array[String] = []
 	for bay in bays:
@@ -1095,22 +1059,17 @@ func _build_station() -> void:
 	_shop = Control.new()
 	_shop.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_shop)
-	var shop_dim := ColorRect.new()
-	shop_dim.color = Color(0.08, 0.08, 0.1, 0.94)
-	shop_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_shop.add_child(shop_dim)
-	_shop_title = Greybox.label(_shop, "", 30, Vector2(0, 30), Vector2(1152, 44))
-	for i in Upgrades.BRANCHES.size():
-		var card_bg := ColorRect.new()
-		card_bg.color = Color(0.16, 0.16, 0.19)
-		card_bg.position = Vector2(26 + i * 222, 90)
-		card_bg.size = Vector2(212, 400)
-		_shop.add_child(card_bg)
-		var card := Greybox.label(card_bg, "", 17, Vector2(10, 10), Vector2(192, 380))
-		card.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_shop_cards.append(card)
-	_shop_footer = Greybox.label(_shop, "", 20, Vector2(0, 510), Vector2(1152, 60))
+	tree_view = UpgradeTreeView.new()
+	tree_view.area = Rect2(244, 70, 896, 516)
+	_shop.add_child(tree_view)
+	tree_view.setup(self)
+	fuel_panel = FuelOrderPanel.new()
+	_shop.add_child(fuel_panel)
+	fuel_panel.setup(self)
+	_shop_title = Greybox.label(_shop, "", 24, Vector2(0, 22), Vector2(1152, 40))
+	_shop_title.add_theme_color_override("font_color", UpgradeTreeView.GOLD)
+	_shop_footer = Greybox.label(_shop, "", 17, Vector2(0, 596), Vector2(1152, 30))
+	_shop_footer.modulate = Color(1, 1, 1, 0.7)
 	_shop.visible = false
 
 	# Game speed (#19): 1x 2x 3x 10x at the top left, also S to cycle.

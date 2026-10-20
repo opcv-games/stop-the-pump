@@ -130,12 +130,12 @@ func test_given_clock_runs_out_while_pouring_then_summary_waits_for_the_pour() -
 	assert_eq(station.state, station.State.SUMMARY)
 
 
-func test_given_day_ends_then_refill_and_rent_are_taken_from_cash() -> void:
+func test_given_day_ends_then_rent_is_taken_from_cash() -> void:
+	# Fuel is no longer refilled at the end of the day: it's ordered in the night shop (#32).
 	var target: float = _pump(0).target
 	_stop_exactly_on_target(0)
-	var liters: float = station.tank.liters_used()
 	_end_day_by_clock()
-	var expected: float = station.starting_cash + target + 8.0 - station.economy.refill_cost(liters) - station.economy.rent_for(1)
+	var expected: float = station.starting_cash + target + 8.0 - station.economy.rent_for(1)
 	assert_almost_eq(station.wallet.cash, expected, 0.001)
 
 
