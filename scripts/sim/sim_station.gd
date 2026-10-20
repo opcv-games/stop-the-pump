@@ -63,6 +63,20 @@ var day := 0
 ## Cash set aside tonight for the fuel order (#32): upgrades can't spend it.
 var fuel_reserve := 0.0
 var rng := RandomNumberGenerator.new()
+## Price overrides for pump-tree nodes, by id, used by the tuning search (#34). Empty = the game's.
+var pump_tree_prices := {}
+
+
+## Changes numbers for a what-if run (tuning search, lever sweep). Keys: economy fields
+## (rent_base, rent_growth, wholesale_ratio, *_tip), station fields, or "price:<pump tree id>".
+func apply_overrides(changes: Dictionary) -> void:
+	for key: String in changes:
+		if key.begins_with("price:"):
+			pump_tree_prices[key.trim_prefix("price:")] = changes[key]
+		elif key in ["rent_base", "rent_growth", "wholesale_ratio", "super_perfect_tip", "perfect_tip", "good_tip", "ok_tip"]:
+			economy.set(key, changes[key])
+		else:
+			set(key, changes[key])
 
 
 ## The game's defaults, read once from its scripts and reused for every simulated run.
@@ -169,7 +183,8 @@ func buy_branch(id: String) -> bool:
 func pump_price(i: int) -> float:
 	if i >= pumps.size() or pumps[i].pump_level >= Upgrades.PUMP_TREE.size():
 		return -1.0
-	return roundf(Upgrades.PUMP_TREE[pumps[i].pump_level].price * shop_price_scale)
+	var node: Dictionary = Upgrades.PUMP_TREE[pumps[i].pump_level]
+	return roundf(pump_tree_prices.get(node.id, node.price) * shop_price_scale)
 
 
 func buy_pump(i: int) -> bool:

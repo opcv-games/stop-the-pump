@@ -6,7 +6,7 @@ extends RefCounted
 
 ## Every pump's own tree, bought on the shop's "Your pumps" page (#18).
 const PUMP_TREE := [
-	{"id": "self_service", "name": "Self-service", "helps": "serves cars on its own: 3% card fee, slow, no tips", "price": 200.0},
+	{"id": "self_service", "name": "Self-service", "helps": "serves cars on its own: 3% card fee, slower, no tips", "price": 120.0},
 	{"id": "faster_self_serve", "name": "Faster self-serve", "helps": "this pump pours 50% faster", "price": 200.0},
 	{"id": "card_deal", "name": "Card deal", "helps": "this pump's card fee halves", "price": 250.0},
 ]

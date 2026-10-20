@@ -5,6 +5,7 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
+- [ ] `[tech]` **Balance pass with the simulator** (#34, v0.29.0, awaiting playtest)
 - [ ] `[standard]` **"Your station" tab in the night shop: build pumps, expand the lot and improve each pump on the station itself** (#33)
 - [x] `[standard]` **Bills-style upgrade tree: one radial tree branching from the station in the centre** (#31, v0.27.0, kept; pumps move to a station tab in #33)
 - [x] `[standard]` **Fuel order between days: choose whether to refill the tank and by how much** (#32, v0.27.0, kept; balance later)
@@ -43,7 +44,7 @@
 - [ ] `[juice]` Musical meter clicks: accent every 4th dollar like a beat (playtest 3: clicks are too fast to count at $4/s, so this needs rethinking)
 
 ## Later (deliberately vague)
-- Balance pass using the simulator: no strategy survives today's numbers with an even tier split; self-serve needs a bigger margin to make the automation arc work (docs/balance/REPORT.md)
+- Balance: stations stay at 2–2.5 pumps in the simulator; Expand ($350) and Pump 4 ($400) are rarely reached (docs/balance/REPORT.md)
 - HUD: the left gauge partly covers the fuel tanks on a fully upgraded station (move the tanks or slim the gauge)
 - Scale past 5 pumps (10 and beyond): camera pulls back as the station grows; lane cards switch to a one-line compact mode past ~6 pumps
 - Station looks upgrades in later levels (clean up the run-down station: paint, repair the sign, fix potholes)

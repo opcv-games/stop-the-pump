@@ -59,8 +59,8 @@ func test_given_miss_then_no_xp() -> void:
 	assert_eq(economy.xp_for(ScoreTiers.MISS, 4), 0)
 
 
-func test_given_100_litres_used_then_refill_costs_80_percent_of_pump_price() -> void:
-	assert_almost_eq(economy.refill_cost(100.0), 160.0, 0.001)
+func test_given_100_litres_used_then_refill_costs_70_percent_of_pump_price() -> void:
+	assert_almost_eq(economy.refill_cost(100.0), 140.0, 0.001)  # balance pass (#34): was 80%
 
 
 func test_given_day_1_and_day_3_then_rent_grows_each_day() -> void:

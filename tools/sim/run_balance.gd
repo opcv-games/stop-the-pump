@@ -147,15 +147,11 @@ func _sweep(best: String, runs: int) -> String:
 			for seed in runs:
 				var st := SimStation.from_game_defaults()
 				st.rng.seed = seed + 1
-				for key in lever.set:
-					match key:
-						"rent_growth", "wholesale_ratio":
-							st.economy.set(key, lever.set[key])
-						"tips_x2":
-							for t in ["super_perfect_tip", "perfect_tip", "good_tip"]:
-								st.economy.set(t, st.economy.get(t) * 2.0)
-						_:
-							st.set(key, lever.set[key])
+				if lever.set.has("tips_x2"):
+					for t in ["super_perfect_tip", "perfect_tip", "good_tip"]:
+						st.economy.set(t, st.economy.get(t) * 2.0)
+				else:
+					st.apply_overrides(lever.set)
 				if BalanceSim.play_run(BalanceSim.strategy(id), st).complete:
 					ok += 1
 				st.free()

@@ -62,7 +62,7 @@ enum ShopTab { TREE, STATION }
 @export var shop_price_scale := 1.0
 ## Self-service pumps (#17): share of the normal pour speed, and the card fee taken from each sale.
 ## A pump's own tree (#18) multiplies the speed by 1.5 (Faster self-serve) and halves the fee (Card deal).
-@export var self_service_speed := 0.5
+@export var self_service_speed := 0.75  # balance pass (#34): was 0.5
 @export var card_fee := 0.03
 @export var economy: FuelEconomy = FuelEconomy.new()
 

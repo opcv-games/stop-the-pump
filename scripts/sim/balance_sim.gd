@@ -154,7 +154,8 @@ static func _miss_by(st: SimStation, tier: String, rng: RandomNumberGenerator) -
 ## Plays a whole run with `strat` buying at night. Returns the outcome and the cash after each day.
 static func play_run(strat: Dictionary, st: SimStation) -> Dictionary:
 	var out := {"strategy": strat.id, "evicted": false, "complete": false, "days": 0, "cash": 0.0,
-		"history": [], "stops": 0, "pumps": 0, "self_pumps": 0, "xp": 0, "ran_dry_days": 0}
+		"history": [], "stops": 0, "pumps": 0, "self_pumps": 0, "xp": 0, "ran_dry_days": 0,
+		"first_auto_day": 0, "self_pumps_day4": 0}
 	var last_fuel := 0.0
 	for d in range(1, st.run_days + 1):
 		st.day = d
@@ -173,6 +174,14 @@ static func play_run(strat: Dictionary, st: SimStation) -> Dictionary:
 			out.complete = true
 			break
 		_night(strat, st, last_fuel)
+		var self_now := 0
+		for p in st.pumps:
+			if p.self_service:
+				self_now += 1
+		if self_now > 0 and out.first_auto_day == 0:
+			out.first_auto_day = d + 1  # the first day a pump serves by itself
+		if d + 1 == 4:
+			out.self_pumps_day4 = self_now
 	out.cash = st.cash
 	out.xp = st.xp
 	out.pumps = st.pumps.size()
