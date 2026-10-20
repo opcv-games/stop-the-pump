@@ -114,10 +114,10 @@ func test_given_pumps_branch_then_pump_3_expansion_pump_4_pump_5() -> void:
 		assert_false(bay.self_service)
 
 
-func test_given_the_tree_then_each_pump_has_its_own_nodes() -> void:
+func test_given_the_station_tab_then_each_pump_has_its_own_upgrades() -> void:
 	_to_shop()
-	assert_string_contains(station.tree_view.tooltip_for("p:0:0"), "Pump 1")
-	assert_string_contains(station.tree_view.tooltip_for("p:0:0"), "Self-service")
+	assert_string_contains(station.station_view.tooltip_for("pump:0:0"), "Pump 1")
+	assert_string_contains(station.station_view.tooltip_for("pump:0:0"), "Self-service")
 
 
 func test_given_pump_3_converted_then_only_pump_3_is_self_service() -> void:
@@ -197,7 +197,7 @@ func test_given_card_deal_on_pump_3_then_its_fee_halves() -> void:
 		assert_true(station.buy_pump(2))
 	assert_almost_eq(station.card_fee_for(station.bays[2]), 0.015, 0.0001)
 	assert_false(station.buy_pump(2), "pump tree complete")
-	assert_string_contains(station.tree_view.tooltip_for("p:2:2"), "OWNED")
+	assert_string_contains(station.station_view.tooltip_for("pump:2:2"), "OWNED")
 
 
 func test_given_extra_pump_then_day_2_gives_it_a_customer() -> void:

@@ -35,7 +35,7 @@ godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs 
 - **Shift + n / AUTO button:** switch pump n between auto and manual (player feature, #20). **E** on the run-complete screen: endless mode.
 - **F5:** toggle rain (dev, #22).
 - **Juice switches (F2):** pour stream, Perfect sparkle, cash pops (0/1) and screen shake strength (0 = off), so each effect can be judged on its own (#26).
-- **Night shop (#31, #32):** click a glowing node to buy; - and = change the fuel order by 50 L. Icons are baked from the 3D kit: `godot --path . -s tools/godot/bake_icons.gd` after a Blender change.
+- **Night shop (#31, #32, #33):** two tabs (Tab switches): the upgrade tree and your station (pumps); click a glowing node to buy; - and = change the fuel order by 50 L. Icons are baked from the 3D kit: `godot --path . -s tools/godot/bake_icons.gd` after a Blender change.
 - **F2 tuning panel:** every number in `scripts/systems/tuning.gd`, saved to `user://tuning.cfg`. When the designer pastes "Copy values", treat it as their preferred tuning and fold it into the defaults when asked.
 - **Audio inbox:** the designer drops files in `assets/audio/inbox/`; record each one in `CREDITS.md`.
 - **Audio direction:** plain SFX + looping background music. No music engineering (no tier notes, chord tracking or beat sync) unless the designer asks again.

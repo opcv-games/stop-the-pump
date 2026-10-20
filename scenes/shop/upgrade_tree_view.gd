@@ -20,9 +20,8 @@ const PUMP_TREE_FILL := Color(0.22, 0.28, 0.48)
 const ROOT_FILL := Color(0.36, 0.29, 0.20)
 ## Where captions go, in cells past each branch's last node.
 const CAPTIONS := {
-	"marketing": [Vector2(-3.8, -3.75), "MARKETING"], "tank": [Vector2(-4.05, 0.0), "TANK"],
-	"service": [Vector2(-3.8, 3.75), "SERVICE"], "vibe": [Vector2(0.0, -2.85), "VIBE"],
-	"pumps": [Vector2(6.0, 0.0), "PUMPS"],
+	"marketing": [Vector2(-3.75, -3.75), "MARKETING"], "vibe": [Vector2(2.75, -2.75), "VIBE"],
+	"tank": [Vector2(-4.4, 3.1), "TANK"], "service": [Vector2(4.5, 3.1), "SERVICE"],
 }
 const NODE := 48.0
 const KEYSTONE := 50.0
@@ -89,10 +88,7 @@ func tooltip_for(key: String) -> String:
 			var short: bool = station.spendable_cash() < n.price
 			lines.append("$%.0f%s" % [n.price, "   (not enough cash)" if short else "   click to buy"])
 		UpgradeGraph.LOCKED:
-			if n.kind == "pump" and n.pump >= station.bays.size():
-				lines.append("$%.0f   build pump %d first" % [n.price, n.pump + 1])
-			else:
-				lines.append("$%.0f   buy the one before it first" % n.price)
+			lines.append("$%.0f   buy the one before it first" % n.price)
 	return "\n".join(lines)
 
 
@@ -160,7 +156,7 @@ func _draw() -> void:
 ## Dark warm room with a lamp-lit centre: concentric rings blended from edge to centre colour.
 func _draw_backdrop() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), BG_EDGE)
-	var centre := cell_position(Vector2(1, 0))
+	var centre := cell_position(Vector2.ZERO)
 	var steps := 18
 	for i in steps:
 		var k := float(i) / steps
@@ -183,8 +179,6 @@ func _draw_link(a: Dictionary, b: Dictionary) -> void:
 func _fill_for(n: Dictionary) -> Color:
 	if n.kind == "root":
 		return ROOT_FILL
-	if n.kind == "pump":
-		return PUMP_TREE_FILL
 	return BRANCH_FILL.get(Upgrades.BRANCHES[n.branch].id, ROOT_FILL)
 
 
@@ -258,15 +252,11 @@ func _draw_price_tag(n: Dictionary, at: Vector2) -> void:
 	_text(at + Vector2(0, 4.5), label, 12, GOLD if can else Color(0.95, 0.42, 0.35))
 
 
-## Small corner marks: pump numbers, tank tiers, the card-deal percent.
+## Small corner marks: tank tiers.
 func _draw_badge(n: Dictionary, p: Vector2, half: float) -> void:
 	var mark := ""
-	if n.icon == "pump" or (n.kind == "pump" and n.level == 0):
-		mark = str(n.pump + 1) if n.kind == "pump" else n.name.trim_prefix("Pump ")
-	elif n.icon == "tank":
+	if n.icon == "tank":
 		mark = ["I", "II", "III"][n.level]
-	elif n.icon == "card_deal":
-		mark = "%"
 	if mark == "" or n.kind == "root":
 		return
 	var c := p + Vector2(half - 4, -half + 4)

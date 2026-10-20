@@ -43,11 +43,11 @@ func test_the_station_sits_in_the_centre_and_is_owned() -> void:
 	assert_eq(root.state, UpgradeGraph.OWNED)
 
 
-func test_every_upgrade_and_pump_upgrade_is_a_node() -> void:
-	var count := 1  # the station
+func test_every_station_wide_upgrade_is_a_node() -> void:
+	var count := 1  # the station; pumps live on the station tab (#33)
 	for b in Upgrades.BRANCHES:
-		count += b.nodes.size()
-	count += UpgradeGraph.MAX_PUMPS * Upgrades.PUMP_TREE.size()
+		if b.id != "pumps":
+			count += b.nodes.size()
 	assert_eq(_nodes().size(), count)
 
 
@@ -69,23 +69,17 @@ func test_every_node_touches_its_parent() -> void:
 		assert_eq(maxi(d.x, d.y), 1, "%s sits next to its parent %s" % [n.key, n.parent])
 
 
-func test_the_five_branches_leave_the_station_in_different_directions() -> void:
+func test_the_branches_leave_the_station_in_different_directions() -> void:
 	var first_cells := {}
 	for n in _nodes():
 		if n.kind == "branch" and n.level == 0:
 			first_cells[n.cell] = true
-	assert_eq(first_cells.size(), Upgrades.BRANCHES.size())
-
-
-func test_each_pump_tree_hangs_off_its_pump() -> void:
-	assert_eq(_node("p:0:0").parent, "root", "pump 1 is the station's own pump")
-	assert_eq(_node("p:1:0").parent, "b:pumps:0", "pump 2's tree hangs off the Pump 2 node")
+	assert_eq(first_cells.size(), Upgrades.BRANCHES.size() - 1, "PUMPS is on the station tab")
 
 
 func test_states_owned_available_locked() -> void:
 	assert_eq(_node("b:marketing:0").state, UpgradeGraph.AVAILABLE)
 	assert_eq(_node("b:marketing:1").state, UpgradeGraph.LOCKED)
-	assert_eq(_node("p:1:0").state, UpgradeGraph.LOCKED, "pump 2 isn't built yet")
 	station.buy(0)
 	assert_eq(_node("b:marketing:0").state, UpgradeGraph.OWNED)
 	assert_eq(_node("b:marketing:1").state, UpgradeGraph.AVAILABLE)
@@ -98,10 +92,10 @@ func test_every_node_has_an_icon_file() -> void:
 
 func test_clicking_an_available_node_buys_it() -> void:
 	var cash: float = station.wallet.cash
-	assert_true(station.tree_view.press("b:pumps:0"))
-	assert_eq(station.bays.size(), 2)
+	assert_true(station.tree_view.press("b:tank:0"))
+	assert_almost_eq(station.tank.capacity_liters, 500.0, 0.01)
 	assert_lt(station.wallet.cash, cash)
-	assert_eq(_node("p:1:0").state, UpgradeGraph.AVAILABLE, "pump 2's own tree opens up")
+	assert_eq(_node("b:tank:1").state, UpgradeGraph.AVAILABLE)
 
 
 func test_clicking_a_locked_node_does_nothing() -> void:

@@ -19,6 +19,7 @@ extends Control
 ## lit by the clock, with rain. The player names the station at the start of a run.
 
 enum State { OPEN, CLOSING, SUMMARY, SHOP, NAMING, INTRO }
+enum ShopTab { TREE, STATION }
 
 ## How many pumps the station runs. The difficulty ladder (1 to 10) is this one number.
 @export_range(1, 10) var pump_count := 1  # the run starts with one pump (#30)
@@ -146,6 +147,10 @@ var cash_pops: Array[Label] = []
 var _pop_layer: Control
 var _shop_title: Label
 var tree_view: UpgradeTreeView
+var station_view: StationShopView
+var shop_tab := ShopTab.TREE
+var _tab_buttons: Array[Button] = []
+var _hidden_at_night: Array[CanvasItem] = []
 var fuel_panel: FuelOrderPanel
 var _shop_footer: Label
 var summary_label: Label
@@ -219,6 +224,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == State.SHOP:
 		if event is InputEventKey and event.pressed:
+			if event.physical_keycode == KEY_TAB:
+				toggle_shop_tab()
+				return
 			if event.physical_keycode == KEY_MINUS:
 				fuel_panel.nudge(-FuelOrderPanel.STEP)
 				return
@@ -450,6 +458,7 @@ func start_next_day() -> void:
 	if _shop:
 		_shop.visible = false
 	state = State.OPEN
+	_restore_day_hud()
 	var w := world_view.world
 	for item in _pop_next_morning:
 		if item.has("pump"):
@@ -487,6 +496,9 @@ func continue_pressed() -> void:
 func open_shop() -> void:
 	state = State.SHOP
 	_overlay.visible = false
+	_hide_day_hud()
+	world_view.world.set_hour(19.5)  # dusk: the station reads well behind the cards (#33)
+	shop_tab = ShopTab.TREE
 	fuel_order_liters = 0.0
 	set_fuel_order(INF)  # a fill-up by default, as far as the cash goes
 	_refresh_shop()
@@ -513,6 +525,34 @@ func buy(branch: int) -> bool:
 		_pop_next_morning.append({"prop": Upgrades.PROPS[node.id]})
 	_refresh_shop()
 	return true
+
+
+## The night shop's two tabs (#33): the station-wide upgrade tree, and the station itself where
+## pumps are built and improved.
+func set_shop_tab(tab: ShopTab) -> void:
+	shop_tab = tab
+	_refresh_shop()
+
+
+func toggle_shop_tab() -> void:
+	set_shop_tab(ShopTab.STATION if shop_tab == ShopTab.TREE else ShopTab.TREE)
+
+
+## At night the day's HUD (lane cards, gauges, hints) steps aside for the shop; it returns at dawn.
+func _hide_day_hud() -> void:
+	_restore_day_hud()
+	for c in get_children():
+		if c is CanvasItem and c.visible and not (c in [world_view, _bg, _shop, intro, _overlay, _pop_layer]) \
+				and c.name != "DevButtons" and not c is TuningPanel:
+			c.visible = false
+			_hidden_at_night.append(c)
+
+
+func _restore_day_hud() -> void:
+	for c in _hidden_at_night:
+		if is_instance_valid(c):
+			c.visible = true
+	_hidden_at_night.clear()
 
 
 # --- Fuel order (#32) ---------------------------------------------------------
@@ -569,10 +609,15 @@ func buy_pump(index: int) -> bool:
 func _refresh_shop() -> void:
 	if not _shop:
 		return
-	_shop_title.text = "THE NIGHT AFTER DAY %d          cash $%.0f   ·   free for upgrades $%.0f" % [day, wallet.cash, spendable_cash()]
-	_shop_footer.text = "click a glowing node to buy     -/= fuel order     ENTER open the station for day %d  (rent $%.0f)" % [
+	_shop_title.text = "THE NIGHT AFTER DAY %d      cash $%.0f   ·   free for upgrades $%.0f" % [day, wallet.cash, spendable_cash()]
+	_shop_footer.text = "click a glowing node to buy     TAB switch view     -/= fuel order     ENTER open the station for day %d  (rent $%.0f)" % [
 		day + 1, economy.rent_for(day + 1)]
+	tree_view.visible = shop_tab == ShopTab.TREE
+	station_view.visible = shop_tab == ShopTab.STATION
+	for i in _tab_buttons.size():
+		_tab_buttons[i].button_pressed = i == shop_tab
 	tree_view.refresh()
+	station_view.queue_redraw()
 	fuel_panel.refresh()
 
 
@@ -1059,15 +1104,35 @@ func _build_station() -> void:
 	_shop = Control.new()
 	_shop.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_shop)
+	station_view = StationShopView.new()
+	_shop.add_child(station_view)
+	station_view.setup(self)
+	station_view.visible = false
 	tree_view = UpgradeTreeView.new()
-	tree_view.area = Rect2(244, 70, 896, 516)
+	tree_view.area = Rect2(244, 96, 896, 494)
 	_shop.add_child(tree_view)
 	tree_view.setup(self)
 	fuel_panel = FuelOrderPanel.new()
 	_shop.add_child(fuel_panel)
 	fuel_panel.setup(self)
-	_shop_title = Greybox.label(_shop, "", 24, Vector2(0, 22), Vector2(1152, 40))
+	_shop_title = Greybox.label(_shop, "", 18, Vector2(0, 56), Vector2(1152, 28))
 	_shop_title.add_theme_color_override("font_color", UpgradeTreeView.GOLD)
+	var tabs := HBoxContainer.new()
+	tabs.position = Vector2(406, 12)
+	tabs.add_theme_constant_override("separation", 10)
+	_shop.add_child(tabs)
+	var group := ButtonGroup.new()
+	for t in [["UPGRADE TREE", ShopTab.TREE], ["YOUR STATION", ShopTab.STATION]]:
+		var b := Button.new()
+		b.text = t[0]
+		b.toggle_mode = true
+		b.button_group = group
+		b.focus_mode = Control.FOCUS_NONE
+		b.custom_minimum_size = Vector2(165, 36)
+		b.add_theme_font_size_override("font_size", 17)
+		b.pressed.connect(set_shop_tab.bind(t[1]))
+		tabs.add_child(b)
+		_tab_buttons.append(b)
 	_shop_footer = Greybox.label(_shop, "", 17, Vector2(0, 596), Vector2(1152, 30))
 	_shop_footer.modulate = Color(1, 1, 1, 0.7)
 	_shop.visible = false
@@ -1096,6 +1161,7 @@ func _build_station() -> void:
 	_dev_label.visible = false
 	# Dev buttons: always on screen, top right, for one-click testing.
 	var dev_buttons := HBoxContainer.new()
+	dev_buttons.name = "DevButtons"
 	dev_buttons.position = Vector2(930, 6)
 	dev_buttons.add_theme_constant_override("separation", 8)
 	add_child(dev_buttons)
