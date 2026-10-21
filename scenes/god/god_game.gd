@@ -5,7 +5,8 @@ extends Node
 ## starts each morning and listens to each evening.
 ##   TITLE → (first time: INTRO → NAMING) → DAY → REPORT → NIGHT (shop, truck → CARDS) → DAY ...
 ##   → bankrupt: RUN_OVER → GARAGE → new run   ·   day 50: REPORT → ENDING → RUN_OVER → GARAGE
-## Designer keys: F3 ends the day, F4 gives $100 (night), F6 gives 1000 XP (garage).
+## Designer keys: F1 opens the dev configurator (DevPanel), F3 ends the day, F4 gives $100, F6 gives
+## 1000 XP.
 
 const DAY_SCENE := preload("res://scenes/god/day/god_pump.tscn")
 
@@ -262,6 +263,72 @@ func toggle_pause() -> void:
 	_pause.queue_redraw()
 
 
+var dev: DevPanel
+
+
+## F1: the designer's configurator. It pauses a day while it's open.
+func toggle_dev() -> void:
+	if not dev:
+		dev = DevPanel.new()
+		dev.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		ui.add_child(dev)
+		dev.build(self)
+		dev.visible = false
+	dev.visible = not dev.visible
+	var paused_by_menu := _pause != null and _pause.visible
+	get_tree().paused = dev.visible or paused_by_menu
+	if sound_on:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if dev.visible or state != "day" else Input.MOUSE_MODE_HIDDEN
+
+
+func dev_refresh() -> void:
+	if state == "night":
+		night.refresh()
+	elif state == "garage":
+		garage.show_garage(meta)
+
+
+func dev_end_day() -> void:
+	if state == "day":
+		_close_dev()
+		day.end_round()
+
+
+## Skips ahead to the next night: closes today if a day is on, or plays tomorrow as an empty day.
+func dev_next_night() -> void:
+	if not run or run.over:
+		return
+	_close_dev()
+	match state:
+		"day":
+			day.end_round()
+			_after_report()
+		"report":
+			_after_report()
+		"night", "cards":
+			run.offer = []
+			run.next_day()
+			run.end_day({"tank_left": run.tank})
+			_after_report()
+
+
+func dev_reset_save() -> void:
+	_close_dev()
+	if run and not run.over:
+		run.over = true
+	meta = MetaState.new()
+	meta.path = meta_path
+	meta.save()
+	day.round_over = true
+	day.set_station_name(meta.station_name)
+	show_title()
+
+
+func _close_dev() -> void:
+	if dev and dev.visible:
+		toggle_dev()
+
+
 func _apply_volume() -> void:
 	var bus := AudioServer.get_bus_index("Master")
 	AudioServer.set_bus_volume_db(bus, linear_to_db(maxf(meta.volume, 0.001)))
@@ -275,6 +342,8 @@ func _unhandled_input(e: InputEvent) -> void:
 		toggle_pause()
 		return
 	match e.physical_keycode:
+		KEY_F1:
+			toggle_dev()
 		KEY_F3:
 			if state == "day":
 				day.end_round()

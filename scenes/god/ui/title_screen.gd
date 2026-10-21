@@ -66,6 +66,7 @@ func _draw() -> void:
 		var line := "Best day: %d / %d   ·   Runs: %d   ·   XP: %d" % [meta.best_day, GodData.FINAL_DAY, meta.runs, meta.xp]
 		GodUI.text(self, Vector2(576, 300), line, 16, Color(GodUI.CREAM, 0.75), true, 4)
 		var v := "v" + str(ProjectSettings.get_setting("application/config/version", ""))
+		GodUI.text(self, Vector2(12, 636), "OPCV Games", 14, Color(1, 1, 1, 0.5))
 		GodUI.text(self, Vector2(1140 - GodUI.font().get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x, 636), v, 14, Color(1, 1, 1, 0.5))
 		if meta.ending_seen:
 			GodUI.text(self, Vector2(576, 610), "Dad came home. ✓", 16, GodUI.GOLD, true, 4)

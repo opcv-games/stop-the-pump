@@ -9,6 +9,7 @@ signal finished
 
 ## The opening: mock-biblical, then down to earth in Saint-Clin-Clin.
 const INTRO := [
+	{"bg": "black", "text": "OPCV Games presents", "hold": 2.0},
 	{"bg": "black", "text": "In the beginning, there was gas."},
 	{"bg": "heaven", "text": "And the gas was good."},
 	{"bg": "heaven", "nozzle": true, "text": "Then came the one who would pour it."},
@@ -142,7 +143,7 @@ func _draw() -> void:
 	if s.text != "":
 		GodUI.text(self, Vector2(576, size.y - 46), s.text, 26, Color(GodUI.CREAM, a), true)
 	if s.get("credits", false):
-		var lines := ["A game by Olivier", "Built with the Indie Game Committee (Claude)", "Music: \"Roadside At Two\"  ·  Pixel art drawn with claude-pxl"]
+		var lines := ["A game by OPCV Games", "Built with the Indie Game Committee (Claude)", "Music: \"Roadside At Two\"  ·  Pixel art drawn with claude-pxl"]
 		for i in lines.size():
 			GodUI.text(self, Vector2(576, 372 + i * 30), lines[i], 18, Color(GodUI.CREAM, a * 0.9), true, 4)
 	GodUI.text(self, Vector2(1130 - GodUI.font().get_string_size("ESC skip", HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x, 34),

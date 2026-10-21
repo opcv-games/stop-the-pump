@@ -76,9 +76,9 @@ func _draw() -> void:
 	_draw_truck()
 	if run.tank_warning():  # playtest 7: forgetting the truck shouldn't end a run by surprise
 		var a := 0.75 + 0.25 * sin(_t * 6.0)
-		var band := Rect2(300, 84, 552, 34)
+		var band := Rect2(262, 84, 440, 32)
 		draw_style_box(GodUI.panel_box(Color(GodUI.RED, a), Color(0.25, 0.04, 0.03, 0.95), 8), band)
-		GodUI.text(self, band.get_center() + Vector2(0, 7), "⚠  THE TANK WON'T LAST TOMORROW: CALL THE TRUCK", 17, Color(1, 0.9, 0.8, a), true)
+		GodUI.text(self, band.get_center() + Vector2(0, 7), "⚠  THE TANK WON'T LAST TOMORROW: CALL THE TRUCK", 15, Color(1, 0.9, 0.8, a), true)
 		_truck_btn.modulate = Color(1, 1, 1).lerp(Color(1.4, 0.7, 0.6), 0.5 + 0.5 * sin(_t * 6.0))
 	else:
 		_truck_btn.modulate = Color.WHITE

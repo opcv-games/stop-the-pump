@@ -114,3 +114,16 @@ func test_a_small_partial_delivery_stays_on_the_night() -> void:
 	g.call_truck()
 	assert_eq(g.state, "night")
 	assert_gt(g.run.tank, 0.0)
+
+
+func test_dev_mode_skips_to_the_next_night() -> void:
+	g.toggle_dev()
+	assert_true(g.dev.visible)
+	assert_true(g.get_tree().paused)
+	g.dev_next_night()
+	assert_false(g.get_tree().paused)
+	assert_eq(g.state, "night")
+	assert_eq(g.run.day, 1)
+	g.dev_next_night()
+	assert_eq(g.state, "night")
+	assert_eq(g.run.day, 2)
