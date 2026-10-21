@@ -134,6 +134,8 @@ var neon_flash := 0.0
 var neon_tier := ""
 ## The regulars on the bench by the dépanneur, and what one of them just said.
 var regulars: Array[Dictionary] = []
+## Round 8: their routines (RegularsCrew): bench, a look at the lot, a coffee inside, a smoke.
+var crew: RegularsCrew
 var quip_text := ""
 var quip_who := 0
 var quip_t := 0.0
@@ -197,10 +199,9 @@ var _iso_sprite: Sprite2D
 func _ready() -> void:
 	rng.randomize()
 	tank = tank_size
-	# The regulars (designer's reference photos): plaid and a moustache, a brown jacket and glasses,
-	# a grey cardigan, a leather jacket and a beer. Seated on the bench by the store.
-	for i in 4:
-		regulars.append({"sprite": "regular_%d" % i, "seat": i, "cheer": 0.0, "clap": 0.0, "bob": rng.randf() * TAU})
+	# The regulars (round 8): Ti-Guy, Mme Gagnon, Bertrand and Le Grand, with their routines.
+	crew = RegularsCrew.new(rng)
+	regulars = crew.list
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # crisp pixels; cars and the overlay inherit it
 	for id in CAR_SPRITES + ["nozzle", "bill", "coin_0", "coin_1", "coin_2", "coin_3", "puddle_s", "puddle_m",
 			"puddle_l", "sparkle", "asphalt", "road", "dirt", "neon_gazbar", "neon_gazbar_off", "neon_gaz", "neon_bar",
@@ -800,7 +801,8 @@ func say(pool: Array) -> void:
 	if regulars.is_empty():
 		return
 	quip_text = pool[rng.randi() % pool.size()]
-	quip_who = rng.randi() % regulars.size()
+	var out_here := range(regulars.size()).filter(func(i: int) -> bool: return regulars[i].state != "inside")
+	quip_who = out_here[rng.randi() % out_here.size()] if not out_here.is_empty() else 0
 	quip_t = 2.2
 	regulars[quip_who].cheer = 0.9
 
@@ -1183,9 +1185,7 @@ func _step_fx(dt: float) -> void:
 	sign_flip = maxf(sign_flip - dt * 2.0, 0.0)
 	_kick = maxf(_kick - dt * 6.0, 0.0)
 	quip_t = maxf(quip_t - dt, 0.0)
-	for r in regulars:
-		r.cheer = maxf(r.cheer - dt, 0.0)
-		r.clap = maxf(r.clap - dt, 0.0)
+	crew.step(dt, rng, not round_over)
 	if not round_over and not regulars.is_empty():
 		_next_idle_quip -= dt
 		if _next_idle_quip <= 0.0 and quip_t <= 0.0:
@@ -1482,7 +1482,7 @@ func _draw_till(o: Node2D, font: Font) -> void:
 func _draw_quip(o: Node2D, font: Font) -> void:
 	if quip_t <= 0.0 or quip_text == "":
 		return
-	var where: Variant = regular_head(regulars[quip_who].seat)
+	var where: Variant = regular_head(quip_who)
 	if where == null:
 		return
 	var head: Vector2 = where

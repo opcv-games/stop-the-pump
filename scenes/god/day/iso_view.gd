@@ -50,7 +50,8 @@ func _p(x: float, y: float, h := 0.0) -> Vector2:
 
 ## Where regular `i`'s head is on screen (for speech bubbles).
 func seat_screen(i: int) -> Vector2:
-	return (_p(BENCH.x, BENCH.y) + Vector2(4 + i * SEAT_GAP * 0.5 + 9, -26)) * 2.0
+	var r: Dictionary = game.regulars[i]
+	return (_p(r.pos.x, r.pos.y) + Vector2(0, -40 if RegularsCrew.seated(r) else -48)) * 2.0
 
 
 func _draw_ground() -> void:
@@ -183,13 +184,19 @@ func _draw_regulars() -> void:
 	if bench:
 		draw_texture(bench, base - Vector2(0, 8))
 	for r in game.regulars:
-		var pose := "_cheer" if r.cheer > 0.0 else ("_clap" if r.clap > 0.0 and int(r.clap * 10.0) % 2 == 0 else "")
-		var tex: Texture2D = game.tex(r.sprite + pose)
+		var pose := RegularsCrew.pose(r)
+		var tex: Texture2D = game.tex(r.sprite + "_" + pose) if pose != "" else null
 		if not tex:
 			continue
-		var bob := 1.0 if sin(game._t * 1.3 + r.bob) > 0.85 else 0.0
+		var bob := 1.0 if RegularsCrew.seated(r) and sin(game._t * 1.3 + r.bob) > 0.85 else 0.0
 		var hop := 3.0 * absf(sin(r.cheer * 12.0)) if r.cheer > 0.0 else 0.0
-		draw_texture(tex, base + Vector2(4 + r.seat * SEAT_GAP * 0.5, -tex.get_height() + 2 - bob - hop))
+		var at := _p(r.pos.x, r.pos.y)
+		if r.flip:
+			draw_set_transform(at + Vector2(0, -bob - hop), 0.0, Vector2(-1, 1))
+			draw_texture(tex, Vector2(-tex.get_width() * 0.5, -tex.get_height() + 2))
+			draw_set_transform(Vector2.ZERO)
+		else:
+			draw_texture(tex, at + Vector2(-tex.get_width() * 0.5, -tex.get_height() + 2 - bob - hop))
 
 
 ## A sprite-stacked car with its shadow; celebrations lift, spin and squash it.

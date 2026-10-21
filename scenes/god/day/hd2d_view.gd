@@ -92,7 +92,8 @@ func set_station_name(text: String) -> void:
 
 
 func regular_head(i: int) -> Vector2:
-	return screen(BENCH + Vector2(18 + i * SEAT_GAP, 0), 1.25)
+	var r: Dictionary = game.regulars[i]
+	return screen(r.pos, 1.25 if RegularsCrew.seated(r) else 1.75)
 
 
 # --- Building the scene -------------------------------------------------------------------------
@@ -393,7 +394,7 @@ func _build_regulars() -> void:
 	var bench := _upright(game.tex("bench"), to3(BENCH + Vector2(80, 0), 0.24), true)
 	bench.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	for r in game.regulars:
-		var s := _upright(game.tex(r.sprite), to3(BENCH + Vector2(18 + r.seat * SEAT_GAP, 2), 0.52), true)
+		var s := _upright(game.tex(r.sprite + "_sit"), to3(r.pos, 0.94), true)
 		regular_sprites.append(s)
 
 
@@ -630,11 +631,16 @@ func _sync_store() -> void:
 		clock_hands[1].rotation.z = -fmod(h, 1.0) * TAU
 	for i in regular_sprites.size():
 		var r: Dictionary = game.regulars[i]
-		var pose := "_cheer" if r.cheer > 0.0 else ("_clap" if r.clap > 0.0 and int(r.clap * 10.0) % 2 == 0 else "")
-		regular_sprites[i].texture = game.tex(r.sprite + pose)
-		var bob := 0.04 if sin(t * 1.3 + r.bob) > 0.85 else 0.0
+		var pose := RegularsCrew.pose(r)
+		var s := regular_sprites[i]
+		s.visible = pose != ""  # inside the dépanneur
+		if pose == "":
+			continue
+		s.texture = game.tex(r.sprite + "_" + pose)
+		s.flip_h = r.flip
+		var bob := 0.04 if RegularsCrew.seated(r) and sin(t * 1.3 + r.bob) > 0.85 else 0.0
 		var hop := 0.12 * absf(sin(r.cheer * 12.0)) if r.cheer > 0.0 else 0.0
-		regular_sprites[i].position.y = 0.52 + bob + hop
+		s.position = to3(r.pos, (s.texture.get_height() * PX * 0.5 if s.texture else 0.94) + bob + hop)
 
 
 ## Bonhomme gonflable (round 8): dances by the road while you own him; arms up while he holds a car.

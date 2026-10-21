@@ -310,3 +310,34 @@ func test_no_tube_man_no_grabs() -> void:
 	game._tube_cd = 0.0
 	game.step(0.05)
 	assert_eq(car.phase, ProtoCar.Phase.ROAD)
+
+
+# --- Round 8: the regulars' routines ------------------------------------------------------------
+
+func test_the_regulars_get_up_and_come_back() -> void:
+	_open()
+	var crew: RegularsCrew = game.crew
+	var states := {}
+	var had_coffee := false
+	for i in 1200:  # two minutes of an open day
+		crew.step(0.1, game.rng, true)
+		for r in crew.list:
+			states[r.state] = true
+			if r.cup > 0.0:
+				had_coffee = true
+		assert_true(crew.away() <= RegularsCrew.MAX_AWAY, "the bench is never empty")
+	assert_true(states.has("walk") and states.has("watch"), "they wander over to watch")
+	assert_true(states.has("inside"), "and go in the dépanneur")
+	assert_true(had_coffee, "and come back out with a coffee")
+
+
+func test_the_regulars_cheer_from_wherever_they_are() -> void:
+	_open()
+	var r: Dictionary = game.regulars[0]
+	r.state = "watch"
+	r.cheer = 1.0
+	assert_eq(RegularsCrew.pose(r), "cheer")
+	r.state = "sit"
+	assert_eq(RegularsCrew.pose(r), "sit_cheer")
+	r.state = "inside"
+	assert_eq(RegularsCrew.pose(r), "", "inside, nobody sees them")

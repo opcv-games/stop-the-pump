@@ -44,3 +44,11 @@ Feature: A GOD PUMP day  (#37, docs/GOD_PUMP_PLAN.md)
     And the grades are Super, Perfect, Good, OK, Overfilled and Unserved
     And a car that left under 80% (patience or closing) is Unserved: it isn't a car fueled,
       doesn't count against accuracy and earns no XP
+
+  Scenario: The regulars live on the lot  (round 8)
+    Given the gaz bar is open
+    Then Ti-Guy, Mme Gagnon, Bertrand and Le Grand spend time on the bench
+    And get up to watch me pour from the edge of the lot, go inside for a coffee and come back out with it,
+      or (Le Grand) step out for a smoke
+    And two at most are away from the bench at once
+    And wherever they are, they throw their arms up for a top-off and applaud a Perfect
