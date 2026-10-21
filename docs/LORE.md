@@ -47,9 +47,8 @@
 ## Where the lore shows
 - **The intro:** the will, Me Tremblay, the four regulars.
 - **The regulars' quips** during the day, the rumours included.
-- **L'Écho each morning:**
-  - Mme Gagnon's column unlocks one rumour every few days (newspaper.gd, GOSSIP).
-  - Postcards on days 10, 20, 30 and 40.
-  - Classified ads such as "LOST: one father."
-- **The menu screen's scrapbook:** your headlines and the postcards so far.
+- **The visitors (round 9, scripts/god/visitors.gd):** on set days someone drives in and chats with the regulars:
+  - Gaétan (days 2, 18, 45), Sylvie (4, 23), Me Tremblay (6, 15, 34), cousin Réjean (8, 37), the curé (12, 26).
+  - The mail carrier reads Dad's postcards out on days 10, 20, 30 and 40.
+- **The menu screen's scrapbook:** what was last overheard, and the postcards so far.
 - **The ending:** the postcards, Mme Gagnon gasps, Bertrand doesn't.

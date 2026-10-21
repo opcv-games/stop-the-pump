@@ -4,7 +4,7 @@
 > fuel-truck bill, cards, car types and Papa's Garage, is **docs/GOD_PUMP_PLAN.md**. Sections below that
 > describe the key-per-pump game are history.
 
-> **Current phase:** 5 — Vertical Slice (GOD PUMP v0.43.0: round 8, awaiting playtest)
+> **Current phase:** 5 — Vertical Slice (GOD PUMP v0.44.0: round 9, awaiting playtest)
 > **Last updated:** 2026-10-20
 > This file is the Committee's memory. Read it before every Godot or Blender action. Update it after every approved decision.
 
@@ -221,3 +221,7 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-21 | Reports and lore live in the newspaper and on the menu screen: L'Écho de Saint-Clin-Clin each morning (a headline from yesterday, charts, Mme Gagnon's gossip with the rumours about Dad, classifieds, Dad's postcards on days 10/20/30/40 signed "un pêcheur"); the menu shows lifetime numbers and a scrapbook; a special edition ends each run. The lore bible is docs/LORE.md | Design session | Round 8 (#37) |
 | 2026-10-21 | Art pass: the regulars redrawn bigger with walk, sit, cheer, clap and coffee poses; the cars redrawn with detail and per-type features (Dad has his own hatchback with a fishing rod); the night screen is Dad's office in wood paneling with enamel signs | Designer picked people, cars and the night UI as weakest | Round 8 (#37) |
 | 2026-10-21 | Balance after round 8: Contrat à terme every 4th delivery, $480; Contrat du fournisseur and Super sans plomb 450 XP a tier. Fresh saves 0/80 reach day 50; campaign median first win 2.8 h | Keeps "impossible at start, about 2 h of Garage" | docs/balance/GOD_PUMP_BALANCE.md (#37) |
+| 2026-10-21 | The morning paper is removed; the lore drives in instead: on set days a visitor (Gaétan, Sylvie, Me Tremblay, cousin Réjean, the curé, the mail carrier with Dad's postcards) parks by the store and chats with the regulars in speech bubbles, then leaves. The menu's scrapbook keeps what was last overheard | Playtest 8: "the paper is not fun, too much info; bring new characters to the gas station and chit chat" | Round 9 (#37) |
+| 2026-10-21 | Wheel clamps, two tiers as two-parent upgrades between CAMION and PISTOLET (not SERVICE: not adjacent on the tree): Sabot de Denver clamps thieves (the stolen gas comes back), Sabot de Denver II clamps customers about to give up (they stop and wait longer) | Playtest 8 | Round 9 (#37) |
+| 2026-10-21 | French and English: every on-screen string goes through locale/strings.csv (English keys); a switch on the title screen; French by default on a French computer; saved. The regulars' quips stay in Québécois in both | Playtest 8 | Round 9 (#37) |
+| 2026-10-21 | Windows: an NSIS installer (Program Files, Start-menu and desktop shortcuts, uninstaller), unsigned, published as a GitHub Release | Playtest 8 | Round 9 (#37) |

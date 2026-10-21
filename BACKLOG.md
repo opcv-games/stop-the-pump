@@ -8,7 +8,9 @@
 - [x] **GOD PUMP overnight batch** (docs/GOD_PUMP_PLAN.md, #37, v0.40.0, awaiting playtest): HD-2D polish, grades and day report, the run with the fuel-truck bill and cards, the night tree, car types, drones and auto-aim, Papa's Garage, title, intro and ending, sound, balance bot, old game retired. Morning report: docs/MORNING_REPORT.md
 - [x] Playtest v0.40 (playtest 7): forgot-the-truck dead end fixed, dev mode, day 50 needs ~2 h of Garage, OPCV Games credits, 45 s demo video (v0.41.0)
 - [x] Round 8 (docs/ROUND_8_PLAN.md, v0.43.0): Overfilled/Unserved, GAS TANK + delivery animation, CAMION branch + 8 two-parent upgrades, tube man + perk props, bling on the nozzle, living regulars + lot props, L'Écho newspaper + menu scrapbook + special edition, lore bible, art pass (people, cars, night UI), rebalance
-- [ ] Playtest v0.43: is the morning paper fun to read every day, or should it be skippable/shorter? Do the two-parent upgrades read? Does the tube man feel worth it? Does the night screen's new look work?
+- [x] Playtest v0.43 (playtest 8): paper not fun (removed); two-parent upgrades great; tube man fun
+- [x] Round 9 (v0.44.0): lore visitors instead of the paper, wheel clamps, French and English, Windows installer
+- [ ] Playtest v0.44: do the visitors' chats land (too often? too rare?); the clamps; play once in French; install on a Windows PC
 - [x] `[innovation]` **God-pump prototype: a giant nozzle pours from the sky onto cars driving around the lot** (#36, kept: this is the game now)
 - [x] `[art]` **Scene view for the god pump: isometric tried, three-quarter top-down kept; dépanneur, neon, regulars, vintage pump, tip jar** (#36, v0.32.0, kept)
 - [ ] `[art]` **HD-2D try: pixel art in a lit 3D scene (shadows, bloom, tilt-shift)** (#36, v0.33.0, awaiting playtest)

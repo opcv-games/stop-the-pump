@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-21 — Round 8, played  (#37)
+Hypothesis: A deeper tree, a living lot and a newspaper that tells the story make the loop worth many more runs.
+Variable: v0.43.0
+Sessions: 1 (self: 1)
+Observed: "The paper is not fun, it's too much info." "The two-parent upgrades are great." "Tube man feels very fun hahaha." Asked for: wheel clamps, a Windows installer, the game in French and English, and the lore brought by new characters who come to the gas station and chit-chat.
+Biggest weakness: the newspaper (an extra screen of reading every morning).
+Decision: REMOVED the paper; the lore drives in as visitors (v0.44.0). Kept the two-parent upgrades and the tube man.
+
 ## 2026-10-21 — Round 8 design session  (#37)
 Hypothesis: A deeper tree, a living lot and a newspaper that tells the story make the loop worth many more runs.
 Variable: round 8 (docs/ROUND_8_PLAN.md)

@@ -85,6 +85,17 @@ window.fetch = async (input, init) => {
 <script>
 const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":0,"index.wasm":0},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const engine = new Engine(GODOT_CONFIG);
+// French browsers get the card in French (the game itself follows the browser's language too).
+const FR = (navigator.language || "").toLowerCase().startsWith("fr");
+if (FR) {
+  document.documentElement.lang = "fr";
+  document.querySelector(".pitch").textContent = "Ton défunt père t'a laissé un gaz bar en ruine. Verse du gaz du ciel sur les chars de ton terrain, fais chaque plein au cent près, et paye le camion de gaz jusqu'au jour 50.";
+  document.getElementById("status").textContent = "Chargement du moteur (10 Mo)…";
+  document.querySelector(".keys").innerHTML = "<span><kbd>Souris</kbd> viser · maintenir pour verser</span><span><kbd>Échap</kbd> pause</span><span><kbd>I</kbd> changer de vue</span>";
+  document.querySelector(".by").textContent = "OPCV Games · meilleur avec une souris";
+}
+const T = FR ? { play: "Jouer", ready: "Prêt.", opening: "Ouverture du gaz bar…", loading: "Chargement du jeu…" }
+  : { play: "Play", ready: "Ready.", opening: "Opening the gaz bar…", loading: "Loading the game…" };
 const play = document.getElementById("play");
 const status = document.getElementById("status");
 const fill = document.getElementById("fill");
@@ -103,20 +114,20 @@ if (missing.length) {
   // Start downloading right away; the click only starts the game (browsers need a click for sound).
   const ready = engine.init("index").then(() => {
     play.disabled = false;
-    play.textContent = "Play";
-    status.textContent = "Ready.";
+    play.textContent = T.play;
+    status.textContent = T.ready;
     fill.style.width = "40%";
   }).catch((e) => fail("The engine didn't load: " + e));
 
   play.addEventListener("click", async () => {
     play.disabled = true;
-    play.textContent = "Opening the gaz bar…";
+    play.textContent = T.opening;
     await ready;
     try {
       await engine.startGame({
         onProgress: (current, total) => {
           if (total > 0) fill.style.width = (40 + 60 * current / total) + "%";
-          status.textContent = "Loading the game…";
+          status.textContent = T.loading;
         },
       });
       card.hidden = true;
