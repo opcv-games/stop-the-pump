@@ -4,7 +4,9 @@ extends Node2D
 ## with a pump instead of a hammer). Hold the mouse to pour; the stream lands on whatever is below.
 ## Cars flow along the road; some pull in and drive around until filled. Filled cars score on their
 ## overshoot, celebrate by tier, burst into coins that fly to your cash, and drive off. Gas on the
-## floor is wasted and pools in gold. 15-second rounds. Greybox, separate from the real game: it
+## floor is wasted and pools in gold. After playtest 1: a car leaves once 80% full, the tip grows toward
+## 100%, overflow spills, and the round lasts as long as its gas (the clock is only a safeguard).
+## Greybox, separate from the real game: it
 ## reuses ScoreTiers, ComboComponent and FuelEconomy so the rules stay the game's.
 ## Serves: Mastery (aim + stop on the dollar, several cars at once) and Comedy.
 
@@ -26,7 +28,13 @@ const TIER_COLORS := {
 const GAS := Color(0.98, 0.76, 0.18)
 
 @export var flow_rate := 4.0
-@export var round_seconds := 15.0
+## A safeguard: the round's gas is what really ends it.
+@export var round_seconds := 45.0
+## Gas the round starts with, in pump dollars.
+@export var tank_size := 150.0
+## Tip at 100% full; a top-off without spilling adds the bonus.
+@export var max_tip := 6.0
+@export var topoff_bonus := 2.0
 @export var customer_chance := 0.5
 @export var max_in_lot := 5
 @export var traffic_gap := Vector2(0.5, 1.4)
@@ -52,6 +60,8 @@ var shown_cash := 0.0
 var cars_spawned := 0
 var customers_arrived := 0
 var pouring := false
+var tank := 150.0
+var round_tips := 0.0
 
 var _aim := Vector2(WIDTH * 0.5, 380)
 var _nozzle := _aim
@@ -69,6 +79,7 @@ var _glug: AudioStreamPlayer
 
 func _ready() -> void:
 	rng.randomize()
+	tank = tank_size
 	add_child(combo)
 	_overlay = Node2D.new()
 	_overlay.z_index = 10
@@ -158,15 +169,23 @@ func _pour(dt: float) -> void:
 	var car := car_at(_aim)
 	if car != _stream_car:
 		if _stream_car:
-			_settle(_stream_car)  # the stream slid off: a full car settles now
+			_settle(_stream_car)  # the stream slid off: a car 80% full or more settles now
 		_stream_car = car
-	var dollars := flow_rate * dt
+	var dollars := minf(flow_rate * dt, tank)
+	tank -= dollars
 	round_poured += dollars
 	if car:
-		car.receive(dollars)
+		var overflow := car.receive(dollars)
+		if overflow > 0.0:  # the tank is full: it runs down the side of the car
+			round_wasted += overflow
+			_spill(car.position + Vector2(rng.randf_range(-24, 24), rng.randf_range(12, 22)), overflow)
 	else:
 		round_wasted += dollars
 		_spill(_aim, dollars)
+	if tank <= 0.0001:
+		tank = 0.0
+		end_round()  # out of gas
+		return
 	if rng.randf() < 0.6:
 		_bits.append({"pos": _aim, "vel": Vector2(rng.randf_range(-60, 60), rng.randf_range(-90, -30)),
 			"life": 0.35, "color": GAS, "size": 2.5})
@@ -182,6 +201,7 @@ func car_at(p: Vector2) -> ProtoCar:
 func spawn_road_car() -> ProtoCar:
 	var car := _new_car(Vector2(-60, ROAD_Y + rng.randf_range(-8, 8)))
 	car.customer = rng.randf() < customer_chance
+	car.pattern = ProtoCar.PATTERNS[rng.randi() % ProtoCar.PATTERNS.size()]
 	car.target = orders[rng.randi() % orders.size()]
 	cars_spawned += 1
 	return car
@@ -193,6 +213,8 @@ func park_customer(target: float, at: Vector2) -> ProtoCar:
 	car.customer = true
 	car.target = target
 	car.phase = ProtoCar.Phase.WANDER
+	car.pattern = ProtoCar.PATTERNS[rng.randi() % ProtoCar.PATTERNS.size()]
+	car.start_pattern(self)
 	return car
 
 
@@ -232,15 +254,28 @@ func separation(me: ProtoCar) -> Vector2:
 	return push
 
 
+## The tip grows from nothing at 80% to max_tip at 100% (squared, so the last few percent count most);
+## a top-off with (almost) no spill adds a bonus.
+func tip_for(fill: float, spilled: float) -> float:
+	if fill < ProtoCar.LEAVE_AT:
+		return 0.0
+	var k := clampf((fill - ProtoCar.LEAVE_AT) / (1.0 - ProtoCar.LEAVE_AT), 0.0, 1.0)
+	var tip := max_tip * k * k
+	if fill >= 0.995 and spilled <= 0.25:
+		tip += topoff_bonus
+	return tip
+
+
 func _settle(car: ProtoCar) -> void:
 	var t := car.stream_left()
 	if t == "":
 		return
 	combo.register(t)
-	var receipt := economy.settle(car.amount, car.target, t)
-	car.paid = receipt.earned
-	round_earned += receipt.earned
-	cash += receipt.earned
+	car.tip = tip_for(car.fill(), car.spilled)
+	car.paid = minf(car.amount, car.target) + car.tip
+	round_earned += car.paid
+	round_tips += car.tip
+	cash += car.paid
 	_burst(car, t)
 
 
@@ -253,6 +288,9 @@ func end_round() -> void:
 		_glug.stop()
 	round_over = true
 	for car in cars:
+		if car.customer and car.accepts_fuel() and car.fill() >= ProtoCar.LEAVE_AT:
+			_settle(car)  # 80% or more: settles as usual
+			continue
 		if car.customer and car.accepts_fuel():
 			var partial := minf(car.amount, car.target)  # they pay for what they got, no tip
 			round_earned += partial
@@ -269,6 +307,8 @@ func next_round() -> void:
 	round_earned = 0.0
 	round_wasted = 0.0
 	round_poured = 0.0
+	round_tips = 0.0
+	tank = tank_size
 	combo.reset()
 
 
@@ -299,9 +339,18 @@ func _burst(car: ProtoCar, t: String) -> void:
 			_bits.append({"pos": car.position, "vel": Vector2(rng.randf_range(-120, 120), rng.randf_range(-260, -80)),
 				"life": 0.7, "color": GAS, "size": 4.0})
 		_spill(car.position + Vector2(rng.randf_range(-20, 20), 20), 0.8)
-	_coin_spray(car.position, car.paid, COINS[t], Color(1.0, 0.82, 0.25) if t != ScoreTiers.MISS else Color(0.8, 0.8, 0.8))
-	_floaters.append({"text": t.to_upper() + "!", "pos": car.position + Vector2(0, -50), "life": 1.2, "color": col,
-		"size": 30 if t == ScoreTiers.SUPER_PERFECT else 22})
+	# Silver coins for the sale, gold ones for the tip: the tip is visibly the prize.
+	_coin_spray(car.position, car.paid - car.tip, 4, Color(0.82, 0.82, 0.86))
+	if car.tip >= 0.01:
+		_coin_spray(car.position, car.tip, COINS[t], Color(1.0, 0.82, 0.25))
+	# Say exactly what was achieved: how full, what grade, what the tip was.
+	var top := car.position + Vector2(0, -64)
+	_floaters.append({"text": "%d%%" % int(car.fill() * 100.0), "pos": top, "life": 1.4, "color": col, "size": 34})
+	_floaters.append({"text": ProtoCar.grade_name(t), "pos": top + Vector2(0, 26), "life": 1.4, "color": col,
+		"size": 24 if t == ScoreTiers.SUPER_PERFECT else 18})
+	if car.tip >= 0.01:
+		_floaters.append({"text": "+$%.2f TIP" % car.tip, "pos": top + Vector2(0, 48), "life": 1.4,
+			"color": Color(1.0, 0.85, 0.3), "size": 18})
 	_shake = maxf(_shake, 0.8 if t == ScoreTiers.SUPER_PERFECT else (0.6 if t == ScoreTiers.MISS else 0.2))
 	_play("sfx_" + t.to_lower().replace(" ", "_"))
 	_play("pop")
@@ -443,6 +492,12 @@ func _draw_hud(o: Node2D, font: Font) -> void:
 	var bar := Rect2((WIDTH - 300) * 0.5, 38, 300, 5)
 	o.draw_rect(bar, Color(0, 0, 0, 0.5))
 	o.draw_rect(Rect2(bar.position, Vector2(bar.size.x * left / round_seconds, bar.size.y)), Color(1.0, 0.8, 0.25))
+	# The round's gas: the real clock.
+	var gauge := Rect2(20, 52, 26, 200)
+	o.draw_rect(gauge, Color(0, 0, 0, 0.55))
+	var h := gauge.size.y * tank / tank_size
+	o.draw_rect(Rect2(gauge.position.x, gauge.end.y - h, gauge.size.x, h), GAS)
+	o.draw_string(font, Vector2(14, 272), "GAS $%.0f" % tank, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, GAS)
 	var combo_text := "x%d COMBO" % combo.multiplier
 	o.draw_string(font, Vector2(WIDTH - 150, 30), combo_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 1, 1, 0.9))
 	if round_wasted > 0.05:
@@ -450,7 +505,7 @@ func _draw_hud(o: Node2D, font: Font) -> void:
 	if round_over:
 		o.draw_rect(Rect2(0, 0, WIDTH, HEIGHT), Color(0, 0, 0, 0.55))
 		var lines := ["ROUND %d CLOSED" % round_num, "",
-			"Earned            $%.2f" % round_earned,
+			"Earned            $%.2f   (tips $%.2f)" % [round_earned, round_tips],
 			"Gas used        -$%.2f   (wasted $%.2f)" % [round_fuel_cost(), round_wasted],
 			"Net                 $%.2f" % (round_earned - round_fuel_cost()), "",
 			"ENTER  next round        ESC  quit"]

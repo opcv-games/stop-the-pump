@@ -1,54 +1,96 @@
 class_name ProtoCar
 extends Node2D
 ## A car in the god-pump prototype (#36), seen from above. It drives along the road; a customer turns
-## into the lot and drives around until it is filled to its order. You can only overfill: when the
-## stream leaves a car that reached its order, the overshoot picks the tier, the car plays that tier's
-## animation, pays, and drives away. Underfilled cars keep circling. Greybox: flat shapes only.
-## Serves: Mastery (a moving target) and Comedy (the car's reaction).
+## into the lot and moves in a readable pattern until it is at least 80% full. When the stream leaves
+## a car that is 80% full or more, it grades its fill, plays that grade's animation, pays (sale + a
+## tip that grows toward 100%) and drives away. Gas poured on a full car overflows onto the ground.
+## Patterns are learnable on purpose: spotting them is how you fill several cars in one sweep.
+## Serves: Mastery (moving targets, juggling) and Comedy (the car's reaction).
 
 enum Phase { ROAD, ENTERING, WANDER, CELEBRATE, LEAVING, GONE }
 
 const SIZE := Vector2(58, 30)
 const ROAD_SPEED := 230.0
-const LOT_SPEED := 62.0
-const TURN_RATE := 3.2
+const TURN_RATE := 3.4
 const CELEBRATE_SECONDS := 1.1
+## A car leaves once the stream moves off it at this share of its order or more.
+const LEAVE_AT := 0.8
+## Readable movement: circles the lot / drives back and forth along a row / parks, waits, moves on.
+const PATTERNS := ["loop", "shuttle", "park"]
+const PATTERN_SPEED := {"loop": 75.0, "shuttle": 95.0, "park": 110.0}
 
 var phase := Phase.ROAD
 var customer := false
 var target := 0.0
 var amount := 0.0
+var spilled := 0.0
 var tier := ""
 var paid := 0.0
+var tip := 0.0
 var heading := 0.0
-var wander := true
+var moving := true
+var pattern := "loop"
 var color := Color(0.45, 0.55, 0.7)
 var tiers: ScoreTiers
 var anim_t := 0.0
-var _goal := Vector2.ZERO
 var _route: Array[Vector2] = []
 var _fill_wobble := 0.0
 var _t := 0.0
+# Pattern state.
+var _centre := Vector2.ZERO
+var _radii := Vector2.ZERO
+var _theta := 0.0
+var _dir := 1.0
+var _ends: Array[Vector2] = []
+var _leg := 0
+var _wait := 0.0
+var _goal := Vector2.ZERO
 
 
-## Called while the stream is on this car.
-func receive(dollars: float) -> void:
-	amount += dollars
+## Fuel lands on this car. What doesn't fit overflows; the caller spills it on the ground.
+func receive(dollars: float) -> float:
+	var take := minf(dollars, maxf(target - amount, 0.0))
+	amount += take
 	_fill_wobble = 1.0
+	var overflow := dollars - take
+	spilled += overflow
+	return overflow
 
 
 func accepts_fuel() -> bool:
 	return phase == Phase.ENTERING or phase == Phase.WANDER
 
 
-## The stream moved off (or was released). Full cars settle and return their tier; others return "".
+func fill() -> float:
+	return clampf(amount / maxf(target, 0.01), 0.0, 1.0)
+
+
+## The stream moved off (or was released). From 80% full the car settles and returns its grade.
 func stream_left() -> String:
-	if not accepts_fuel() or amount < target - 0.0001:
+	if not accepts_fuel() or amount < target * LEAVE_AT - 0.0001:
 		return ""
-	tier = tiers.evaluate(amount, target)
+	var f := fill()
+	if f >= 0.995:
+		tier = ScoreTiers.SUPER_PERFECT if spilled <= 0.25 else ScoreTiers.PERFECT  # topped off / full
+	elif f >= 0.95:
+		tier = ScoreTiers.GOOD
+	else:
+		tier = ScoreTiers.OK
 	phase = Phase.CELEBRATE
 	anim_t = 0.0
 	return tier
+
+
+## What the grade says on screen.
+static func grade_name(t: String) -> String:
+	match t:
+		ScoreTiers.SUPER_PERFECT:
+			return "TOPPED OFF!"
+		ScoreTiers.PERFECT:
+			return "FULL"
+		ScoreTiers.GOOD:
+			return "ALMOST FULL"
+	return "GOOD ENOUGH"
 
 
 ## Sends the car off the lot (round over, or after its celebration).
@@ -57,8 +99,22 @@ func leave(game: GodPump) -> void:
 	_route = [game.EXIT, Vector2(game.EXIT.x + 60, game.ROAD_Y), Vector2(game.WIDTH + 120, game.ROAD_Y)]
 
 
-func fill_ratio() -> float:
-	return clampf(amount / maxf(target, 0.01), 0.0, 1.4)
+## Sets up this car's movement pattern around the lot.
+func start_pattern(game: GodPump) -> void:
+	var lot := game.LOT
+	match pattern:
+		"loop":
+			_centre = lot.get_center() + Vector2(game.rng.randf_range(-60, 60), game.rng.randf_range(-20, 20))
+			_radii = Vector2(game.rng.randf_range(230, 360), game.rng.randf_range(110, 150))
+			_dir = 1.0 if game.rng.randf() < 0.5 else -1.0
+			var rel := (position - _centre) / _radii
+			_theta = rel.angle()
+		"shuttle":
+			var y := game.rng.randf_range(lot.position.y + 80, lot.end.y - 60)
+			_ends = [Vector2(lot.position.x + 90, y), Vector2(lot.end.x - 90, y)]
+			_leg = 0 if position.x > lot.get_center().x else 1
+		"park":
+			_goal = game.random_lot_point()
 
 
 func step(dt: float, game: GodPump) -> void:
@@ -76,25 +132,44 @@ func step(dt: float, game: GodPump) -> void:
 		Phase.ENTERING:
 			if _drive_route(dt, 150.0):
 				phase = Phase.WANDER
-				_goal = game.random_lot_point()
+				start_pattern(game)
 		Phase.WANDER:
-			if wander:
-				_steer(_goal, dt, LOT_SPEED)
-				position += game.separation(self) * dt
-				if position.distance_to(_goal) < 30.0:
-					_goal = game.random_lot_point()
+			if moving:
+				_move_pattern(dt, game)
+				position += game.separation(self) * dt  # cars nudge apart instead of stacking
 		Phase.CELEBRATE:
 			anim_t += dt
 			if anim_t >= CELEBRATE_SECONDS:
 				leave(game)
 		Phase.LEAVING:
-			var sputter := 0.0
-			if tier == ScoreTiers.MISS:
-				sputter = sin(_t * 18.0) * 0.6  # a Miss coughs and zigzags off
-			heading += sputter * dt
 			if _drive_route(dt, 190.0):
 				phase = Phase.GONE
 	queue_redraw()
+
+
+func _move_pattern(dt: float, game: GodPump) -> void:
+	var speed: float = PATTERN_SPEED[pattern]
+	match pattern:
+		"loop":
+			_theta += _dir * speed / ((_radii.x + _radii.y) * 0.5) * dt
+			var ahead := _theta + _dir * 0.35
+			_steer(_centre + Vector2(cos(ahead), sin(ahead)) * _radii, dt, speed)
+		"shuttle":
+			if _wait > 0.0:
+				_wait -= dt
+				return
+			_steer(_ends[_leg], dt, speed)
+			if position.distance_to(_ends[_leg]) < 20.0:
+				_leg = 1 - _leg
+				_wait = 0.5
+		"park":
+			if _wait > 0.0:
+				_wait -= dt
+				return
+			_steer(_goal, dt, speed)
+			if position.distance_to(_goal) < 16.0:
+				_wait = game.rng.randf_range(1.8, 3.0)
+				_goal = game.random_lot_point()
 
 
 ## Follows _route; true when the last point is reached.
@@ -118,26 +193,23 @@ func _steer(goal: Vector2, dt: float, speed: float) -> void:
 func _draw() -> void:
 	var lift := 0.0
 	var spin := 0.0
-	var squash := Vector2.ONE * (1.0 + 0.16 * minf(fill_ratio(), 1.0))  # swells as it fills, like a piggy bank
+	var squash := Vector2.ONE * (1.0 + 0.16 * fill())  # swells as it fills, like a piggy bank
 	if _fill_wobble > 0.0:
 		squash += Vector2(1, -1) * sin(_t * 32.0) * 0.05 * _fill_wobble
 	if phase == Phase.CELEBRATE:
 		var k := anim_t / CELEBRATE_SECONDS
 		match tier:
 			ScoreTiers.SUPER_PERFECT:
-				lift = sin(k * PI) * 60.0
+				lift = sin(k * PI) * 70.0
 				spin = k * TAU
-				squash *= 1.0 + 0.25 * sin(k * PI)
+				squash *= 1.0 + 0.3 * sin(k * PI)
 			ScoreTiers.PERFECT:
-				lift = sin(k * PI) * 34.0
+				lift = sin(k * PI) * 40.0
 				spin = sin(k * PI) * PI * 0.5
 			ScoreTiers.GOOD:
-				lift = absf(sin(k * PI * 2.0)) * 14.0
-			ScoreTiers.OK:
+				lift = absf(sin(k * PI * 2.0)) * 16.0
+			_:
 				spin = sin(k * PI * 4.0) * 0.12
-			ScoreTiers.MISS:
-				squash *= Vector2(1.0 + 0.12 * sin(k * PI * 6.0), 1.0 - 0.12 * sin(k * PI * 6.0))
-	# Shadow stays on the ground; the body rises above it.
 	draw_set_transform(Vector2(0, 6), heading, squash * (1.0 - lift / 240.0))
 	draw_rect(Rect2(-SIZE * 0.5, SIZE), Color(0, 0, 0, 0.28))
 	draw_set_transform(Vector2(0, -lift), heading + spin, squash)
@@ -154,11 +226,12 @@ func _draw() -> void:
 		draw_rect(Rect2(w, Vector2(10, 4)), Color(0.08, 0.08, 0.08))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if customer and accepts_fuel():
-		_draw_order(lift)
+		_draw_meter(lift)
 
 
-## The order and the meter float above the roof, never rotated.
-func _draw_order(lift: float) -> void:
+## Order and fill meter above the roof: an 80% notch (it can leave from there), green once past it,
+## gold when full. Never rotated.
+func _draw_meter(lift: float) -> void:
 	var font := ThemeDB.fallback_font
 	var at := Vector2(0, -40 - lift)
 	var text := "$%.0f" % target
@@ -168,12 +241,17 @@ func _draw_order(lift: float) -> void:
 	tag.set_corner_radius_all(8)
 	draw_style_box(tag, Rect2(at - Vector2(w * 0.5, 12), Vector2(w, 22)))
 	draw_string(font, at + Vector2(-w * 0.5 + 7, 5), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
-	var bar := Rect2(at + Vector2(-26, 13), Vector2(52, 7))
+	var bar := Rect2(at + Vector2(-30, 13), Vector2(60, 8))
 	draw_rect(bar, Color(0.1, 0.09, 0.08, 0.9))
-	var r := minf(amount / target, 1.0)
-	var near := target - amount <= 1.0
-	draw_rect(Rect2(bar.position, Vector2(bar.size.x * r, bar.size.y)), Color(1.0, 0.8, 0.25) if near else Color(0.95, 0.6, 0.15))
+	var f := fill()
+	var col := Color(0.95, 0.55, 0.15)
+	if f >= 0.995:
+		col = Color(1.0, 0.85, 0.25)
+	elif f >= LEAVE_AT:
+		col = Color(0.4, 0.9, 0.45)
+	draw_rect(Rect2(bar.position, Vector2(bar.size.x * f, bar.size.y)), col)
+	draw_rect(Rect2(bar.position + Vector2(bar.size.x * LEAVE_AT - 1, -2), Vector2(2, bar.size.y + 4)), Color.WHITE)
 	if amount > 0.0:
-		var dollars := "$%.2f" % amount
-		var dw := font.get_string_size(dollars, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
-		draw_string(font, at + Vector2(-dw * 0.5, 34), dollars, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.85))
+		var pct := "%d%%" % int(f * 100.0)
+		var pw := font.get_string_size(pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+		draw_string(font, at + Vector2(-pw * 0.5, 36), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(col, 0.95))

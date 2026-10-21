@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-20 — God-pump prototype, first look  (#36)
+Hypothesis: Aiming a giant nozzle at cars driving around the lot is more fun than holding keys, and multi-car juggling deepens Mastery.
+Variable: hold keys per pump → aim and pour with the mouse (separate greybox scene)
+Sessions: 1 (self: 1, others: 0)
+Observed: "Aiming is much better." Juggling cars, and learning their movement to fuel many at once, is a big part of the fun; car types could move differently. But the tier animations don't make you want the next Super Perfect: it isn't clear what a Perfect achieved. With continuous flow and moving cars, exact-stop scoring fights the play (you pour car 1, then 3, then 11, then 5, then back to 3 and 1).
+Biggest weakness: scoring built for single exact stops.
+Decision: KEEP the god pump. Change: a car leaves once it's 80% full; tips grow toward 100% ("topped off" pays the most); overflow just spills as wasted gas; the round ends when the gas runs out (the clock is a safeguard); cars follow readable patterns.
+
 ## 2026-10-20 — v0.28–v0.29 Station tab and balance pass  (#33, #34)
 Hypothesis: Pumps on a station tab and a simulator-balanced economy make the run feel fair and readable.
 Variable: per-pump branches → station tab; economy → simulator pass
