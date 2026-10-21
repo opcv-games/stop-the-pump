@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-20 — God pump, round 6: HD-2D  (#36)
+Hypothesis: Pixel art in a lit 3D scene (HD-2D) gives the gaz bar the look it deserves.
+Variable: three-quarter pixel view → HD-2D (shadows, bloom, tilt-shift)
+Sessions: 1 (self: 1, others: 0)
+Observed: "The HD-2D art direction is good" (satellite photos of real Québec gas stations for reference). The tilt-shift is too strong. The regulars should applaud on Perfect too. Wants dust, cars both ways on the road, no $ on the gas pump dial, a rundown car, a tire pile, a garbage container, a darker patchy ground with grass and texture, a tree, and the lot surrounded.
+Then the brief for the overnight batch: nozzle upgrades (auto-aim, drone nozzles; drones are the automation, the auto-battler arc is dropped); marketing queues cars at opening; attractions bring cars (traffic light, car wash, mini grocery); many car types unlocked over time; permanent XP upgrades (nozzles, bling, procs, first-car, cheaper, refunds, luck); an end-of-day report; a Bills-style bill with a choose-one-of-three card (maybe through when you refill the tank, gas prices rising each refill, the clock limiting the day); about 50 runs to the ultimate, an ending where Dad drives in; the game titled GOD PUMP with a tongue-in-cheek intro. OK to retire the key-per-pump game.
+Decision: KEPT HD-2D. The overnight plan is docs/GOD_PUMP_PLAN.md.
+
 ## 2026-10-20 — God pump, round 5: three-quarter view, regulars, jar  (#36)
 Hypothesis: The three-quarter camera, the regulars, the pinball neon and the tip jar make the gaz bar alive and the payoff richer.
 Variable: isometric → three-quarter; cash counter → tip jar + bill pile; + regulars, neon flash, vintage pump, gauges

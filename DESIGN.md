@@ -1,7 +1,11 @@
-# Gas Bar Blues — Design Document
+# GOD PUMP — Design Document
+
+> **The game is now GOD PUMP** (2026-10-20). The overnight build plan, with the full design of the run, the
+> fuel-truck bill, cards, car types and Papa's Garage, is **docs/GOD_PUMP_PLAN.md**. Sections below that
+> describe the key-per-pump game are history.
 
 > **Current phase:** 5 — Vertical Slice
-> **Last updated:** 2026-10-19
+> **Last updated:** 2026-10-20
 > This file is the Committee's memory. Read it before every Godot or Blender action. Update it after every approved decision.
 
 ## 1. Pitch
@@ -202,3 +206,4 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-20 | The god pump is the main scene Godot runs; the key-per-pump game stays in scenes/greybox until its systems move over | Designer couldn't find the new version when pressing Play | #36 |
 | 2026-10-20 | God pump v0.32: a high-angle three-quarter camera (not isometric); cars get a roof funnel and a dial gauge; a real nozzle whose lever the hand squeezes to pour; a vintage pump (dial = the round's gas) with its hose to your hand; tips go to a jar and sales pile up as bills (no running counter); the regulars sit by the dépanneur and react in Québécois; the neon flashes like a pinball machine on Good or better; spills stay all round; a clock and an OUVERT/FERMÉ sign (7 h to 13 h, round length unchanged); music back | Designer's round-4 requests | God-pump round 4 (#36) |
 | 2026-10-20 | HD-2D try (default view; I cycles HD-2D, three-quarter pixel, flat): the same high three-quarter camera on a lit 3D scene built from the claude-pxl textures and sprites; cars as 16 stacked flat slices that catch light and cast shadows; a low warm sun, SSAO, emissive neon with bloom and a red light on the lot, tilt-shift depth of field, a vignette. Also: no tip when overfilled, the nozzle without the hand, no funnels, cash lies 3 s longer | "The three quarter angle is wonderful"; "not happy with the aesthetic, I would like to try HD-2D" | God-pump playtest 5 (#36) |
+| 2026-10-20 | Title GOD PUMP. The bill is the fuel truck (price +12% a delivery, a choice of 1 of 3 premium cards per delivery); the clock limits the day; a run ends bankrupt or on day 50 (Dad drives in); drone nozzles are the automation; car types unlock over time; XP buys nozzles, bling and perks; key-per-pump game retired | Designer's overnight brief | docs/GOD_PUMP_PLAN.md |
