@@ -85,7 +85,7 @@ func _draw() -> void:
 		GodUI.text(self, Vector2(12, 636), "OPCV Games", 14, Color(1, 1, 1, 0.5))
 		GodUI.text(self, Vector2(1140 - GodUI.font().get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x, 636), v, 14, Color(1, 1, 1, 0.5))
 		if meta.ending_seen:
-			GodUI.text(self, Vector2(576, 610), "Dad came home. ✓", 16, GodUI.GOLD, true, 4)
+			GodUI.text(self, Vector2(576, 610), "Dad came home!", 16, GodUI.GOLD, true, 4)
 		_draw_stats()
 		_draw_scrapbook()
 

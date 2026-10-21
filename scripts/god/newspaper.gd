@@ -25,7 +25,7 @@ const GOSSIP := [
 	[12, "The kid is getting good at this, says Bertrand. \"Better than his father.\" He then looked around, worried."],
 	[15, "Someone keeps leaving fresh trout on the dépanneur's doorstep. Nobody knows who."],
 	[18, "Me Tremblay declined to comment on \"certain matters regarding the late owner.\""],
-	[22, "Is the kid seeing anyone? Asking for my niece, Sylvie. She's very nice. — Mme G."],
+	[22, "Is the kid seeing anyone? Asking for my niece, Sylvie. She's very nice. - Mme G."],
 	[26, "Bertrand bought a new fishing rod and a bus ticket to Gaspésie. He won't say for whom."],
 	[30, "A sunburnt man in an orange hatchback was spotted at the Lac Saint-Jean rest stop. He tipped well."],
 	[35, "Ti-Guy is taking bets on \"the father's return.\" The odds are improving."],
@@ -149,7 +149,7 @@ static func _ads(run: RunState, meta: MetaState, r: RandomNumberGenerator) -> Ar
 		ads.append(options[r.randi() % options.size()])
 	var nxt := meta.next_unlock() if meta else {}
 	if not nxt.is_empty() and float(nxt.have) / nxt.need >= 0.7:
-		ads.append("WARNING TO DRIVERS: %s spotted on the 132. — Ti-Guy" % nxt.name)
+		ads.append("WARNING TO DRIVERS: %s spotted on the 132. - Ti-Guy" % nxt.name)
 	elif meta and meta.perk_tiers.get("tube_man", 0) == 0:
 		ads.append("WANTED: inflatable man, 20 ft, must dance. Inquire at Papa's Garage.")
 	elif run.day >= 15:

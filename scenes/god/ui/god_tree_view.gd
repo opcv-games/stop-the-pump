@@ -120,10 +120,10 @@ func tooltip(key: String) -> String:
 		if n.key == key:
 			var price := run.node_price(n.node)
 			if n.branch == "link" and n.state == 2:
-				var names: Array = n.node.needs.map(func(id: String) -> String: return ("✓ " if run.owns(id) else "✗ ") + GodData.shop_node(id).name)
+				var names: Array = n.node.needs.map(func(id: String) -> String: return GodData.shop_node(id).name + (" (owned)" if run.owns(id) else " (missing)"))
 				return "%s\n%s\n$%.0f  needs %s" % [n.node.name, n.node.helps, price, "  +  ".join(names)]
 			if _confirm == key:
-				return "%s\n⚠ You'd be left without enough for the truck.\nClick again to buy anyway." % n.node.name
+				return "%s\n!! You'd be left without enough for the truck.\nClick again to buy anyway." % n.node.name
 			var status := "OWNED" if n.state == 0 else ("$%.0f  %s" % [price, "click to buy" if run.cash >= price else "(not enough cash)"] if n.state == 1 else "$%.0f  buy the one before it first" % price)
 			return "%s\n%s\n%s" % [n.node.name, n.node.helps, status]
 	return ""

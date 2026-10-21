@@ -15,7 +15,7 @@ var _btn: Button
 func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	_btn = GodUI.button("THE NIGHT  →")
+	_btn = GodUI.button("THE NIGHT  »")
 	_btn.position = Vector2(466, 548)
 	_btn.pressed.connect(func() -> void: done.emit())
 	add_child(_btn)
@@ -26,7 +26,7 @@ func show_report(r: Dictionary, the_run: RunState, the_meta: MetaState) -> void:
 	run = the_run
 	meta = the_meta
 	_t = 0.0
-	_btn.text = "THE END  →" if run.won else "THE NIGHT  →"
+	_btn.text = "THE END  »" if run.won else "THE NIGHT  »"
 	visible = true
 	queue_redraw()
 

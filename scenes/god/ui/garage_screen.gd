@@ -20,7 +20,7 @@ var _bling := NozzleBling.new()
 func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	var play := GodUI.button("NEW RUN  →", Vector2(260, 48))
+	var play := GodUI.button("NEW RUN  »", Vector2(260, 48))
 	play.position = Vector2(868, 584)
 	play.pressed.connect(func() -> void: play_pressed.emit())
 	add_child(play)

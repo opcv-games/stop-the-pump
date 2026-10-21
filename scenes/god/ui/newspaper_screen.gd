@@ -105,7 +105,7 @@ func _draw_page() -> void:
 	GodUI.text_in(self, bold, Vector2(L + 10, gossip_box.position.y + 18), "LES POTINS DE MME GAGNON", 13, INK)
 	var gy := gossip_box.position.y + 36.0
 	for g in ed.gossip:
-		gy += GodUI.para_in(self, ital, Vector2(L + 10, gy), "• " + g, 13, left_w - 20, INK, 1.28) + 2.0
+		gy += GodUI.para_in(self, ital, Vector2(L + 10, gy), "· " + g, 13, left_w - 20, INK, 1.28) + 2.0
 	# Right column: the gas prices and the charts.
 	var rx := L + left_w + 20.0
 	var rw := R - rx
@@ -156,5 +156,5 @@ func _draw_postcard(pc: Dictionary, at: Vector2) -> void:
 	var bold := GodUI.serif(true)
 	GodUI.text_in(self, bold, Vector2(14, 160), "Greetings from %s!" % pc.from, 15, RED_INK)
 	GodUI.para_in(self, serif, Vector2(14, 180), pc.text, 13, 272, INK, 1.25)
-	GodUI.text_in(self, serif, Vector2(196, 228), "— un pêcheur", 13, INK)
+	GodUI.text_in(self, serif, Vector2(196, 228), "- un pêcheur", 13, INK)
 	draw_set_transform(Vector2.ZERO)

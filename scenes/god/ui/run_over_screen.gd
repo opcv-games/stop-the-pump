@@ -14,7 +14,7 @@ var _btn: Button
 func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	_btn = GodUI.button("PAPA'S GARAGE  →", Vector2(280, 48))
+	_btn = GodUI.button("PAPA'S GARAGE  »", Vector2(280, 48))
 	_btn.position = Vector2(436, 506)
 	_btn.pressed.connect(func() -> void: done.emit())
 	add_child(_btn)

@@ -3,7 +3,7 @@ extends Node
 ## GOD PUMP from title to credits (docs/GOD_PUMP_PLAN.md). Runs the flow between screens and owns the
 ## run and the meta; the day itself is GodPump (the lot, the cars, the God Pump), which this node
 ## starts each morning and listens to each evening.
-##   TITLE → (first time: INTRO → NAMING) → DAY → REPORT → NIGHT (shop, truck → TRUCK → CARDS) → DAY ...
+##   TITLE → (first time: INTRO → NAMING) → DAY → REPORT → NIGHT (shop, truck → TRUCK → CARDS) → PAPER → DAY ...
 ##   → bankrupt: RUN_OVER → GARAGE → new run   ·   day 50: REPORT → ENDING → RUN_OVER → GARAGE
 ## Designer keys: F1 opens the dev configurator (DevPanel), F3 ends the day, F4 gives $100, F6 gives
 ## 1000 XP.

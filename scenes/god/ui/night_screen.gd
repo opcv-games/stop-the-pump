@@ -25,7 +25,7 @@ func _init() -> void:
 	_truck_btn.position = Vector2(26, 476)
 	_truck_btn.pressed.connect(func() -> void: truck_called.emit())
 	add_child(_truck_btn)
-	_open_btn = GodUI.button("OPEN  →", Vector2(240, 48), 20)
+	_open_btn = GodUI.button("OPEN  »", Vector2(240, 48), 20)
 	_open_btn.position = Vector2(888, 586)
 	_open_btn.pressed.connect(func() -> void: open_pressed.emit())
 	add_child(_open_btn)
@@ -45,7 +45,7 @@ func refresh() -> void:
 	_truck_btn.disabled = cost <= 0.0 or run.cash < minf(cost, RunState.MIN_DELIVERY)
 	_truck_btn.text = "TANK FULL" if cost <= 0.0 else ("CALL THE TRUCK" if run.cash >= cost else "BUY $%.0f OF GAS" % run.cash)
 	_open_btn.disabled = run.tank < 1.0
-	_open_btn.text = "OPEN  ·  DAY %d  →" % (run.day + 1)
+	_open_btn.text = "OPEN  ·  DAY %d  »" % (run.day + 1)
 	queue_redraw()
 
 
@@ -80,7 +80,7 @@ func _draw() -> void:
 		var a := 0.75 + 0.25 * sin(_t * 6.0)
 		var band := Rect2(262, 84, 440, 32)
 		draw_style_box(GodUI.panel_box(Color(GodUI.RED, a), Color(0.25, 0.04, 0.03, 0.95), 8), band)
-		GodUI.text(self, band.get_center() + Vector2(0, 7), "⚠  THE TANK WON'T LAST TOMORROW: CALL THE TRUCK", 15, Color(1, 0.9, 0.8, a), true)
+		GodUI.text(self, band.get_center() + Vector2(0, 7), "!!  THE TANK WON'T LAST TOMORROW: CALL THE TRUCK  !!", 15, Color(1, 0.9, 0.8, a), true)
 		_truck_btn.modulate = Color(1, 1, 1).lerp(Color(1.4, 0.7, 0.6), 0.5 + 0.5 * sin(_t * 6.0))
 	else:
 		_truck_btn.modulate = Color.WHITE
@@ -116,7 +116,7 @@ func _draw_tank() -> void:
 	var days := run.days_of_gas()
 	var y := r.position.y + 196
 	GodUI.text(self, Vector2(r.get_center().x, y), "Gas: $%.0f / $%.0f" % [run.tank, cap], 16, GodUI.CREAM, true)
-	GodUI.text(self, Vector2(r.get_center().x, y + 22), "≈ %.1f day%s left" % [days, "s" if days >= 2.0 else ""], 16, GodUI.RED if days < 1.5 else GodUI.CREAM, true)
+	GodUI.text(self, Vector2(r.get_center().x, y + 22), "about %.1f day%s left" % [days, "s" if days >= 2.0 else ""], 16, GodUI.RED if days < 1.5 else GodUI.CREAM, true)
 	draw_line(Vector2(r.position.x + 24, y + 40), Vector2(r.end.x - 24, y + 40), Color(1, 1, 1, 0.1), 1.0)
 	GodUI.text(self, Vector2(r.get_center().x, y + 66), "Price: $%.2f / L" % run.price, 16, GodUI.CREAM, true)
 	GodUI.text(self, Vector2(r.get_center().x, y + 86), "+%d%% every delivery" % roundi(run.price_rise() * 100.0), 13, Color(GodUI.CREAM, 0.6), true)
