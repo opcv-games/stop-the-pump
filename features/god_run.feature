@@ -70,3 +70,19 @@ Feature: A GOD PUMP run  (#37, docs/GOD_PUMP_PLAN.md)
     Then every piece I own is a gold ring or bracelet on the nozzle's handle
     And every piece I've equipped shows on the nozzle as itself
     And the dangling ones (dice, pine, medal, rabbit's foot) swing when I move the nozzle
+
+  Scenario: L'Écho de Saint-Clin-Clin, the morning paper  (round 8)
+    Given a new day opens
+    Then the morning paper comes first, about yesterday: a headline and story from my day,
+      the gas price with charts (price per delivery, my cash per day), the weather,
+      Mme Gagnon's gossip (the town talks about the kid, and swears Dad isn't dead),
+      and classified ads for upgrades I don't have yet
+    And on days 10, 20, 30 and 40 a postcard arrives from "un pêcheur"
+
+  Scenario: The story so far, on the menu screen  (round 8)
+    Then the title screen shows my lifetime numbers
+    And a scrapbook: days survived run by run, the last headline, and Dad's postcards so far
+
+  Scenario: The run's last front page  (round 8)
+    When a run ends
+    Then a special edition tells it, with my cash day by day and the price per delivery

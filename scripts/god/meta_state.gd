@@ -21,6 +21,14 @@ var owned_bling: Array = []
 var perk_tiers := {}
 var nozzle := "classique"
 var equipped_bling: Array = []
+## Round 8, for the menu screen: lifetime numbers, the last runs, Dad's postcards (the days they came)
+## and the newspaper's last headlines.
+var lifetime := {}
+var history: Array = []  # {days, won, loot, deliveries, xp}, oldest first, the last 24 runs
+var postcards: Array = []
+var clippings: Array = []
+const LIFETIME_KEYS := ["days", "loot", "deliveries", "xp_earned", "supers", "perfects", "goods", "oks",
+	"overfilled", "unserved", "best_combo", "top_price"]
 
 
 static func load_from(p: String) -> MetaState:
@@ -44,6 +52,10 @@ static func load_from(p: String) -> MetaState:
 	m.perk_tiers = cfg.get_value("garage", "perks", {})
 	m.nozzle = cfg.get_value("garage", "nozzle", "classique")
 	m.equipped_bling = cfg.get_value("garage", "equipped_bling", [])
+	m.lifetime = cfg.get_value("story", "lifetime", {})
+	m.history = cfg.get_value("story", "history", [])
+	m.postcards = cfg.get_value("story", "postcards", [])
+	m.clippings = cfg.get_value("story", "clippings", [])
 	return m
 
 
@@ -64,7 +76,36 @@ func save() -> void:
 	cfg.set_value("garage", "perks", perk_tiers)
 	cfg.set_value("garage", "nozzle", nozzle)
 	cfg.set_value("garage", "equipped_bling", equipped_bling)
+	cfg.set_value("story", "lifetime", lifetime)
+	cfg.set_value("story", "history", history)
+	cfg.set_value("story", "postcards", postcards)
+	cfg.set_value("story", "clippings", clippings)
 	cfg.save(path)
+
+
+## A finished run goes into the lifetime numbers and the run history (RunState.finish).
+func bank_run(run: RunState) -> void:
+	var t: Dictionary = run.totals
+	var add := {"days": run.day, "loot": t.loot, "deliveries": run.deliveries, "xp_earned": run.xp,
+		"supers": t.supers, "perfects": t.perfects, "goods": t.goods, "oks": t.oks, "overfilled": t.misses,
+		"unserved": t.unserved}
+	for k in add:
+		lifetime[k] = lifetime.get(k, 0) + add[k]
+	lifetime["best_combo"] = maxi(lifetime.get("best_combo", 1), t.best_combo)
+	lifetime["top_price"] = maxf(lifetime.get("top_price", 0.0), run.price)
+	history.append({"days": run.day, "won": run.won, "loot": t.loot, "deliveries": run.deliveries, "xp": run.xp})
+	while history.size() > 24:
+		history.pop_front()
+
+
+## The morning paper went out: keep its headline, and a postcard if Dad sent one.
+func clip(headline: String, postcard_day := 0) -> void:
+	clippings.append(headline)
+	while clippings.size() > 6:
+		clippings.pop_front()
+	if postcard_day > 0 and not postcard_day in postcards:
+		postcards.append(postcard_day)
+	save()
 
 
 func bling_slots() -> int:

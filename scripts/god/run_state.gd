@@ -25,6 +25,10 @@ var xp := 0
 var totals := {"cars": 0, "loot": 0.0, "supers": 0, "perfects": 0, "goods": 0, "oks": 0, "misses": 0, "unserved": 0, "best_combo": 1}
 var over := false
 var won := false
+## Round 8, for the newspaper's charts: the wholesale price after each delivery (the first entry is
+## the starting price), and the cash at the end of each day.
+var price_history: Array = []
+var cash_history: Array = []
 ## The cards offered at the current delivery (empty when none is pending).
 var offer: Array = []
 var rerolls_left := 0
@@ -39,6 +43,7 @@ func _init(m: MetaState = null) -> void:
 	var mods := GodMods.compute(self)
 	cash = mods.start_cash
 	tank = mods.tank_capacity  # Dad's last delivery: the tank starts full
+	price_history = [price]
 
 
 func mods() -> Dictionary:
@@ -141,6 +146,7 @@ func call_truck() -> bool:
 		if share < 0.999:
 			rise *= mods().partial_rise_mult  # Citerne usagée: a partial delivery rises less
 		price *= 1.0 + rise
+	price_history.append(price)
 	rerolls_left = int(mods().rerolls)
 	offer = draw_cards(int(mods().cards_offered)) if share >= 0.5 else []
 	return true
@@ -244,6 +250,7 @@ func end_day(report: Dictionary) -> void:
 	totals.misses += t.get(ScoreTiers.MISS, 0)  # overfilled
 	totals.unserved += t.get(ScoreTiers.UNSERVED, 0)
 	totals.best_combo = maxi(totals.best_combo, report.get("best_combo", 1))
+	cash_history.append(cash)
 	if day >= GodData.FINAL_DAY:
 		won = true
 		over = true
@@ -262,4 +269,5 @@ func finish() -> void:
 	meta.best_day = maxi(meta.best_day, day)
 	if won:
 		meta.ending_seen = true
+	meta.bank_run(self)
 	meta.save()

@@ -29,6 +29,7 @@ var cards: CardPickScreen
 var run_over: RunOverScreen
 var garage: GarageScreen
 var truck_scene: TruckScene
+var paper: NewspaperScreen
 var _last_report := {}
 
 
@@ -57,7 +58,8 @@ func _ready() -> void:
 	garage = GarageScreen.new()
 	truck_scene = TruckScene.new()
 	truck_scene.sound_on = sound_on
-	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene]:
+	paper = NewspaperScreen.new()
+	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene, paper]:
 		s.visible = false
 		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # crisp pixel icons
 		ui.add_child(s)
@@ -70,6 +72,7 @@ func _ready() -> void:
 	report_screen.done.connect(_after_report)
 	night.truck_called.connect(call_truck)
 	truck_scene.finished.connect(_after_truck)
+	paper.done.connect(func() -> void: if state == "paper": start_day())
 	night.open_pressed.connect(open_next_day)
 	cards.picked.connect(func(_id: String) -> void: _show_night())
 	run_over.done.connect(show_garage)
@@ -82,7 +85,7 @@ func _ready() -> void:
 
 
 func _hide_all() -> void:
-	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene]:
+	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene, paper]:
 		s.visible = false
 
 
@@ -218,11 +221,21 @@ func _after_truck() -> void:
 	cards.show_offer(run)
 
 
+## OPEN: the next morning starts with L'Écho de Saint-Clin-Clin, about yesterday (round 8).
 func open_next_day() -> void:
 	if run.tank < 1.0:
 		return
 	run.next_day()
-	start_day()
+	show_paper()
+
+
+func show_paper() -> void:
+	var ed := Newspaper.edition(run, meta, _last_report)
+	meta.clip(ed.headline, ed.postcard.get("day", 0))
+	state = "paper"
+	_hide_all()
+	_hud(false)
+	paper.show_paper(ed)
 
 
 func _show_run_over() -> void:

@@ -15,7 +15,7 @@ func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_btn = GodUI.button("PAPA'S GARAGE  →", Vector2(280, 48))
-	_btn.position = Vector2(436, 560)
+	_btn.position = Vector2(436, 506)
 	_btn.pressed.connect(func() -> void: done.emit())
 	add_child(_btn)
 
@@ -39,31 +39,49 @@ func _unhandled_input(e: InputEvent) -> void:
 		done.emit()
 
 
+## The run's last front page (round 8): a SPECIAL EDITION of L'Écho. The headline (the gaz bar closes,
+## or Dad is back), the run's numbers, and two charts: your cash at closing day by day, and the price
+## per delivery. The button goes to Papa's Garage.
 func _draw() -> void:
 	if not run:
 		return
 	GodUI.dim(self, size, 0.8)
-	var title := "DAD IS BACK" if run.won else "BANKRUPT"
-	var col := GodUI.GOLD if run.won else GodUI.RED
-	GodUI.text(self, Vector2(576, 120), title, 64, col, true, 8)
-	var sub := "\"T'es un vrai gaz bar boy.\"" if run.won else "No gas, no money. The truck won't come."
-	GodUI.text(self, Vector2(576, 162), sub, 20, GodUI.CREAM, true)
-	var r := Rect2(336, 196, 480, 330)
-	draw_style_box(GodUI.panel_box(GodUI.GOLD_DIM), r)
+	var p := Rect2(196, 40, 760, 440)
+	draw_rect(Rect2(p.position + Vector2(8, 10), p.size), Color(0, 0, 0, 0.35))
+	draw_rect(p, NewspaperScreen.PAPER)
+	var ink := NewspaperScreen.INK
+	var red := NewspaperScreen.RED_INK
+	var serif := GodUI.serif()
+	var bold := GodUI.serif(true)
+	var ital := GodUI.serif(false, true)
+	var L := p.position.x + 20.0
+	var R := p.end.x - 20.0
+	var band := Rect2(L, p.position.y + 14, R - L, 22)
+	draw_rect(band, red)
+	GodUI.text_in(self, bold, band.get_center() + Vector2(0, 6), "SPECIAL EDITION", 14, NewspaperScreen.PAPER, true)
+	GodUI.text_in(self, bold, Vector2(p.get_center().x, p.position.y + 78), "L'ÉCHO DE SAINT-CLIN-CLIN", 34, ink, true)
+	draw_line(Vector2(L, p.position.y + 88), Vector2(R, p.position.y + 88), ink, 2.0)
+	var headline := "DAD IS BACK!" if run.won else "THE GAZ BAR CLOSES AFTER %d DAYS" % run.day
+	var sub := "\"T'es un vrai gaz bar boy,\" says the man in the orange hatchback." if run.won else "No gas, no money, and the truck won't come. \"He'll be back,\" says Bertrand."
+	var y := p.position.y + 130.0
+	y += GodUI.para_in(self, bold, Vector2(L, y), headline, 32, R - L, ink, 1.1)
+	y += GodUI.para_in(self, ital, Vector2(L, y), sub, 15, R - L, Color(ink, 0.85))
+	draw_line(Vector2(L, y - 6), Vector2(R, y - 6), Color(ink, 0.35), 1.0)
 	var t: Dictionary = run.totals
 	var rows := [
-		["Days survived", "%d / %d" % [run.day, GodData.FINAL_DAY]],
-		["Cars fueled", str(t.cars)],
-		["Super / Perfect / Good", "%d / %d / %d" % [t.supers, t.perfects, t.goods]],
-		["OK / Overfilled / Unserved", "%d / %d / %d" % [t.oks, t.misses, t.unserved]],
-		["Best combo", "x%d" % t.best_combo],
-		["Truck deliveries", str(run.deliveries)],
-		["XP earned", "+%d" % run.xp],
-		["XP in the garage", str(meta.xp) if meta else "0"],
+		["Days", "%d / %d" % [run.day, GodData.FINAL_DAY]], ["Cars fueled", str(t.cars)],
+		["Topped off · Perfect · Good", "%d · %d · %d" % [t.supers, t.perfects, t.goods]],
+		["OK · Overfilled · Unserved", "%d · %d · %d" % [t.oks, t.misses, t.unserved]],
+		["Best combo", "×%d" % t.best_combo], ["Truck deliveries", str(run.deliveries)],
+		["Loot", "$%d" % int(t.loot)], ["XP earned", "+%d  (garage: %d)" % [run.xp, meta.xp if meta else 0]],
 	]
-	var y := r.position.y + 42
+	var ry := y + 14.0
 	for row in rows:
-		GodUI.text(self, Vector2(r.position.x + 30, y), row[0], 19, GodUI.CREAM)
+		GodUI.text_in(self, serif, Vector2(L, ry), row[0], 14, ink)
 		var v: String = row[1]
-		GodUI.text(self, Vector2(r.end.x - 30 - GodUI.font().get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 20).x, y), v, 20, GodUI.GOLD)
-		y += 36
+		GodUI.text_in(self, bold, Vector2(L + 340 - bold.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x, ry), v, 14, ink)
+		ry += 24.0
+	var cx := L + 370.0
+	draw_line(Vector2(cx - 12, y + 2), Vector2(cx - 12, p.end.y - 16), Color(ink, 0.35), 1.0)
+	GodChart.line(self, Rect2(cx, y + 2, R - cx, 104), run.cash_history, "Your cash at closing, day by day", "$%d", ink, ink, serif)
+	GodChart.line(self, Rect2(cx, y + 118, R - cx, 104), run.price_history, "The price per delivery", "$%.2f", ink, red, serif)

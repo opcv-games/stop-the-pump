@@ -19,6 +19,72 @@ static func font() -> Font:
 	return ThemeDB.fallback_font
 
 
+static var _serifs := {}
+
+
+## The newspaper's type (round 8): a serif from the system (Georgia, Times...), the default font
+## where there's none (the web build).
+static func serif(bold := false, italic := false) -> Font:
+	var key := "%s%s" % [bold, italic]
+	if not _serifs.has(key):
+		var f := SystemFont.new()
+		f.font_names = PackedStringArray(["Georgia", "Times New Roman", "Liberation Serif", "DejaVu Serif", "serif"])
+		f.font_weight = 700 if bold else 400
+		f.font_italic = italic
+		f.fallbacks = [ThemeDB.fallback_font]
+		_serifs[key] = f
+	return _serifs[key]
+
+
+## Text in a given font (the newspaper's serifs), optionally centred.
+static func text_in(ci: CanvasItem, f: Font, at: Vector2, s: String, size: int, col: Color, centred := false) -> void:
+	var x := at.x - (f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x * 0.5 if centred else 0.0)
+	ci.draw_string(f, Vector2(x, at.y), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+
+
+## Word-wrapped text in a font, left-aligned in `width` from `at`. Returns the height used.
+static func para_in(ci: CanvasItem, f: Font, at: Vector2, s: String, size: int, width: float, col: Color, lead := 1.3) -> float:
+	var y := at.y
+	var line := ""
+	for w in s.split(" "):
+		var tryline := (line + " " + w).strip_edges()
+		if f.get_string_size(tryline, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width and line != "":
+			ci.draw_string(f, Vector2(at.x, y), line, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+			y += size * lead
+			line = w
+		else:
+			line = tryline
+	if line != "":
+		ci.draw_string(f, Vector2(at.x, y), line, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+		y += size * lead
+	return y - at.y
+
+
+static var _sepia := {}
+
+
+## A game sprite as a newspaper photo: sepia, a bit faded (round 8).
+static func sepia(name: String) -> Texture2D:
+	if _sepia.has(name):
+		return _sepia[name]
+	var tex: Texture2D = null
+	var path := "res://assets/art/pixel/out/sprites/%s.png" % name
+	if ResourceLoader.exists(path):
+		var img: Image = (load(path) as Texture2D).get_image()
+		if img:
+			img = img.duplicate()
+			img.decompress()
+			img.convert(Image.FORMAT_RGBA8)
+			for y in img.get_height():
+				for x in img.get_width():
+					var c := img.get_pixel(x, y)
+					var l := clampf(c.r * 0.3 + c.g * 0.59 + c.b * 0.11, 0.0, 1.0) * 0.85 + 0.08
+					img.set_pixel(x, y, Color(l * 1.0, l * 0.9, l * 0.74, c.a))
+			tex = ImageTexture.create_from_image(img)
+	_sepia[name] = tex
+	return tex
+
+
 static func panel_box(border := GOLD_DIM, fill := PANEL, radius := 10) -> StyleBoxFlat:
 	var b := StyleBoxFlat.new()
 	b.bg_color = fill
