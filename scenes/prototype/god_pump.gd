@@ -177,7 +177,7 @@ func _ready() -> void:
 			"nozzle_idle", "nozzle_squeeze", "pump_hud", "tip_jar", "gauge_face", "bench", "clock_face",
 			"sign_ouvert", "sign_ferme", "storefront", "dirt2", "grass_a", "grass_b", "grass_c", "oil_stain", "crack",
 			"hatch", "concrete", "tree", "tire_pile", "dumpster", "regular_0_clap", "regular_1_clap", "regular_2_clap",
-			"regular_3_clap", "badge_thief", "badge_electric", "badge_sweeper", "badge_clumsy", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
+			"regular_3_clap", "drone_0", "drone_1", "badge_thief", "badge_electric", "badge_sweeper", "badge_clumsy", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
 			"regular_1_cheer", "regular_2_cheer", "regular_3_cheer"]:
 		var path := PIXEL % id
 		if ResourceLoader.exists(path):
@@ -1121,6 +1121,7 @@ func _draw_overlay() -> void:
 			if car.customer and car.accepts_fuel():
 				car.draw_meter_at(o, car_top(car) + Vector2(0, -46))
 	_draw_badges(o)
+	_draw_drones(o)
 	draw_shadow_ring(o)
 	_draw_pump(o, tip)
 	if pouring:
@@ -1150,6 +1151,26 @@ func _draw_overlay() -> void:
 		o.draw_string_outline(font, f.pos - Vector2(w * 0.5, 0), f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, 6, Color(0, 0, 0, 0.8))
 		o.draw_string(font, f.pos - Vector2(w * 0.5, 0), f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, Color(f.color, clampf(f.life * 2.0, 0.0, 1.0)))
 	_draw_hud(o, font)
+
+
+## Drone nozzles hover over the lot with a shadow beneath; when one pours, a thin gold stream.
+func _draw_drones(o: Node2D) -> void:
+	for i in drones.size():
+		var d: Dictionary = drones[i]
+		var ground := scr(d.pos)
+		var air := ground + Vector2(46, -118 + sin(_t * 3.0 + i) * 4.0)  # beside and above the gauge
+		o.draw_set_transform(ground, 0.0, Vector2(1.0, 0.4))
+		o.draw_circle(Vector2.ZERO, 14.0, Color(0, 0, 0, 0.25))
+		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if d.state == "pouring" and d.car and is_instance_valid(d.car):
+			var land: Vector2 = car_top(d.car) if view != "flat" else d.car.position
+			o.draw_line(air + Vector2(0, 26), land, GAS, 3.0, true)
+			o.draw_circle(land, 4.0 + sin(_t * 25.0), Color(GAS, 0.6))
+		var tex: Texture2D = _tex.get("drone_%d" % (int(_t * 20.0) % 2))
+		if tex:
+			o.draw_set_transform(air, 0.0, Vector2(2, 2))
+			o.draw_texture(tex, -tex.get_size() * 0.5)
+			o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## Troublemakers wear a badge (a mask, a lightning bolt, a broom, dizzy stars); Dad wears his name.

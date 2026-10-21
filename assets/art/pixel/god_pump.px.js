@@ -352,3 +352,13 @@ sprite("badge_thief", { w: 14, h: 10, outline: "k" }, rect(0, 2, 14, 5, "{"), re
 sprite("badge_electric", { w: 10, h: 14, outline: "k" }, poly([6, 0, 1, 8, 5, 8, 3, 13, 9, 5, 5, 5], "y"))
 sprite("badge_sweeper", { w: 12, h: 14, outline: "k" }, rect(5, 0, 2, 9, "n"), poly([1, 9, 11, 9, 12, 13, 0, 13], "<"))
 sprite("badge_clumsy", { w: 14, h: 10, outline: "k" }, circ(3, 5, 2, "y"), circ(10, 3, 2, "y"), px(7, 8, "y"))
+
+// Drone nozzle (#37): a little quadcopter carrying a mini red nozzle. Two frames: rotors spinning.
+function droneSprite(name, blur) {
+  sprite(name, { w: 24, h: 14, outline: "k" },
+    rect(8, 4, 8, 5, "e"), rect(8, 4, 8, 2, "f"), rect(10, 9, 4, 2, "m"), rect(11, 11, 2, 3, "K"),   // body, nozzle
+    hline(1, 3, 7, "m"), hline(16, 3, 7, "m"),
+    ...(blur ? [ellipse(4, 2, 4, 1, "W"), ellipse(19, 2, 4, 1, "W")] : [hline(1, 2, 7, "K"), hline(16, 2, 7, "K")]))
+}
+droneSprite("drone_0", false)
+droneSprite("drone_1", true)
