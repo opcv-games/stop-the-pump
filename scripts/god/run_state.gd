@@ -17,6 +17,7 @@ var tank := 800.0
 var price := GodData.WHOLESALE_START  # wholesale, per litre
 var deliveries := 0
 var owned := {}  # branch id -> nodes bought
+var links: Array = []  # the two-parent upgrades bought (GodData.LINKS ids)
 var cards: Array = []
 var price_frozen := false
 var next_delivery_extra := 0.0
@@ -60,6 +61,40 @@ func node_price(node: Dictionary) -> float:
 	return roundf(node.price * (1.0 - mods().upgrade_discount))
 
 
+## Do I own this shop upgrade (a branch node or a link)?
+func owns(node_id: String) -> bool:
+	if node_id in links:
+		return true
+	for b in GodData.BRANCHES:
+		var level: int = owned.get(b.id, 0)
+		for i in level:
+			if b.nodes[i].id == node_id:
+				return true
+	return false
+
+
+## A link can be bought once both of its parents are owned.
+func link_open(id: String) -> bool:
+	var l := GodData.link(id)
+	if l.is_empty() or id in links:
+		return false
+	for need in l.needs:
+		if not owns(need):
+			return false
+	return true
+
+
+func buy_link(id: String) -> bool:
+	if not link_open(id):
+		return false
+	var p := node_price(GodData.link(id))
+	if cash < p:
+		return false
+	cash -= p
+	links.append(id)
+	return true
+
+
 func buy(branch_id: String) -> bool:
 	var node := next_node(branch_id)
 	if node.is_empty():
@@ -78,8 +113,11 @@ func buy(branch_id: String) -> bool:
 func delivery_cost() -> float:
 	var missing := maxf(tank_capacity() - tank, 0.0)
 	var cost := missing / GodData.PUMP_PRICE * price
+	var m := mods()
 	if deliveries == 0:
-		cost *= 1.0 - mods().first_delivery_discount
+		cost *= 1.0 - m.first_delivery_discount
+	if tank < tank_capacity() * 0.25:
+		cost *= 1.0 - m.bulk_discount  # Achat en vrac: stretch the tank, buy in bulk
 	return roundf(cost * (1.0 + next_delivery_extra))
 
 
@@ -93,12 +131,16 @@ func call_truck() -> bool:
 	var share := pay / cost
 	cash -= pay
 	tank = tank_capacity() if share >= 0.999 else tank + (tank_capacity() - tank) * share
+	var frozen := next_delivery_frozen()
 	deliveries += 1
 	next_delivery_extra = 0.0
 	if price_frozen:
 		price_frozen = false
-	else:
-		price *= 1.0 + price_rise()
+	elif not frozen:
+		var rise := price_rise()
+		if share < 0.999:
+			rise *= mods().partial_rise_mult  # Citerne usagée: a partial delivery rises less
+		price *= 1.0 + rise
 	rerolls_left = int(mods().rerolls)
 	offer = draw_cards(int(mods().cards_offered)) if share >= 0.5 else []
 	return true
@@ -108,6 +150,12 @@ func call_truck() -> bool:
 ## devil doubles it).
 func price_rise() -> float:
 	return GodData.PRICE_RISE * mods().price_rise_mult * (2.0 if "devil" in cards else 1.0)
+
+
+## The next delivery won't raise the price: a Gel des prix card, or the forward contract's turn.
+func next_delivery_frozen() -> bool:
+	var every := int(mods().freeze_every)
+	return price_frozen or (every > 0 and (deliveries + 1) % every == 0)
 
 
 ## Out of gas and can't afford even a small delivery: the run is over.

@@ -199,3 +199,69 @@ func test_the_day_report_and_the_signal() -> void:
 	for key in ["loot", "tank_left", "xp", "cars", "tiers", "accuracy", "best_combo"]:
 		assert_true(r.has(key), key)
 	assert_eq(r.cars, 1)
+
+
+# --- Round 8: the new upgrades in the day (features/god_shop.feature) --------------------------
+
+## Fills a parked car to 99.6% and settles it; returns what it paid.
+func _fill(car: ProtoCar) -> float:
+	car.amount = car.target * 0.996
+	game._settle(car)
+	return car.paid
+
+
+func test_a_car_that_waited_buys_a_coffee() -> void:
+	_open({"coffee_sale": 1.0})
+	var quick := _parked("sedan", Vector2(400, 380))
+	var slow := _parked("sedan", Vector2(600, 380))
+	slow.waited = 4.0
+	var a := _fill(quick)
+	var b := _fill(slow)
+	assert_almost_eq(b - quick.tip, a - quick.tip + 1.0, 0.01 + absf(slow.tip - quick.tip))
+
+
+func test_every_fifth_car_is_a_regular_who_tips_double() -> void:
+	_open({"loyalty_every": 5})
+	var tips := []
+	for i in 5:
+		var car := _parked("sedan", Vector2(300 + i * 90, 380))
+		_fill(car)
+		tips.append(car.tip)
+	assert_almost_eq(tips[4], tips[0] * 2.0, 0.01)
+
+
+func test_night_neons_raise_tips_after_19h() -> void:
+	game.start_day(_mods({"night_tip_mult": 1.3, "close_hour": 23.0}), 800.0, 1, ["sedan"])
+	var early := _parked("sedan", Vector2(400, 380))
+	_fill(early)
+	game.round_t = game.round_seconds * 0.8  # 7 h + 16 h * 0.8 = 19.8 h
+	var late := _parked("sedan", Vector2(600, 380))
+	_fill(late)
+	assert_almost_eq(late.tip, early.tip * 1.3, 0.01)
+
+
+func test_the_drone_hangar_pays_for_drone_fills() -> void:
+	_open({"drone_bonus": 2.0})
+	var a := _parked("sedan", Vector2(400, 380))
+	var b := _parked("sedan", Vector2(600, 380))
+	b.by_drone = true
+	_fill(a)
+	_fill(b)
+	assert_almost_eq(b.paid - b.tip, a.paid - a.tip + 2.0, 0.01)
+
+
+func test_hockey_night_brings_the_town() -> void:
+	game.start_day(_mods({"hockey_every": 7}), 800.0, 7, ["sedan"])
+	assert_true(game.hockey_night)
+	var waiting := game.cars.filter(func(c: ProtoCar) -> bool: return c.customer and c.accepts_fuel())
+	assert_eq(waiting.size(), 3)
+	assert_true(game.day_report().hockey)
+	game.start_day(_mods({"hockey_every": 7}), 800.0, 8, ["sedan"])
+	assert_false(game.hockey_night)
+
+
+func test_the_tank_alarm_speaks_when_gas_runs_low() -> void:
+	_open({"tank_alarm": 1})
+	game.tank = GodPump.LOW_GAS - 1.0
+	game.step(0.1)
+	assert_true(game._alarm_said)

@@ -96,3 +96,22 @@ I("contract", ...paper("K"), line(6, 13, 12, 11, "b"), poly([11, 1, 15, 5, 13, 7
 I("premium", rect(4, 3, 8, 12, "r"), rect(5, 5, 6, 4, "w"), text(8, 5, "S", "r", { align: "c" }), rect(12, 5, 2, 6, "K"), rect(6, 1, 4, 2, "K"))
 I("head_start", ...drone("g"), poly([12, 1, 15, 3, 12, 5], "y"))
 I("nest_egg", poly([5, 2, 11, 2, 11, 9, 14, 12, 12, 15, 5, 15, 5, 9], "r"), hline(5, 4, 6, "w"), text(8, 9, "$", "y", { align: "c" }))
+
+// --- Round 8: the CAMION branch, the upgrades with two parents, the tube man ------------------------
+I("tank_gauge", circ(7, 9, 6, "w"), ring(7, 9, 6, "K"), line(7, 9, 3, 6, "r"), px(7, 9, "k"), circ(13, 3, 2, "r"), px(12, 2, "y"))
+I("bulk", rect(1, 5, 6, 10, "r"), rect(9, 5, 6, 10, "r"), hline(1, 8, 6, "R"), hline(1, 12, 6, "R"), hline(9, 8, 6, "R"), hline(9, 12, 6, "R"),
+  ellipse(4, 5, 3, 1, "R"), ellipse(12, 5, 3, 1, "R"), text(8, 0, "%", "y", { align: "c" }))
+I("used_tanker", capsule(4, 8, 3, 9, 8, 3, "Mm"), rect(11, 5, 4, 6, "r"), rect(12, 6, 2, 2, "c"), rect(1, 11, 14, 1, "K"),
+  circ(4, 13, 1, "k"), circ(11, 13, 1, "k"), px(5, 7, "o"), px(8, 9, "o"), px(3, 9, "S"))
+I("drive_thru", rect(1, 2, 14, 10, "W"), rect(2, 3, 12, 6, "c"), rect(2, 9, 12, 2, "n"), rect(6, 9, 4, 5, "w"), rect(6, 9, 4, 1, "N"), px(10, 11, "w"), px(11, 11, "w"))
+I("hockey", line(3, 1, 9, 12, "n", 2), poly([8, 11, 15, 11, 15, 14, 8, 14], "n"), ellipse(4, 13, 3, 1, "k"), px(3, 12, "K"))
+I("loyalty", rect(1, 3, 14, 10, "w"), rect(1, 3, 14, 3, "b"), circ(4, 9, 1, "k"), circ(8, 9, 1, "k"), circ(12, 9, 1, "W"), text(12, 3, "5", "y", { align: "c" }))
+I("night_neons", rect(1, 1, 14, 14, "N"), ring(8, 8, 5, "p"), poly([4, 7, 9, 7, 9, 4, 13, 8, 9, 12, 9, 9, 4, 9], "r"), px(2, 2, "y"), px(13, 3, "w"))
+I("drone_hangar", poly([1, 15, 1, 8, 4, 4, 8, 2, 12, 4, 15, 8, 15, 15], "M"), poly([3, 15, 3, 9, 5, 6, 8, 5, 11, 6, 13, 9, 13, 15], "k"),
+  rect(6, 10, 4, 3, "r"), hline(4, 9, 3, "m"), hline(9, 9, 3, "m"))
+I("chip_truck", rect(1, 6, 13, 7, "w"), rect(1, 6, 13, 2, "r"), rect(4, 8, 5, 3, "c"), rect(10, 9, 3, 4, "W"), circ(4, 13, 1, "k"), circ(11, 13, 1, "k"),
+  poly([5, 5, 9, 5, 8, 1, 6, 1], "r"), vline(6, 0, 2, "y"), vline(8, 0, 2, "y"), px(7, 0, "y"))
+I("price_board", rect(3, 0, 10, 11, "M"), rect(4, 1, 8, 4, "k"), text(8, 1, "1", "r", { align: "c" }), rect(4, 6, 8, 4, "k"), text(8, 6, "9", "r", { align: "c" }), vline(7, 11, 5, "m"), vline(8, 11, 5, "M"))
+I("forward_contract", ...paper("K"), rect(8, 8, 7, 6, "y"), ring(11, 7, 2, "M"), rect(10, 10, 2, 2, "k"))
+I("tube_man", curve([7, 15, 8, 11, 6, 8, 8, 5], "o", { width: 3 }), circ(8, 4, 2, "o"), px(7, 4, "k"), px(9, 4, "k"),
+  curve([7, 8, 3, 5, 1, 1], "r", { width: 2 }), curve([8, 7, 12, 6, 15, 2], "r", { width: 2 }), rect(5, 14, 6, 2, "M"))

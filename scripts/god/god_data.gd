@@ -15,6 +15,10 @@ const FX_OPS := {
 	"combo_lock": "max", "overfill_saves": "add", "refund_every": "max", "upgrade_discount": "add",
 	"jackpot_chance": "add", "first_delivery_discount": "add", "cards_offered": "add", "rerolls": "add",
 	"bling_slots": "add", "price_rise_mult": "mul", "sale_mult": "mul",
+	# round 8: the CAMION branch and the upgrades with two parents
+	"tank_alarm": "max", "bulk_discount": "add", "partial_rise_mult": "mul", "freeze_every": "max",
+	"coffee_sale": "add", "hockey_every": "max", "loyalty_every": "max", "night_tip_mult": "mul",
+	"drone_bonus": "add",
 }
 
 ## The defaults a day runs on before anything is bought.
@@ -26,6 +30,8 @@ const BASE := {
 	"golden_chance": 0.0, "recycle": 0, "first_car_tip_mult": 1.0, "combo_lock": 0, "overfill_saves": 0,
 	"refund_every": 0, "upgrade_discount": 0.0, "jackpot_chance": 0.0, "first_delivery_discount": 0.0,
 	"cards_offered": 3, "rerolls": 0, "bling_slots": 1, "price_rise_mult": 1.0, "sale_mult": 1.0,
+	"tank_alarm": 0, "bulk_discount": 0.0, "partial_rise_mult": 1.0, "freeze_every": 0, "coffee_sale": 0.0,
+	"hockey_every": 0, "loyalty_every": 0, "night_tip_mult": 1.0, "drone_bonus": 0.0,
 }
 
 # --- The night shop (cash, always available) ----------------------------------------------------
@@ -70,6 +76,25 @@ const BRANCHES := [
 		{"id": "tank_2", "name": "Gros réservoir II", "helps": "$200 more", "price": 240.0, "fx": {"tank_capacity": 200.0}},
 		{"id": "tank_3", "name": "Gros réservoir III", "helps": "$300 more", "price": 400.0, "fx": {"tank_capacity": 300.0}},
 	]},
+	# Round 8: the truck itself. Plays on the tension between refuelling early (cards) and late (price).
+	{"id": "truck", "name": "CAMION", "nodes": [
+		{"id": "tank_gauge", "name": "Jauge d'alarme", "helps": "know to the hour how long the tank lasts, and get warned in the day", "price": 40.0, "fx": {"tank_alarm": 1}},
+		{"id": "bulk", "name": "Achat en vrac", "helps": "a delivery costs 10% less when the tank is under 25%", "price": 150.0, "fx": {"bulk_discount": 0.10}},
+		{"id": "used_tanker", "name": "Citerne usagée", "helps": "a partial delivery raises the price half as much", "price": 220.0, "fx": {"partial_rise_mult": 0.5}},
+	]},
+]
+
+# --- Upgrades with two parents (round 8): each sits between two branches and unlocks once you own
+# both of the upgrades it names in `needs`. The tree view places them (GodTreeView.LINK_CELLS).
+const LINKS := [
+	{"id": "drive_thru", "name": "Fenêtre au volant", "helps": "a car that waited over 3 s buys a coffee: +$1", "price": 150.0, "needs": ["coffee", "thermos"], "fx": {"coffee_sale": 1.0}},
+	{"id": "hockey", "name": "Soirée du hockey", "helps": "every 7th day is hockey night: 3 more cars waiting, more cars pull in", "price": 200.0, "needs": ["mom_lunch", "radio"], "fx": {"hockey_every": 7}},
+	{"id": "loyalty", "name": "Carte fidélité", "helps": "every 5th car is a regular who tips double", "price": 180.0, "needs": ["radio_ad", "tip_sign"], "fx": {"loyalty_every": 5}},
+	{"id": "night_neons", "name": "Néons de nuit", "helps": "tips +30% after 19 h", "price": 320.0, "needs": ["permit", "jukebox"], "fx": {"night_tip_mult": 1.3}},
+	{"id": "drone_hangar", "name": "Hangar à drones", "helps": "a drone fill earns $2 more", "price": 300.0, "needs": ["drone_1", "car_wash"], "fx": {"drone_bonus": 2.0}},
+	{"id": "chip_truck", "name": "Cantine à patates", "helps": "a chip truck on the lot: cars wait 20% longer, every applause +$2", "price": 260.0, "needs": ["grocery", "bench"], "fx": {"patience_mult": 1.2, "applause_bonus": 2.0}},
+	{"id": "price_board", "name": "Prix affiché", "helps": "a big price sign by the road: every sale pays 5% more", "price": 280.0, "needs": ["billboard", "tank_1"], "fx": {"sale_mult": 1.05}},
+	{"id": "forward_contract", "name": "Contrat à terme", "helps": "every third delivery comes without a price rise", "price": 380.0, "needs": ["tank_2", "billboard"], "fx": {"freeze_every": 3}},
 ]
 
 # --- Fuel-truck cards: choose 1 of 3 per delivery (luck raises the rarity) ----------------------
@@ -162,6 +187,22 @@ static func branch(id: String) -> Dictionary:
 		if b.id == id:
 			return b
 	return {}
+
+
+static func link(id: String) -> Dictionary:
+	for l in LINKS:
+		if l.id == id:
+			return l
+	return {}
+
+
+## Any shop upgrade by id (a branch node or a link), or {}.
+static func shop_node(id: String) -> Dictionary:
+	for b in BRANCHES:
+		for n in b.nodes:
+			if n.id == id:
+				return n
+	return link(id)
 
 
 static func card(id: String) -> Dictionary:

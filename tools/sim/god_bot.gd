@@ -11,7 +11,7 @@ extends SceneTree
 const DT := 0.05
 const AIM_SPEED := 900.0  # px/s the "mouse" moves
 const REACT := 0.25  # seconds between letting go and moving on
-const PRIORITY := ["hours", "marketing", "nozzle", "attractions", "service", "tank", "vibe"]
+const PRIORITY := ["hours", "marketing", "nozzle", "attractions", "service", "tank", "vibe", "truck"]
 
 var runs := 20
 var level := "fresh"
@@ -217,8 +217,12 @@ func _night(run: RunState, last_gas: float) -> void:
 			if p < cheapest_p:
 				cheapest_p = p
 				cheapest = b
+		for l in GodData.LINKS:  # the upgrades with two parents, once both are owned
+			if run.link_open(l.id) and run.node_price(l) < cheapest_p:
+				cheapest_p = run.node_price(l)
+				cheapest = "link:" + l.id
 		if cheapest != "" and run.cash - cheapest_p >= reserve:
-			bought = run.buy(cheapest)
+			bought = run.buy_link(cheapest.substr(5)) if cheapest.begins_with("link:") else run.buy(cheapest)
 
 
 func _best_card(run: RunState) -> String:

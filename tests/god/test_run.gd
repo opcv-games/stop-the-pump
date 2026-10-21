@@ -219,3 +219,65 @@ func test_premium_gas_makes_sales_pay_more() -> void:
 	var r := _run()
 	r.meta.perk_tiers = {"premium": 3}
 	assert_almost_eq(r.mods().sale_mult, 1.331, 0.001)
+
+
+# --- Round 8: the CAMION branch and the upgrades with two parents ------------------------------
+
+func test_a_link_needs_both_of_its_parents() -> void:
+	var r := _run()
+	r.cash = 5000.0
+	assert_false(r.link_open("drive_thru"))
+	assert_false(r.buy_link("drive_thru"))
+	while r.owned.get("service", 0) < 3:
+		assert_true(r.buy("service"))  # ...up to Café pour la file
+	assert_false(r.link_open("drive_thru"), "one parent isn't enough")
+	assert_true(r.buy("hours"))  # Thermos de café
+	assert_true(r.owns("coffee") and r.owns("thermos"))
+	assert_true(r.link_open("drive_thru"))
+	var before := r.cash
+	assert_true(r.buy_link("drive_thru"))
+	assert_eq(r.cash, before - GodData.link("drive_thru").price)
+	assert_eq(r.mods().coffee_sale, 1.0)
+	assert_false(r.buy_link("drive_thru"), "only once")
+
+
+func test_every_link_names_two_real_parents() -> void:
+	for l in GodData.LINKS:
+		assert_eq(l.needs.size(), 2, l.id)
+		for need in l.needs:
+			assert_false(GodData.shop_node(need).is_empty(), "%s needs %s" % [l.id, need])
+
+
+func test_bulk_buying_when_the_tank_is_low() -> void:
+	var r := _run()
+	r.tank = r.tank_capacity() * 0.2
+	var plain := r.delivery_cost()
+	r.owned["truck"] = 2  # Jauge d'alarme, Achat en vrac
+	assert_almost_eq(r.delivery_cost(), roundf(plain * 0.9), 1.0)
+	r.tank = r.tank_capacity() * 0.5
+	var half := r.delivery_cost()
+	r.owned["truck"] = 0
+	assert_eq(r.delivery_cost(), half, "no discount above 25%")
+
+
+func test_the_used_tanker_halves_a_partial_deliverys_rise() -> void:
+	var r := _run()
+	r.owned["truck"] = 3
+	r.tank = 0.0
+	r.cash = r.delivery_cost() * 0.6
+	var p := r.price
+	assert_true(r.call_truck())
+	assert_almost_eq(r.price, p * (1.0 + GodData.PRICE_RISE * 0.5), 0.0001)
+
+
+func test_the_forward_contract_freezes_every_third_delivery() -> void:
+	var r := _run()
+	r.links = ["forward_contract"]
+	r.cash = 100000.0
+	var prices := []
+	for i in 3:
+		r.tank = 0.0
+		assert_true(r.call_truck())
+		prices.append(r.price)
+	assert_gt(prices[1], prices[0])
+	assert_eq(prices[2], prices[1], "the third delivery comes at the old price")

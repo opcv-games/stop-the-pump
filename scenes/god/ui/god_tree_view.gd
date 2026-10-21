@@ -1,8 +1,10 @@
 class_name GodTreeView
 extends Control
 ## The night shop's tree for GOD PUMP (GodData.BRANCHES), Bills-style: the station in the centre,
-## seven branches radiating out on a 45° lattice. Owned nodes tinted with gold links, buyable ones
-## glow with a price tag, the rest dim. Hover explains, click buys. Serves: Advancement.
+## eight branches radiating out on a 45° lattice, and between them the upgrades with two parents
+## (GodData.LINKS, round 8), each in the gap between the two branches it needs. Owned nodes tinted with
+## gold links, buyable ones glow with a price tag, the rest dim. Hover explains, click buys.
+## The branches sit so that every pair a link joins is side by side. Serves: Advancement, Mastery.
 
 signal bought(branch_id: String)
 
@@ -10,16 +12,24 @@ signal bought(branch_id: String)
 var _confirm := ""
 
 const CELLS := {
-	"hours": [Vector2i(0, -1), Vector2i(0, -2), Vector2i(0, -3), Vector2i(0, -4)],
-	"marketing": [Vector2i(-1, -1), Vector2i(-2, -2), Vector2i(-3, -3)],
-	"attractions": [Vector2i(1, -1), Vector2i(2, -2), Vector2i(3, -3), Vector2i(4, -4)],
+	"vibe": [Vector2i(0, -1), Vector2i(0, -2), Vector2i(0, -3)],
+	"hours": [Vector2i(1, -1), Vector2i(2, -2), Vector2i(3, -3), Vector2i(4, -4)],
+	"service": [Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)],
+	"marketing": [Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 3)],
+	"tank": [Vector2i(0, 1), Vector2i(0, 2), Vector2i(0, 3)],
+	"truck": [Vector2i(-1, 1), Vector2i(-2, 2), Vector2i(-3, 3)],
 	"nozzle": [Vector2i(-1, 0), Vector2i(-2, 0), Vector2i(-3, 0), Vector2i(-4, 0), Vector2i(-5, 0), Vector2i(-6, 0)],
-	"tank": [Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)],
-	"service": [Vector2i(-1, 1), Vector2i(-2, 2), Vector2i(-3, 3)],
-	"vibe": [Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 3)],
+	"attractions": [Vector2i(-1, -1), Vector2i(-2, -2), Vector2i(-3, -3), Vector2i(-4, -4)],
+}
+## Where each two-parent upgrade sits: in the wedge between its parents' branches.
+const LINK_CELLS := {
+	"drive_thru": Vector2i(3, -1), "hockey": Vector2i(1, -2), "night_neons": Vector2i(2, -3),
+	"loyalty": Vector2i(2, 1), "drone_hangar": Vector2i(-5, -2), "chip_truck": Vector2i(-1, -2),
+	"price_board": Vector2i(1, 2), "forward_contract": Vector2i(1, 3),
 }
 const FILL := {"hours": Color(0.2, 0.24, 0.42), "marketing": Color(0.42, 0.22, 0.38), "attractions": Color(0.2, 0.38, 0.36),
-	"nozzle": Color(0.5, 0.14, 0.11), "tank": Color(0.35, 0.3, 0.12), "service": Color(0.2, 0.36, 0.22), "vibe": Color(0.47, 0.33, 0.13)}
+	"nozzle": Color(0.5, 0.14, 0.11), "tank": Color(0.35, 0.3, 0.12), "service": Color(0.2, 0.36, 0.22), "vibe": Color(0.47, 0.33, 0.13),
+	"truck": Color(0.45, 0.18, 0.16), "link": Color(0.3, 0.22, 0.42)}
 const NODE := 46.0
 
 var area := Rect2(250, 96, 880, 470)
@@ -50,42 +60,68 @@ func _pos(c: Vector2i) -> Vector2:
 	return _origin + Vector2(c) * _unit
 
 
-## Every node: {key, branch, level, cell, state, node}. State: 0 owned, 1 next, 2 later.
+## Every node: {key, branch, level, cell, state, node, parents}. State: 0 owned, 1 can be bought,
+## 2 later (a branch node further out, or a link missing a parent). `parents`: the cells it hangs from.
 func nodes() -> Array:
 	var out := []
 	if not run:
 		return out
+	var cell_of := {}
 	for b in GodData.BRANCHES:
 		var level: int = run.owned.get(b.id, 0)
 		for i in b.nodes.size():
-			out.append({"key": "%s:%d" % [b.id, i], "branch": b.id, "level": i, "cell": CELLS[b.id][i],
-				"state": 0 if i < level else (1 if i == level else 2), "node": b.nodes[i]})
+			var cell: Vector2i = CELLS[b.id][i]
+			cell_of[b.nodes[i].id] = cell
+			out.append({"key": "%s:%d" % [b.id, i], "branch": b.id, "level": i, "cell": cell,
+				"state": 0 if i < level else (1 if i == level else 2), "node": b.nodes[i],
+				"parents": [Vector2i.ZERO if i == 0 else CELLS[b.id][i - 1]]})
+	for l in GodData.LINKS:
+		var st := 0 if l.id in run.links else (1 if run.link_open(l.id) else 2)
+		out.append({"key": "link:" + l.id, "branch": "link", "level": -1, "cell": LINK_CELLS[l.id], "state": st,
+			"node": l, "parents": l.needs.map(func(id: String) -> Vector2i: return cell_of.get(id, Vector2i.ZERO))})
 	return out
 
 
 func press(key: String) -> bool:
-	var parts := key.split(":")
-	var branch := parts[0]
-	if int(parts[1]) != run.owned.get(branch, 0):
+	var node := _node_for(key)
+	if node.is_empty():
 		return false
-	var node := run.next_node(branch)
-	if not node.is_empty() and run.purchase_risky(run.node_price(node)) and _confirm != key:
+	var parts := key.split(":")
+	if parts[0] != "link" and int(parts[1]) != run.owned.get(parts[0], 0):
+		return false
+	if parts[0] == "link" and not run.link_open(parts[1]):
+		return false
+	if run.purchase_risky(run.node_price(node)) and _confirm != key:
 		_confirm = key  # the first click warns; a second click buys anyway
 		queue_redraw()
 		return false
 	_confirm = ""
-	if run.buy(branch):
+	var ok := run.buy_link(parts[1]) if parts[0] == "link" else run.buy(parts[0])
+	if ok:
 		_pops[key] = 0.0
-		bought.emit(branch)
+		bought.emit(parts[0])
 		queue_redraw()
-		return true
-	return false
+	return ok
+
+
+func _node_for(key: String) -> Dictionary:
+	var parts := key.split(":")
+	if parts.size() != 2:
+		return {}
+	if parts[0] == "link":
+		return GodData.link(parts[1])
+	var b := GodData.branch(parts[0])
+	var i := int(parts[1])
+	return b.nodes[i] if not b.is_empty() and i < b.nodes.size() else {}
 
 
 func tooltip(key: String) -> String:
 	for n in nodes():
 		if n.key == key:
 			var price := run.node_price(n.node)
+			if n.branch == "link" and n.state == 2:
+				var names: Array = n.node.needs.map(func(id: String) -> String: return ("✓ " if run.owns(id) else "✗ ") + GodData.shop_node(id).name)
+				return "%s\n%s\n$%.0f  needs %s" % [n.node.name, n.node.helps, price, "  +  ".join(names)]
 			if _confirm == key:
 				return "%s\n⚠ You'd be left without enough for the truck.\nClick again to buy anyway." % n.node.name
 			var status := "OWNED" if n.state == 0 else ("$%.0f  %s" % [price, "click to buy" if run.cash >= price else "(not enough cash)"] if n.state == 1 else "$%.0f  buy the one before it first" % price)
@@ -133,16 +169,20 @@ func _draw() -> void:
 		var k := float(i) / 14.0
 		draw_circle(centre, lerpf(420.0, 30.0, k), Color(0.19, 0.14, 0.10, 0.05 + 0.03 * k))
 	for n in all:
-		var parent := centre if n.level == 0 else _pos(CELLS[n.branch][n.level - 1])
 		var p := _pos(n.cell)
-		match n.state:
-			0:
-				draw_line(parent, p, GodUI.GOLD.darkened(0.45), 7.0, true)
-				draw_line(parent, p, GodUI.GOLD, 3.5, true)
-			1:
-				draw_line(parent, p, GodUI.GOLD.darkened(0.35), 3.0, true)
-			_:
-				draw_line(parent, p, Color(0.2, 0.18, 0.16), 2.0, true)
+		for pc in n.parents:
+			var parent := _pos(pc)
+			match n.state:
+				0:
+					draw_line(parent, p, GodUI.GOLD.darkened(0.45), 7.0, true)
+					draw_line(parent, p, GodUI.GOLD, 3.5, true)
+				1:
+					draw_line(parent, p, GodUI.GOLD.darkened(0.35), 3.0, true)
+				_:
+					if n.branch == "link":  # a link's parents dashed, until it opens
+						_dashed(parent, p, Color(0.42, 0.34, 0.52, 0.7))
+					else:
+						draw_line(parent, p, Color(0.2, 0.18, 0.16), 2.0, true)
 	# The station in the middle.
 	var root := StyleBoxFlat.new()
 	root.bg_color = Color(0.36, 0.29, 0.20)
@@ -165,6 +205,13 @@ func _draw() -> void:
 		_draw_tooltip(hover)
 
 
+func _dashed(a: Vector2, b: Vector2, col: Color) -> void:
+	var steps := int(a.distance_to(b) / 9.0)
+	for i in steps:
+		if i % 2 == 0:
+			draw_line(a.lerp(b, float(i) / steps), a.lerp(b, float(i + 1) / steps), col, 2.0, true)
+
+
 func _draw_node(n: Dictionary) -> void:
 	var p := _pos(n.cell)
 	var scale := 1.0
@@ -175,7 +222,7 @@ func _draw_node(n: Dictionary) -> void:
 		scale *= 1.08
 	var half := NODE * 0.5 * scale
 	var box := StyleBoxFlat.new()
-	box.set_corner_radius_all(7)
+	box.set_corner_radius_all(7 if n.branch != "link" else 20)
 	var tint := Color.WHITE
 	var price := run.node_price(n.node)
 	match n.state:

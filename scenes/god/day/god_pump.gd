@@ -75,6 +75,11 @@ var drones: Array[Dictionary] = []
 var _first_car_done := false
 var _cars_today := 0
 var _saves_left := 0
+## Round 8: today is hockey night (Soirée du hockey), and the low-gas alarm has spoken (Jauge d'alarme).
+var hockey_night := false
+var _alarm_said := false
+## Below this much gas, the alarm (Jauge d'alarme) blinks on the pump and a regular says so.
+const LOW_GAS := 60.0
 var _best_combo := 1
 var fines := 0.0
 var stolen := 0.0
@@ -127,7 +132,12 @@ const QUIPS := {
 	ScoreTiers.GOOD: ["C'EST BEAU, ÇA.", "CORRECT.", "PAS MAL."],
 	"spill": ["AYOYE...", "VOYONS DONC!", "Y'EN A PARTOUT!", "TON PÈRE FAISAIT PAS ÇA."],
 	"idle": ["Y FAIT BEAU À MATIN.", "T'AS-TU VU LE PRIX DU GAZ?", "MON BEAU-FRÈRE A UN CHAR DE MÊME.",
-		"TON PÈRE, LUI, Y'ALLAIT À PÊCHE.", "UNE AUTRE PETITE BIÈRE?"],
+		"TON PÈRE, LUI, Y'ALLAIT À PÊCHE.", "UNE AUTRE PETITE BIÈRE?",
+		# round 8, the lore: the town talks about the kid, and about Dad
+		"J'TE JURE, J'AI VU TON PÈRE AU LAC!", "Y'EST PAS MORT, TON PÈRE. J'LE SAIS.", "Y DEVIENT BON, LE P'TIT.",
+		"Y'É-TU CÉLIBATAIRE, LUI?", "LE GARS D'EN FACE A MONTÉ SES PRIX.", "LE NOTAIRE A L'AIR NERVEUX."],
+	"low_gas": ["LE GAZ BAISSE, MON GRAND!", "Y RESTE PU BEN BEN D'GAZ!", "APPELLE LE CAMION!"],
+	"hockey": ["LE MATCH COMMENCE À SOIR!", "C'EST SOIR DE HOCKEY!", "TOUTE LA PAROISSE EST SUR LA ROUTE!"],
 }
 
 var _aim := Vector2(WIDTH * 0.5, 380)
@@ -395,6 +405,9 @@ func step(dt: float) -> void:
 		_step_patience(dt)
 		_step_roles(dt)
 		_step_drones(dt)
+		if int(mods.get("tank_alarm", 0)) > 0 and tank < LOW_GAS and not _alarm_said:
+			_alarm_said = true  # Jauge d'alarme: the regulars notice before you run dry
+			say(QUIPS.low_gas)
 	_step_fx(dt)
 	queue_redraw()
 	_overlay.queue_redraw()
@@ -575,6 +588,12 @@ func _tip_mult(car: ProtoCar) -> float:
 		m *= mods.first_car_tip_mult
 	if int(mods.get("bobblehead", 0)) > 0:
 		m *= 1.0 + 0.05 * combo.multiplier
+	var every := int(mods.get("loyalty_every", 0))
+	if every > 0 and (_cars_today + 1) % every == 0:  # Carte fidélité: a regular, who tips double
+		m *= 2.0
+		_floaters.append({"text": "UN HABITUÉ! x2", "pos": scr(car.position) + Vector2(0, -150), "life": 1.4, "color": Color(0.6, 0.9, 1.0), "size": 18})
+	if hour_now() >= 19.0:
+		m *= mods.get("night_tip_mult", 1.0)  # Néons de nuit
 	var luck: float = 1.0 + mods.luck / 100.0  # luck raises every proc's odds
 	if mods.golden_chance > 0.0 and rng.randf() < mods.golden_chance * luck:
 		m *= 3.0
@@ -617,6 +636,11 @@ func _settle(car: ProtoCar) -> void:
 		car.tip += 20.0
 		_floaters.append({"text": "LOTO! +$20", "pos": scr(car.position) + Vector2(0, -110), "life": 1.6, "color": Color(1, 0.9, 0.3), "size": 22})
 	var sale: float = minf(car.amount, car.target) * car.pay_share * mods.get("sale_mult", 1.0) + mods.per_car_bonus
+	if mods.get("coffee_sale", 0.0) > 0.0 and car.waited > 3.0:  # Fenêtre au volant: a coffee while they waited
+		sale += mods.coffee_sale
+		_floaters.append({"text": "CAFÉ +$%d" % int(mods.coffee_sale), "pos": scr(car.position) + Vector2(30, -40), "life": 1.0, "color": Color(0.85, 0.65, 0.4), "size": 15})
+	if car.by_drone:
+		sale += mods.get("drone_bonus", 0.0)  # Hangar à drones
 	_cars_today += 1
 	if int(mods.refund_every) > 0 and _cars_today % int(mods.refund_every) == 0:
 		tank += car.amount  # rabbit's foot: this car's gas goes back in the tank
@@ -688,8 +712,10 @@ func say(pool: Array) -> void:
 	regulars[quip_who].cheer = 0.9
 
 
+## The time on the store's clock: 7 h at opening, the closing hour at the end (13 h, later with the
+## HEURES branch). A game hour is always GodData.HOUR_SECONDS.
 func hour_now() -> float:
-	return lerpf(OPEN_HOUR, CLOSE_HOUR, clampf(round_t / round_seconds, 0.0, 1.0))
+	return lerpf(OPEN_HOUR, mods.get("close_hour", CLOSE_HOUR), clampf(round_t / round_seconds, 0.0, 1.0))
 
 
 func is_open() -> bool:
@@ -738,6 +764,14 @@ func start_day(m: Dictionary, tank_dollars: float, day_n: int, pool: Array) -> v
 	_first_car_done = false
 	_cars_today = 0
 	_saves_left = int(mods.overfill_saves)
+	_alarm_said = false
+	var hockey_every := int(mods.get("hockey_every", 0))
+	hockey_night = hockey_every > 0 and day_n % hockey_every == 0
+	if hockey_night:  # Soirée du hockey: the whole town drives by
+		mods.queue = int(mods.queue) + 3
+		customer_chance = minf(customer_chance + 0.3, 0.95)
+		_floaters.append({"text": "SOIRÉE DU HOCKEY!", "pos": Vector2(WIDTH * 0.5, 150), "life": 3.0, "color": Color(0.95, 0.3, 0.3), "size": 34})
+		say(QUIPS.hockey)
 	_best_combo = 1
 	fines = 0.0
 	stolen = 0.0
@@ -761,7 +795,7 @@ func day_report() -> Dictionary:
 	return {"day": day_num, "loot": round_earned - fines, "sales": round_sales, "tips": round_tips,
 		"tank_left": tank, "xp": day_stats.xp, "cars": day_stats.cars, "tiers": day_stats.tiers.duplicate(),
 		"accuracy": day_accuracy(), "best_combo": _best_combo, "wasted": round_wasted, "fines": fines,
-		"stolen": stolen, "out_of_gas": tank <= 0.0001}
+		"stolen": stolen, "out_of_gas": tank <= 0.0001, "hockey": hockey_night}
 
 
 ## A car type for a new car, weighted; troublemakers ramp in over the first days.
@@ -1281,6 +1315,8 @@ func _draw_pump(o: Node2D, tip: Vector2) -> void:
 		o.draw_set_transform(at, 0.0, Vector2(2, 2))
 		o.draw_texture(tex, Vector2.ZERO)
 		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if int(mods.get("tank_alarm", 0)) > 0 and tank < LOW_GAS and fmod(_t, 0.5) < 0.3:
+		o.draw_circle(at + Vector2(17, 10) * 2.0, 14.0, Color(1.0, 0.15, 0.1, 0.55))  # the globe blinks red
 	var c := at + Vector2(18, 42) * 2.0
 	var a := PI * (1.0 - clampf(tank / tank_size, 0.0, 1.0))
 	o.draw_line(c, c + Vector2(cos(a), -sin(a)) * 13.0, Color(0.75, 0.1, 0.08), 2.0, true)

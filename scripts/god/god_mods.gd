@@ -10,6 +10,8 @@ static func compute(run: RunState) -> Dictionary:
 		var level: int = run.owned.get(b.id, 0)
 		for i in level:
 			GodData.apply_fx(mods, b.nodes[i].fx)
+	for id in run.links:
+		GodData.apply_fx(mods, GodData.link(id).fx)
 	for id in run.cards:
 		GodData.apply_fx(mods, GodData.card(id).fx)
 	if run.meta:
