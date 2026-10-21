@@ -148,6 +148,7 @@ pal({
 // --- The nozzle, after the reference photo: red molded body and hump, a steel spout with a spring
 // collar, a black trigger guard and lever. The hand grips the handle; squeezing pulls the lever in.
 function nozzle(name, squeeze) {
+  // No hand (god-pump playtest 5): the nozzle alone, its lever squeezed up against the body to pour.
   sprite(name, { w: 58, h: 46, outline: "k" },
     capsule(0, 45, 2.5, 9, 36, 2.5, "kKm"),                    // hose into the handle
     capsule(9, 36, 5, 22, 16, 4.5, "Eef"),                     // red handle
@@ -155,13 +156,8 @@ function nozzle(name, squeeze) {
     circ(27, 9, 5, "e"), circ(26, 8, 3, "f"),                  // the hump
     capsule(36, 13, 2.5, 54, 36, 1.5, "kKmM"),                 // steel spout
     (c) => { for (let i = 0; i < 4; i++) c.line(37 + i * 2, 10 + i * 2, 35 + i * 2, 14 + i * 2, "M") },   // spring collar
-    capsule(13, 36, 1.2, 33, 33, 1.2, "k"), capsule(33, 33, 1.2, 35, 20, 1.2, "k"),   // trigger guard
-    squeeze ? capsule(33, 21, 1.5, 24, 24, 1.5, "kK") : capsule(33, 21, 1.5, 27, 31, 1.5, "kK"),   // lever
-    circ(15, 24, 6, "s"), circ(13, 22, 3, "n"),                // palm round the handle
-    ...(squeeze
-      ? [circ(21, 22, 2.5, "s"), circ(24, 24, 2.5, "s"), circ(27, 25, 2.5, "S")]   // fingers squeezing the lever
-      : [circ(21, 26, 2.5, "s"), circ(24, 29, 2.5, "s"), circ(27, 31, 2.5, "S")]),  // fingers resting
-    circ(19, 16, 2.5, "n"))                                    // thumb over the top
+    capsule(13, 36, 1.4, 33, 33, 1.4, "k"), capsule(33, 33, 1.4, 35, 20, 1.4, "k"),   // trigger guard
+    squeeze ? capsule(33, 21, 2, 19, 25, 1.6, "kKm") : capsule(33, 21, 2, 25, 32, 1.6, "kKm"))   // the lever
 }
 nozzle("nozzle_idle", false)
 nozzle("nozzle_squeeze", true)

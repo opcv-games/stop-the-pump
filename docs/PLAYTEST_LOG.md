@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-20 — God pump, round 5: three-quarter view, regulars, jar  (#36)
+Hypothesis: The three-quarter camera, the regulars, the pinball neon and the tip jar make the gaz bar alive and the payoff richer.
+Variable: isometric → three-quarter; cash counter → tip jar + bill pile; + regulars, neon flash, vintage pump, gauges
+Sessions: 1 (self: 1, others: 0)
+Observed: "The three quarter angle is wonderful." "The regulars and the neon make the place feel alive." "The jar and bill pile are more rewarding even." Not happy with the aesthetic overall: wants to try HD-2D. Remove the tip when you overfill. Remove the hand on the nozzle (keep its animation). Remove the funnels. Let coins and bills lie 3 seconds longer.
+Biggest weakness: the overall look.
+Decision: KEPT the camera, regulars, neon and till. Next (v0.33): the four tweaks, then an HD-2D try as a switchable view.
+
 ## 2026-10-20 — God pump, round 4: isometric try and neon  (#36)
 Hypothesis: An isometric pixel view with the dépanneur, neon and stacked sedans makes the gaz bar feel like a place.
 Variable: top-down → isometric; new references (neon, orange hatchback, dépanneur interior)

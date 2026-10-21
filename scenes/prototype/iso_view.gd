@@ -4,7 +4,7 @@ extends Node2D
 ## after the isometric try). The simulation stays top-down; this view draws it with the ground
 ## foreshortened and things standing up, into a half-resolution SubViewport doubled on screen, so
 ## everything lands on one crisp pixel grid. Cars are sprite stacks (8 slices a pixel apart, turned
-## to the heading) with a cartoon funnel in the roof. At the back: the dépanneur from the reference
+## to the heading). At the back: the dépanneur from the reference
 ## photos, with its glass front and shelves, a clock and an OUVERT/FERMÉ sign, a red curb, the GAZ BAR
 ## neon on the roof (it flashes like a pinball machine on Good or better), and the regulars on their
 ## bench. Serves: Immersion (the gaz bar is alive) and readability.
@@ -191,7 +191,7 @@ func _draw_regulars() -> void:
 		draw_texture(tex, base + Vector2(4 + r.seat * SEAT_GAP * 0.5, -tex.get_height() + 2 - bob - hop))
 
 
-## A sprite-stacked car with its shadow and roof funnel; celebrations lift, spin and squash it.
+## A sprite-stacked car with its shadow; celebrations lift, spin and squash it.
 func _draw_car(car: ProtoCar) -> void:
 	if car.phase == ProtoCar.Phase.GONE:
 		return
@@ -210,6 +210,3 @@ func _draw_car(car: ProtoCar) -> void:
 		draw_set_transform_matrix(xf)
 		draw_texture(tex, -tex.get_size() * 0.5)
 	draw_set_transform_matrix(Transform2D.IDENTITY)
-	var funnel: Texture2D = game.tex("funnel")
-	if funnel and car.customer and car.accepts_fuel():
-		draw_texture(funnel, base - Vector2(funnel.get_width() * 0.5, 8 + lift + funnel.get_height()))

@@ -146,7 +146,7 @@ func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # crisp pixels; cars and the overlay inherit it
 	for id in CAR_SPRITES + ["nozzle", "bill", "coin_0", "coin_1", "coin_2", "coin_3", "puddle_s", "puddle_m",
 			"puddle_l", "sparkle", "asphalt", "road", "dirt", "neon_gazbar", "neon_gazbar_off", "neon_gaz", "neon_bar",
-			"nozzle_idle", "nozzle_squeeze", "pump_hud", "tip_jar", "funnel", "gauge_face", "bench", "clock_face",
+			"nozzle_idle", "nozzle_squeeze", "pump_hud", "tip_jar", "gauge_face", "bench", "clock_face",
 			"sign_ouvert", "sign_ferme", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
 			"regular_1_cheer", "regular_2_cheer", "regular_3_cheer"]:
 		var path := PIXEL % id
@@ -392,13 +392,15 @@ func separation(me: ProtoCar) -> Vector2:
 
 
 ## The tip grows from nothing at 80% to max_tip at 100% (squared, so the last few percent count most);
-## a top-off with (almost) no spill adds a bonus.
+## topping off adds a bonus; overfilling (a spill over $0.25) loses the tip altogether.
 func tip_for(fill: float, spilled: float) -> float:
 	if fill < ProtoCar.LEAVE_AT:
 		return 0.0
+	if spilled > 0.25:
+		return 0.0  # overfilled: no tip (god-pump playtest 5)
 	var k := clampf((fill - ProtoCar.LEAVE_AT) / (1.0 - ProtoCar.LEAVE_AT), 0.0, 1.0)
 	var tip := max_tip * k * k
-	if fill >= 0.995 and spilled <= 0.25:
+	if fill >= 0.995:
 		tip += topoff_bonus
 	return tip
 
@@ -529,7 +531,7 @@ func _burst(car: ProtoCar, t: String) -> void:
 	_play("pop")
 
 
-const MONEY_REST := 0.45
+const MONEY_REST := 3.45  # cash lies on the lot a while before it's collected (god-pump playtest 5)
 const MONEY_FLY := 0.55
 
 
@@ -694,8 +696,8 @@ func _tile(id: String, r: Rect2) -> void:
 func _draw_overlay() -> void:
 	var o := _overlay
 	var land := scr(_aim)
-	if iso and pouring and _stream_car:  # the stream drops into the car's roof funnel
-		land = scr(_stream_car.position) - Vector2(0, 30 + _stream_car.anim_offsets().lift * 0.8)
+	if iso and pouring and _stream_car:  # the stream lands on the car's roof
+		land = scr(_stream_car.position) - Vector2(0, 16 + _stream_car.anim_offsets().lift * 0.8)
 	var tip := scr(_nozzle) + NOZZLE_RAISE + Vector2(-4, 6) * _kick
 	if iso:  # gauges float over the stacked cars
 		for car in cars:

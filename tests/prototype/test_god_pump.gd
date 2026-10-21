@@ -54,8 +54,8 @@ func test_at_80_percent_the_car_pays_and_leaves() -> void:
 func test_tips_grow_toward_100_percent() -> void:
 	assert_eq(game.tip_for(0.85, 0.0), game.tip_for(0.85, 0.0))
 	assert_lt(game.tip_for(0.85, 0.0), game.tip_for(0.95, 0.0))
-	assert_lt(game.tip_for(0.95, 0.0), game.tip_for(1.0, 1.0), "full, even with a spill, beats 95%")
-	assert_lt(game.tip_for(1.0, 1.0), game.tip_for(1.0, 0.0), "topped off without spilling tips the most")
+	assert_lt(game.tip_for(0.95, 0.0), game.tip_for(1.0, 0.0), "topped off tips the most")
+	assert_almost_eq(game.tip_for(1.0, 1.0), 0.0, 0.001, "overfilled: no tip")
 	assert_almost_eq(game.tip_for(0.8, 0.0), 0.0, 0.001)
 
 
@@ -73,6 +73,8 @@ func test_overflow_spills_as_wasted_gas() -> void:
 	var car := _car(10.0)
 	_pour_on(car, 3.0)  # $12 poured on a $10 car
 	assert_almost_eq(car.amount, 10.0, 0.01)
+	game.set_pouring(false)
+	assert_almost_eq(car.tip, 0.0, 0.001, "overfilled cars don't tip")
 	assert_almost_eq(game.round_wasted, 2.0, 0.05)
 	assert_gt(game.puddles.size(), 0)
 
@@ -181,6 +183,9 @@ func test_dropped_cash_lands_in_the_counter() -> void:
 	var car := _car(20.0)
 	_pour_on(car, 5.0)
 	game.set_pouring(false)
+	for i in 60:
+		game.step(0.05)
+	assert_false(game.money.is_empty(), "still lying on the lot after 3 s")
 	for i in 60:
 		game.step(0.05)
 	assert_true(game.money.is_empty())
