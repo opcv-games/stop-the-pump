@@ -15,11 +15,12 @@ const BRANCH_CELLS := {
 	"vibe": [Vector2i(1, -1), Vector2i(2, -2)],
 	"tank": [Vector2i(-1, 1), Vector2i(-2, 2), Vector2i(-3, 3)],
 	"service": [Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 3)],
+	"hours": [Vector2i(0, -1), Vector2i(0, -2), Vector2i(0, -3), Vector2i(0, -4)],
 }
 ## Built and improved on the station tab (#33).
 const STATION_TAB_BRANCHES := ["pumps"]
 ## Big moments get a diamond, like Bills' keystones.
-const KEYSTONES := ["billboard", "tank_3", "pressure_washer", "jukebox"]
+const KEYSTONES := ["billboard", "tank_3", "pressure_washer", "jukebox", "cousin"]
 const ICONS := {"tank_1": "tank", "tank_2": "tank", "tank_3": "tank"}
 
 

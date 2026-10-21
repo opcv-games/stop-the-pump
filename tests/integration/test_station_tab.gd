@@ -53,7 +53,7 @@ func test_the_tree_has_no_pump_nodes() -> void:
 func test_one_pump_then_its_upgrades_and_a_build_card() -> void:
 	assert_eq(_view().keys(), ["pump:0:0", "pump:0:1", "pump:0:2", "build"])
 	assert_string_contains(_view().tooltip_for("build"), "Pump 2")
-	assert_string_contains(_view().tooltip_for("build"), "$100")
+	assert_string_contains(_view().tooltip_for("build"), "$50")
 
 
 func test_clicking_build_builds_the_next_pump() -> void:

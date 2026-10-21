@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://sfml5icj0m0w"
+
+[deps]
+
+files=["res://docs/balance/results.seed.translation", "res://docs/balance/results.evicted.translation", "res://docs/balance/results.complete.translation", "res://docs/balance/results.days.translation", "res://docs/balance/results.cash.translation", "res://docs/balance/results.stops.translation", "res://docs/balance/results.pumps.translation", "res://docs/balance/results.self.translation", "res://docs/balance/results.xp.translation", "res://docs/balance/results.ran.translation"]
+
+source_file="res://docs/balance/results.csv"
+dest_files=["res://docs/balance/results.seed.translation", "res://docs/balance/results.evicted.translation", "res://docs/balance/results.complete.translation", "res://docs/balance/results.days.translation", "res://docs/balance/results.cash.translation", "res://docs/balance/results.stops.translation", "res://docs/balance/results.pumps.translation", "res://docs/balance/results.self.translation", "res://docs/balance/results.xp.translation", "res://docs/balance/results.ran.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -47,6 +47,8 @@ var day_light: DayLightComponent
 var weather: WeatherComponent
 var rain: GPUParticles3D
 var name_label: Label3D
+## "OPEN 7 AM – 11 AM" under the station's name (#35).
+var hours_label: Label3D
 var billboard_label: Label3D
 var upgrades: Node3D
 var lane_count := 0
@@ -516,9 +518,24 @@ func set_station_name(text: String) -> void:
 		billboard_label.text = "FILL UP AT\n%s" % text.to_upper()
 
 
+func set_hours(open_hour: float, close_hour: float) -> void:
+	hours_label.text = "OPEN %s – %s" % [_clock_text(open_hour), _clock_text(close_hour)]
+
+
+static func _clock_text(h: float) -> String:
+	var whole := int(h) % 24
+	var shown := whole % 12
+	return "%d %s" % [12 if shown == 0 else shown, "AM" if whole < 12 else "PM"]
+
+
 func _build_name_label() -> void:
 	name_label = _sign_label(scenery.get_node("NameAnchor"), 64, 0.0075, 560.0)  # wraps inside the 4.8 m board
 	name_label.text = "GAS BAR BLUES"
+	# Hangs under the name in the name's own text plane, so it reads like a second line on the board.
+	hours_label = _sign_label(scenery.get_node("NameAnchor"), 34, 0.0075, 560.0)
+	hours_label.reparent(name_label, false)
+	hours_label.transform = Transform3D(Basis.IDENTITY, Vector3(0, -0.5, 0.01))
+	set_hours(7.0, 11.0)
 
 
 ## Text painted on a sign at a Blender empty.

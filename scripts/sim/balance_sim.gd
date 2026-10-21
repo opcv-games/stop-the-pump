@@ -22,6 +22,8 @@ const STRATEGIES := {
 	"hybrid": {"label": "Play pump 1, automate the rest", "fuel": "jit", "wants": ["pumps", "auto_keep1", "pump_tree", "cheapest"]},
 	"marketing_first": {"label": "Marketing first", "fuel": "jit", "wants": ["marketing", "pumps", "cheapest"]},
 	"tips_first": {"label": "Service and vibe first", "fuel": "jit", "wants": ["service", "vibe", "pumps", "cheapest"]},
+	"hours_first": {"label": "Opening hours first", "fuel": "jit", "wants": ["hours", "pumps", "cheapest"]},
+	"hours_and_pumps": {"label": "Hours and pumps in turn", "fuel": "jit", "wants": ["pumps", "hours", "auto_keep1", "cheapest"]},
 	"cheapest": {"label": "Always the cheapest upgrade", "fuel": "jit", "wants": ["cheapest"]},
 }
 

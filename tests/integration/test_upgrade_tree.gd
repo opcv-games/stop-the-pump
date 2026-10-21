@@ -108,7 +108,7 @@ func test_hovering_a_node_explains_it() -> void:
 	var text: String = station.tree_view.tooltip_for("b:marketing:0")
 	assert_string_contains(text, "Flyers")
 	assert_string_contains(text, "cars arrive 20% sooner")
-	assert_string_contains(text, "$80")
+	assert_string_contains(text, "$40")  # prices halve with 15-second days (#35)
 
 
 func test_the_tree_view_is_shown_in_the_night_shop() -> void:

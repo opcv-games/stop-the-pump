@@ -26,6 +26,11 @@ const ICONS := {
 	"pressure_washer": ["upgrades", "UpPressureWasher"],
 	"bluesy_radio": ["upgrades", "UpRadio"],
 	"jukebox": ["upgrades", "UpJukebox"],
+	# Opening hours (#35): the coffee machine, the bench for Mom's lunch, the pylon, the phone booth.
+	"thermos": ["scenery", "VendingMachine"],
+	"mom_lunch": ["scenery", "Bench"],
+	"permit": ["scenery", "NamePylon"],
+	"cousin": ["scenery", "PhoneBooth"],
 	# Per-pump props are shown on a pump, as in the game: alone they are just a box or a sticker.
 	"self_service": ["upgrades", "PumpCardReader", true],
 	"faster_self_serve": ["upgrades", "PumpSpeedBand", true],

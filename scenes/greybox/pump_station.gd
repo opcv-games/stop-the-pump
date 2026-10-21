@@ -27,8 +27,8 @@ enum ShopTab { TREE, STATION }
 @export var possible_targets: Array[float] = [10.0, 15.0, 20.0, 25.0, 30.0, 40.0]
 ## The next car pulls in after a random wait between these, so the rhythm can't be memorized (#10).
 ## The marketing upgrade branch will shorten it.
-@export var arrival_min := 1.0
-@export var arrival_max := 5.0
+@export var arrival_min := 0.5  # short days (#35): little dead time
+@export var arrival_max := 2.5
 ## At opening, pump N's first car arrives within N x this many seconds, so pumps start out of sync.
 @export var second_customer_offset := 2.0
 @export var flow_rate := 4.0
@@ -59,7 +59,7 @@ enum ShopTab { TREE, STATION }
 @export var juice_cash_pops := true
 @export_range(0.0, 1.5) var shake_strength := 0.6
 ## Upgrade tree (#15): a multiplier on every upgrade price.
-@export var shop_price_scale := 1.0
+@export var shop_price_scale := 0.5  # 15-second days (#35): every price halves
 ## Self-service pumps (#17): share of the normal pour speed, and the card fee taken from each sale.
 ## A pump's own tree (#18) multiplies the speed by 1.5 (Faster self-serve) and halves the fee (Card deal).
 @export var self_service_speed := 0.75  # balance pass (#34): was 0.5
@@ -151,6 +151,7 @@ var station_view: StationShopView
 var shop_tab := ShopTab.TREE
 var _tab_buttons: Array[Button] = []
 var _hidden_at_night: Array[CanvasItem] = []
+var _base_close_hour := 11.0
 var fuel_panel: FuelOrderPanel
 var _shop_footer: Label
 var summary_label: Label
@@ -172,6 +173,7 @@ func _ready() -> void:
 	clock.closed.connect(_close_day)
 	sound.watch_combo(combo)
 	_base = Tuning.snapshot(self)
+	_base_close_hour = clock.close_hour
 	_base_targets = possible_targets.duplicate()
 	start_run()
 
@@ -442,6 +444,12 @@ func _show_naming() -> void:
 		name_input.caret_column = name_input.text.length()
 
 
+## Opening hours (#35): the clock closes later and the pylon's sign follows.
+func set_close_hour(hour: float) -> void:
+	clock.close_hour = hour
+	world_view.world.set_hours(clock.open_hour, hour)
+
+
 ## Footprint expansion (#24): the vacant lot is paved; pumps 4 and 5 can be built.
 func set_expanded(on: bool) -> void:
 	expanded = on
@@ -626,6 +634,7 @@ func _reset_run_upgrades() -> void:
 	if _base.is_empty():
 		return
 	Tuning.apply_snapshot(self, _base)
+	set_close_hour(_base_close_hour)
 	possible_targets.assign(_base_targets)
 	economy.tip_bonus = 0.0
 	_pop_next_morning.clear()

@@ -75,7 +75,7 @@ func test_given_eviction_then_the_pumps_branch_restarts_at_pump_2() -> void:
 
 func test_day_one_rent_fits_one_pump() -> void:
 	_make()
-	assert_almost_eq(station.economy.rent_for(1), 60.0, 0.01)
+	assert_almost_eq(station.economy.rent_for(1), 20.0, 0.01)  # 15-second days (#35)
 
 
 # --- Story intro (#29) -------------------------------------------------------------------------

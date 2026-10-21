@@ -7,16 +7,15 @@ extends SceneTree
 ## Targets: the best strategy survives most runs (about 80%); hoarding does not; playing pump 1 and
 ## automating the rest is nearly as strong as playing everything; a pump self-serves by day 3-4.
 
-## Second pass (first pass: wholesale 0.7/0.75, rent +25/30/35, self-serve speed 0.75/1.0, fee 2/3%,
-## Self-service $120/$200 pointed here).
+## Third pass (#35, 15-second days): days earn about a quarter of what 3-minute days did, so rent and
+## every price scale down. (Earlier passes: wholesale, rent growth, self-serve speed and price.)
 const GRID := {
-	"wholesale_ratio": [0.7, 0.72],
-	"rent_growth": [30.0, 32.0, 34.0],
-	"self_service_speed": [0.75],
-	"card_fee": [0.03],
-	"price:self_service": [100.0, 120.0, 150.0],
+	"rent_base": [20.0],
+	"rent_growth": [6.0, 7.0],
+	"shop_price_scale": [0.4, 0.5],
+	"hours_x": [1.0, 1.5, 2.0],  # multiplies the HOURS prices
 }
-const STRATS := ["hoard", "pumps_first", "cheapest", "hybrid", "automate_all"]
+const STRATS := ["hoard", "pumps_first", "cheapest", "hybrid", "automate_all", "hours_first", "hours_and_pumps"]
 
 
 func _initialize() -> void:
@@ -33,7 +32,12 @@ func _initialize() -> void:
 			for seed in runs:
 				var st := SimStation.from_game_defaults()
 				st.rng.seed = seed + 1
-				st.apply_overrides(combo)
+				var changes: Dictionary = combo.duplicate()
+				var hx: float = changes.get("hours_x", 1.0)
+				changes.erase("hours_x")
+				for node in Upgrades.BRANCHES[st.branch_index("hours")].nodes:
+					changes["price:" + node.id] = node.price * hx
+				st.apply_overrides(changes)
 				var run := BalanceSim.play_run(BalanceSim.strategy(id), st)
 				st.free()
 				if run.complete:
@@ -49,14 +53,14 @@ func _initialize() -> void:
 		results.append(r)
 	results.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.score < b.score)
 	for r in results.slice(0, 12):
-		print("score %.3f | %s | hoard %.0f%% pumps %.0f%% cheapest %.0f%% hybrid %.0f%% auto %.0f%% | hybrid first auto day %.1f, self pumps day4 %.2f" % [
+		print("score %.3f | %s | hoard %.0f%% pumps %.0f%% cheapest %.0f%% hybrid %.0f%% auto %.0f%% hours %.0f%% hours+pumps %.0f%% | hybrid first auto day %.1f, self pumps day4 %.2f" % [
 			r.score, JSON.stringify(r.set), r.hoard * 100, r.pumps_first * 100, r.cheapest * 100, r.hybrid * 100,
-			r.automate_all * 100, r.hybrid_auto_day, r.hybrid_self4])
+			r.automate_all * 100, r.hours_first * 100, r.hours_and_pumps * 100, r.hybrid_auto_day, r.hybrid_self4])
 	quit()
 
 
 func _score(r: Dictionary) -> float:
-	var best: float = [r.pumps_first, r.cheapest, r.hybrid, r.automate_all].max()
+	var best: float = [r.pumps_first, r.cheapest, r.hybrid, r.automate_all, r.hours_first, r.hours_and_pumps].max()
 	var s := absf(best - 0.8)                                   # most runs, not all
 	s += maxf(0.0, r.hoard - 0.1)                               # hoarding must not work
 	s += maxf(0.0, best - r.hybrid - 0.1)                       # automation nearly as strong

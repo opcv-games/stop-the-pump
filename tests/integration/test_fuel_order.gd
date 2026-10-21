@@ -80,8 +80,8 @@ func test_given_an_order_when_the_station_opens_then_it_is_paid_and_poured_in() 
 
 
 func test_upgrades_can_only_use_cash_not_set_aside_for_fuel() -> void:
-	_night(250.0, _cost(250.0) + 50.0)
-	assert_false(station.buy(0), "Flyers cost $80 but only $50 is free")
+	_night(250.0, _cost(250.0) + 30.0)
+	assert_false(station.buy(0), "Flyers cost $40 but only $30 is free")
 	station.set_fuel_order(200.0)
 	assert_true(station.buy(0))
 

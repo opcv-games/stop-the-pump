@@ -18,6 +18,9 @@ const PROPS := {
 	"squeegee": "UpSqueegee", "tip_jar": "UpTipJar", "pressure_washer": "UpPressureWasher",
 	"bluesy_radio": "UpRadio", "jukebox": "UpJukebox",
 }
+## Closing hour each HOURS upgrade gives (#35).
+const HOURS_CLOSE := {"thermos": 13.0, "mom_lunch": 16.0, "permit": 19.0, "cousin": 23.0}
+
 ## The prop each per-pump upgrade attaches to its pump (#28).
 const PUMP_PROPS := {
 	"self_service": "PumpCardReader", "faster_self_serve": "PumpSpeedBand", "card_deal": "PumpDealSticker",
@@ -52,6 +55,14 @@ const BRANCHES := [
 	{"id": "vibe", "name": "VIBE", "nodes": [
 		{"id": "bluesy_radio", "name": "Bluesy radio", "helps": "max combo +1", "price": 150.0},
 		{"id": "jukebox", "name": "Jukebox", "helps": "max combo +1", "price": 300.0},
+	]},
+	# Opening hours (#35): Dad only opened mornings (after 11 he went fishing). Each step keeps the
+	# station open later, so the day lasts longer: more cars, more cash, more rush.
+	{"id": "hours", "name": "HOURS", "nodes": [
+		{"id": "thermos", "name": "Thermos of coffee", "helps": "you stay awake: open until 1 PM", "price": 100.0},
+		{"id": "mom_lunch", "name": "Mom covers lunch", "helps": "open until 4 PM", "price": 200.0},
+		{"id": "permit", "name": "Evening permit", "helps": "the council says yes: open until 7 PM", "price": 350.0},
+		{"id": "cousin", "name": "Cousin Réjean on nights", "helps": "open until 11 PM", "price": 500.0},
 	]},
 ]
 
@@ -112,6 +123,8 @@ static func apply(station: Node, id: String) -> void:
 			station.economy.tip_bonus = 2.0
 		"pressure_washer":
 			station.cleaning_seconds = 1.0
+		"thermos", "mom_lunch", "permit", "cousin":
+			station.set_close_hour(HOURS_CLOSE[id])
 		"bluesy_radio", "jukebox":
 			station.combo.max_multiplier += 1
 	station.apply_tuning()

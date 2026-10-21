@@ -16,6 +16,7 @@ const CARDS := [
 	"What gas station?",
 	"Saint-Clin-Clin-des-Meuh-Meuh, Québec.\nPopulation: 212. Moose: more.",
 	"One pump. A boarded window.\nA car that hasn't moved since 1987.",
+	"He only opened mornings.\nAfter 11, he went fishing.",
 	"You could sell it.\nNobody would buy it.",
 	"So you'll rebuild it, one tank at a time.",
 	"Are you up to the challenge?",

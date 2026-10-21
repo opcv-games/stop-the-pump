@@ -14,7 +14,7 @@ const LOCKED_EDGE := Color(0.20, 0.18, 0.16)
 const OPEN_FILL := Color(0.13, 0.11, 0.095)
 const BRANCH_FILL := {
 	"marketing": Color(0.42, 0.22, 0.38), "tank": Color(0.18, 0.34, 0.38), "service": Color(0.20, 0.36, 0.22),
-	"vibe": Color(0.47, 0.33, 0.13), "pumps": Color(0.50, 0.14, 0.11),
+	"vibe": Color(0.47, 0.33, 0.13), "pumps": Color(0.50, 0.14, 0.11), "hours": Color(0.20, 0.24, 0.42),
 }
 const PUMP_TREE_FILL := Color(0.22, 0.28, 0.48)
 const ROOT_FILL := Color(0.36, 0.29, 0.20)
@@ -22,6 +22,7 @@ const ROOT_FILL := Color(0.36, 0.29, 0.20)
 const CAPTIONS := {
 	"marketing": [Vector2(-3.75, -3.75), "MARKETING"], "vibe": [Vector2(2.75, -2.75), "VIBE"],
 	"tank": [Vector2(-4.4, 3.1), "TANK"], "service": [Vector2(4.5, 3.1), "SERVICE"],
+	"hours": [Vector2(1.05, -4.0), "HOURS"],
 }
 const NODE := 48.0
 const KEYSTONE := 50.0

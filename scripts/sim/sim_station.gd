@@ -42,7 +42,12 @@ var self_service_speed := 0.5
 var card_fee := 0.03
 var starting_cash := 50.0
 var run_days := 10
-var day_seconds := 180.0
+var open_hour := 7.0
+var close_hour := 11.0
+var seconds_per_hour := 3.75
+var day_seconds: float:
+	get:
+		return (close_hour - open_hour) * seconds_per_hour
 var card_wait := Vector2(2.0, 4.0)
 var paying_seconds := 2.0
 var tiers := ScoreTiers.new()
@@ -63,7 +68,7 @@ var day := 0
 ## Cash set aside tonight for the fuel order (#32): upgrades can't spend it.
 var fuel_reserve := 0.0
 var rng := RandomNumberGenerator.new()
-## Price overrides for pump-tree nodes, by id, used by the tuning search (#34). Empty = the game's.
+## Price overrides for any upgrade, by node id, used by the tuning search (#34, #35). Empty = the game's.
 var pump_tree_prices := {}
 
 
@@ -120,7 +125,9 @@ static func _read_game_defaults() -> Dictionary:
 	d.tank = tank_node.capacity_liters
 	tank_node.free()
 	var clock := DayClock.new()
-	d.day_seconds = clock.day_seconds
+	d.open_hour = clock.open_hour
+	d.close_hour = clock.close_hour
+	d.seconds_per_hour = clock.seconds_per_hour
 	clock.free()
 	var ss := SelfServiceComponent.new()
 	d.card_wait = Vector2(ss.card_wait_min, ss.card_wait_max)
@@ -136,6 +143,10 @@ static func _read_game_defaults() -> Dictionary:
 
 func add_pump() -> void:
 	pumps.append(SimPump.new())
+
+
+func set_close_hour(hour: float) -> void:
+	close_hour = hour
 
 
 func set_expanded(on: bool) -> void:
@@ -162,7 +173,10 @@ func branch_index(id: String) -> int:
 ## Price of the next node in a branch, or -1 when the branch is complete.
 func branch_price(id: String) -> float:
 	var b := branch_index(id)
-	return Upgrades.next_price(self, b) if not Upgrades.next_node(self, b).is_empty() else -1.0
+	var node := Upgrades.next_node(self, b)
+	if node.is_empty():
+		return -1.0
+	return roundf(pump_tree_prices[node.id] * shop_price_scale) if pump_tree_prices.has(node.id) else Upgrades.next_price(self, b)
 
 
 func buy_branch(id: String) -> bool:
@@ -170,7 +184,7 @@ func buy_branch(id: String) -> bool:
 	var node := Upgrades.next_node(self, b)
 	if node.is_empty():
 		return false
-	var price := Upgrades.next_price(self, b)
+	var price := branch_price(id)
 	if spendable() < price:
 		return false
 	cash -= price

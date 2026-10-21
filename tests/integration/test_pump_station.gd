@@ -161,7 +161,7 @@ func test_given_summary_when_continue_past_the_shop_then_day_2_starts_with_full_
 
 
 func test_given_costs_exceed_cash_then_evicted_and_continue_starts_new_run_keeping_xp() -> void:
-	station.wallet.add(-station.wallet.cash)
+	station.wallet.add(-station.wallet.cash - 100.0)  # deep in debt: one sale can't cover the rent
 	_stop_exactly_on_target(0)
 	var xp: int = station.wallet.xp
 	_end_day_by_clock()

@@ -37,10 +37,10 @@ func _to_shop(cash := 5000.0) -> void:
 	station.continue_pressed()
 
 
-func test_given_day_survived_when_enter_pressed_then_tree_shows_5_branches() -> void:
+func test_given_day_survived_when_enter_pressed_then_tree_shows_6_branches() -> void:
 	_to_shop()
 	assert_eq(station.state, station.State.SHOP)
-	assert_eq(Upgrades.BRANCHES.size(), 5)
+	assert_eq(Upgrades.BRANCHES.size(), 6, "five plus HOURS (#35)")
 	assert_string_contains(station.tree_view.tooltip_for("b:tank:0"), "+100 L")
 
 

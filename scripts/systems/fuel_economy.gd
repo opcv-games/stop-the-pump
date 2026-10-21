@@ -27,9 +27,9 @@ class Receipt:
 ## Wholesale fuel price as a share of the pump price. 0.8 means a $2 litre costs the station $1.60.
 @export_range(0.0, 1.0) var wholesale_ratio := 0.7  # balance pass (#34): was 0.8
 @export var price_per_liter := 2.0
-@export var rent_base := 60.0  # one pump on day 1 (#30)
+@export var rent_base := 20.0  # 15-second days (#35): was 60
 ## Added to the rent every new day of a run.
-@export var rent_growth := 32.0  # balance pass (#34): was 40
+@export var rent_growth := 6.0  # 15-second days (#35): was 32
 
 ## Tip jar upgrade (#15): added to Good-or-better tips. Reset on a new run.
 var tip_bonus := 0.0
