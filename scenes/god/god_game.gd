@@ -52,6 +52,7 @@ func _ready() -> void:
 	garage = GarageScreen.new()
 	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic]:
 		s.visible = false
+		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # crisp pixel icons
 		ui.add_child(s)
 	title.play_pressed.connect(new_run)
 	title.garage_pressed.connect(show_garage)

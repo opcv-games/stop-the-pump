@@ -58,9 +58,22 @@ static func para(ci: CanvasItem, at: Vector2, s: String, size: int, width: float
 	return y - at.y
 
 
+static var _icons := {}
+
+
+## An icon by id. Rebuilt as an ImageTexture from the imported image: the tiny imported icons drew as
+## white squares in the UI layer, a fresh texture from the same pixels draws fine.
 static func icon(id: String) -> Texture2D:
+	if _icons.has(id):
+		return _icons[id]
 	var path := ICON % id
-	return load(path) if ResourceLoader.exists(path) else null
+	var tex: Texture2D = null
+	if ResourceLoader.exists(path):
+		var img: Image = (load(path) as Texture2D).get_image()
+		if img:
+			tex = ImageTexture.create_from_image(img)
+	_icons[id] = tex
+	return tex
 
 
 ## A gold-bordered button in the house style.
