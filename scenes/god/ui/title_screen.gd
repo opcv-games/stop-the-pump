@@ -7,6 +7,7 @@ signal play_pressed
 signal garage_pressed
 signal intro_pressed
 signal quit_pressed
+signal language_pressed
 
 var meta: MetaState
 var _t := 0.0
@@ -21,7 +22,12 @@ const RUNS_CHART := Rect2(776, 312, 330, 110)
 func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	var labels := [["PLAY", "play_pressed"], ["PAPA'S GARAGE", "garage_pressed"], ["THE STORY", "intro_pressed"], ["QUIT", "quit_pressed"]]
+	var lang := GodUI.button("FRANÇAIS", Vector2(132, 34), 15)  # round 9: the language switch
+	lang.name = "Language"
+	lang.position = Vector2(1006, 14)
+	lang.pressed.connect(func() -> void: language_pressed.emit())
+	add_child(lang)
+	var labels := [["PLAY", "play_pressed"], ["PAPA'S GARAGE", "garage_pressed"], ["THE STORY", "intro_pressed"], ["QUIT", "quit_pressed"]]  # buttons translate themselves
 	if OS.has_feature("web"):
 		labels.pop_back()  # a browser tab has nothing to quit to
 	for i in labels.size():
@@ -35,6 +41,15 @@ func _init() -> void:
 func show_title(the_meta: MetaState) -> void:
 	meta = the_meta
 	visible = true
+	refresh_language()
+
+
+## The switch names the other language, in that language.
+func refresh_language() -> void:
+	var b := get_node_or_null("Language") as Button
+	if b:
+		b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		b.text = "ENGLISH" if TranslationServer.get_locale().begins_with("fr") else "FRANÇAIS"
 
 
 func _process(dt: float) -> void:
@@ -68,7 +83,7 @@ func _draw() -> void:
 		var tip := centre + Vector2.from_angle(a) * 380.0
 		draw_colored_polygon(PackedVector2Array([centre, tip + Vector2.from_angle(a + PI / 2) * 30, tip - Vector2.from_angle(a + PI / 2) * 30]), Color(1, 0.85, 0.45, 0.05))
 	var f := GodUI.font()
-	var title := "GOD PUMP"
+	var title := tr("GOD PUMP")
 	var fs := 124
 	var w := f.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var at := Vector2(576 - w * 0.5, 210)
@@ -77,15 +92,15 @@ func _draw() -> void:
 	draw_string(f, at, title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1.0, 0.82, 0.32))
 	var shine := fmod(_t * 0.35, 1.6) - 0.3
 	draw_string(f, at, title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 0.9, clampf(0.35 - absf(shine - 0.5) * 0.7, 0.0, 0.35)))
-	GodUI.text(self, Vector2(576, 256), "Saint-Clin-Clin-des-Meuh-Meuh, Québec", 20, GodUI.CREAM, true, 5)
+	GodUI.text(self, Vector2(576, 256), tr("Saint-Clin-Clin-des-Meuh-Meuh, Québec"), 20, GodUI.CREAM, true, 5)
 	if meta:
-		var line := "Best day: %d / %d   ·   Runs: %d   ·   XP: %d" % [meta.best_day, GodData.FINAL_DAY, meta.runs, meta.xp]
+		var line := tr("Best day: %d / %d   ·   Runs: %d   ·   XP: %d") % [meta.best_day, GodData.FINAL_DAY, meta.runs, meta.xp]
 		GodUI.text(self, Vector2(576, 300), line, 16, Color(GodUI.CREAM, 0.75), true, 4)
 		var v := "v" + str(ProjectSettings.get_setting("application/config/version", ""))
-		GodUI.text(self, Vector2(12, 636), "OPCV Games", 14, Color(1, 1, 1, 0.5))
+		GodUI.text(self, Vector2(12, 636), tr("OPCV Games"), 14, Color(1, 1, 1, 0.5))
 		GodUI.text(self, Vector2(1140 - GodUI.font().get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x, 636), v, 14, Color(1, 1, 1, 0.5))
 		if meta.ending_seen:
-			GodUI.text(self, Vector2(576, 610), "Dad came home!", 16, GodUI.GOLD, true, 4)
+			GodUI.text(self, Vector2(576, 610), tr("Dad came home!"), 16, GodUI.GOLD, true, 4)
 		_draw_stats()
 		_draw_scrapbook()
 
@@ -94,20 +109,20 @@ func _draw() -> void:
 func _draw_stats() -> void:
 	var r := STATS_BOX
 	draw_style_box(GodUI.panel_box(GodUI.GOLD_DIM, Color(0.08, 0.065, 0.05, 0.9)), r)
-	GodUI.text(self, Vector2(r.position.x + 18, r.position.y + 30), "THE GAZ BAR SO FAR", 17, GodUI.GOLD)
+	GodUI.text(self, Vector2(r.position.x + 18, r.position.y + 30), tr("THE GAZ BAR SO FAR"), 17, GodUI.GOLD)
 	var lt: Dictionary = meta.lifetime
 	if meta.runs == 0:
-		GodUI.para(self, Vector2(r.get_center().x, r.position.y + 90), "No runs yet. Dad's old pump is waiting.", 15, r.size.x - 40, Color(GodUI.CREAM, 0.7))
+		GodUI.para(self, Vector2(r.get_center().x, r.position.y + 90), tr("No runs yet. Dad's old pump is waiting."), 15, r.size.x - 40, Color(GodUI.CREAM, 0.7))
 		return
 	var rows := [
-		["Runs", str(meta.runs)], ["Best day", "%d / %d" % [meta.best_day, GodData.FINAL_DAY]],
-		["Days at the pump", str(lt.get("days", 0))], ["Cars fueled", str(meta.total_cars)],
-		["Topped off · Perfect", "%d · %d" % [lt.get("supers", 0), lt.get("perfects", 0)]],
-		["Overfilled · Unserved", "%d · %d" % [lt.get("overfilled", 0), lt.get("unserved", 0)]],
-		["Best combo", "×%d" % lt.get("best_combo", 1)],
-		["Truck deliveries", str(lt.get("deliveries", 0))],
-		["Highest price paid", "$%.2f / L" % lt.get("top_price", GodData.WHOLESALE_START)],
-		["Loot, every run", "$%d" % int(lt.get("loot", 0.0))],
+		[tr("Runs"), str(meta.runs)], [tr("Best day"), "%d / %d" % [meta.best_day, GodData.FINAL_DAY]],
+		[tr("Days at the pump"), str(lt.get("days", 0))], [tr("Cars fueled"), str(meta.total_cars)],
+		[tr("Topped off · Perfect"), "%d · %d" % [lt.get("supers", 0), lt.get("perfects", 0)]],
+		[tr("Overfilled · Unserved"), "%d · %d" % [lt.get("overfilled", 0), lt.get("unserved", 0)]],
+		[tr("Best combo"), "×%d" % lt.get("best_combo", 1)],
+		[tr("Truck deliveries"), str(lt.get("deliveries", 0))],
+		[tr("Highest price paid"), "$%.2f / L" % lt.get("top_price", GodData.WHOLESALE_START)],
+		[tr("Loot, every run"), "$%d" % int(lt.get("loot", 0.0))],
 	]
 	var y := r.position.y + 58.0
 	for row in rows:
@@ -125,7 +140,7 @@ func _draw_scrapbook() -> void:
 	var ink := GodUI.PAPER_INK
 	var serif := GodUI.serif()
 	var days: Array = meta.history.map(func(h: Dictionary) -> int: return h.days)
-	GodChart.bars(self, RUNS_CHART, days, "Days survived, run by run", ink, GodUI.RED_INK, serif, float(GodData.FINAL_DAY), _hover_run)
+	GodChart.bars(self, RUNS_CHART, days, tr("Days survived, run by run"), ink, GodUI.RED_INK, serif, float(GodData.FINAL_DAY), _hover_run)
 	if _hover_run >= 0 and _hover_run < meta.history.size():
 		var h: Dictionary = meta.history[_hover_run]
 		var tip := "Run %d: day %d%s, $%d" % [meta.runs - meta.history.size() + _hover_run + 1, h.days, " (Dad came home)" if h.won else "", int(h.loot)]
@@ -134,10 +149,13 @@ func _draw_scrapbook() -> void:
 		draw_rect(tr, ink)
 		GodUI.text_in(self, serif, tr.position + Vector2(6, 14), tip, 12, GodUI.PAPER)
 	draw_line(Vector2(r.position.x + 16, r.position.y + 132), Vector2(r.end.x - 16, r.position.y + 132), Color(ink, 0.35), 1.0)
-	var heard: String = meta.clippings[-1] if not meta.clippings.is_empty() else "Nothing overheard yet."
-	GodUI.text_in(self, GodUI.serif(true), Vector2(r.position.x + 16, r.position.y + 150), "OVERHEARD AT THE GAZ BAR", 11, Color(ink, 0.7))
+	var heard: String = meta.clippings[-1] if not meta.clippings.is_empty() else tr("Nothing overheard yet.")
+	if "\t" in heard:  # "who<TAB>line", translated now
+		var parts := heard.split("\t")
+		heard = "%s: %s" % [tr(Visitors.speaker_name(parts[0])), tr(parts[1])]
+	GodUI.text_in(self, GodUI.serif(true), Vector2(r.position.x + 16, r.position.y + 150), tr("OVERHEARD AT THE GAZ BAR"), 11, Color(ink, 0.7))
 	GodUI.para_in(self, GodUI.serif(false, true), Vector2(r.position.x + 16, r.position.y + 170), heard, 14, r.size.x - 32, ink, 1.15)
-	GodUI.text_in(self, GodUI.serif(true), Vector2(r.position.x + 16, r.position.y + 214), "POSTCARDS FROM \"UN PÊCHEUR\"", 11, Color(ink, 0.7))
+	GodUI.text_in(self, GodUI.serif(true), Vector2(r.position.x + 16, r.position.y + 214), tr("POSTCARDS FROM \"UN PÊCHEUR\""), 11, Color(ink, 0.7))
 	for i in Visitors.POSTCARDS.size():
 		var pc: Array = Visitors.POSTCARDS[i]
 		var slot := Rect2(r.position.x + 16 + i * 86, r.position.y + 224, 78, 52)
@@ -149,4 +167,4 @@ func _draw_scrapbook() -> void:
 		else:
 			draw_rect(slot, Color(ink, 0.07))
 			draw_rect(slot, Color(ink, 0.3), false, 1.0)
-			GodUI.text_in(self, serif, slot.get_center() + Vector2(0, 5), "day %d" % pc[0], 12, Color(ink, 0.45), true)
+			GodUI.text_in(self, serif, slot.get_center() + Vector2(0, 5), tr("day %d") % pc[0], 12, Color(ink, 0.45), true)

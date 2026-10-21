@@ -30,6 +30,6 @@ func show_naming(current: String) -> void:
 
 func _draw() -> void:
 	GodUI.dim(self, size, 0.8)
-	GodUI.text(self, Vector2(576, 230), "NAME YOUR GAZ BAR", 40, GodUI.GOLD, true)
-	GodUI.text(self, Vector2(576, 270), "It goes up on the sign.", 18, GodUI.CREAM, true)
-	GodUI.text(self, Vector2(576, 400), "ENTER to open", 17, Color(GodUI.CREAM, 0.6), true)
+	GodUI.text(self, Vector2(576, 230), tr("NAME YOUR GAZ BAR"), 40, GodUI.GOLD, true)
+	GodUI.text(self, Vector2(576, 270), tr("It goes up on the sign."), 18, GodUI.CREAM, true)
+	GodUI.text(self, Vector2(576, 400), tr("ENTER to open"), 17, Color(GodUI.CREAM, 0.6), true)

@@ -240,20 +240,20 @@ func _draw_truck() -> void:
 func _draw_numbers() -> void:
 	var k := flow_k()
 	var x := 40.0
-	GodUI.text(self, Vector2(x, BAND.position.y + 50), "LA LIVRAISON", 34, GodUI.GOLD, false, 6)
+	GodUI.text(self, Vector2(x, BAND.position.y + 50), tr("LA LIVRAISON"), 34, GodUI.GOLD, false, 6)
 	var brought: float = (info.get("tank_to", 0.0) - info.get("tank_from", 0.0)) * k
-	GodUI.text(self, Vector2(x, BAND.position.y + 86), "+ $%.0f of gas in the tank" % brought, 20, GodUI.CREAM, false, 4)
-	GodUI.text(self, Vector2(x, BAND.position.y + 114), "Paid: $%.0f" % (info.get("cost", 0.0) * k), 20, GodUI.CREAM, false, 4)
+	GodUI.text(self, Vector2(x, BAND.position.y + 86), tr("+ $%.0f of gas in the tank") % brought, 20, GodUI.CREAM, false, 4)
+	GodUI.text(self, Vector2(x, BAND.position.y + 114), tr("Paid: $%.0f") % (info.get("cost", 0.0) * k), 20, GodUI.CREAM, false, 4)
 	var p0: float = info.get("price_from", 0.0)
 	var p1: float = info.get("price_to", 0.0)
 	var shown := p0 if k < 1.0 else p1
-	var line := "Price per litre: $%.2f" % shown
+	var line := tr("Price per litre: $%.2f") % shown
 	GodUI.text(self, Vector2(x, BAND.position.y + 150), line, 20, GodUI.CREAM, false, 4)
 	if k >= 1.0 and p1 > p0:
 		var w := GodUI.font().get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, 20).x
 		var pop := clampf((t - DRIVE_IN - HOSE_OUT - FLOW) / 0.25, 0.0, 1.0)
 		GodUI.text(self, Vector2(x + w + 14, BAND.position.y + 150), "+%d%%" % roundi((p1 / p0 - 1.0) * 100.0), int(20 + 10 * (1.0 - pop)), GodUI.RED, false, 4)
 	if not info.get("cards", true):
-		GodUI.text(self, Vector2(x, BAND.position.y + 180), "A small delivery: no cards this time", 15, Color(GodUI.CREAM, 0.7), false, 3)
-	var hint := "click to skip"
+		GodUI.text(self, Vector2(x, BAND.position.y + 180), tr("A small delivery: no cards this time"), 15, Color(GodUI.CREAM, 0.7), false, 3)
+	var hint := tr("click to skip")
 	GodUI.text(self, Vector2(1140 - GodUI.font().get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x, BAND.end.y - 14), hint, 13, Color(1, 1, 1, 0.35))

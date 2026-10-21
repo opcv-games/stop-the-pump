@@ -630,7 +630,7 @@ func _step_visit(dt: float) -> void:
 		visitor_car.leave(self)
 		return
 	var who: String = lines[_chat.i][0]
-	var text := "%s: %s" % [Visitors.speaker_name(who), lines[_chat.i][1]]
+	var text := "%s: %s" % [tr(Visitors.speaker_name(who)), tr(lines[_chat.i][1])]
 	_chat.t = CHAT_LINE
 	if Visitors.CAST.has(who):
 		chat_line = {"text": text}
@@ -1061,7 +1061,7 @@ func _burst(car: ProtoCar, t: String) -> void:
 	# Say exactly what was achieved: how full, what grade, what the tip was.
 	var top := scr(car.position) + Vector2(0, -64)
 	_floaters.append({"text": "%d%%" % int(car.fill() * 100.0), "pos": top, "life": 1.4, "color": col, "size": 34})
-	_floaters.append({"text": ProtoCar.grade_name(t), "pos": top + Vector2(0, 26), "life": 1.4, "color": col,
+	_floaters.append({"text": tr(ProtoCar.grade_name(t)), "pos": top + Vector2(0, 26), "life": 1.4, "color": col,
 		"size": 24 if t == ScoreTiers.SUPER_PERFECT else 18})
 	if car.tip >= 0.01:
 		_floaters.append({"text": "+$%.2f TIP" % car.tip, "pos": top + Vector2(0, 48), "life": 1.4,
@@ -1589,7 +1589,7 @@ func _draw_till(o: Node2D, font: Font) -> void:
 func _draw_quip(o: Node2D, font: Font) -> void:
 	if visitor_car and is_instance_valid(visitor_car) and visitor_car.phase != ProtoCar.Phase.GONE:
 		var top := car_top(visitor_car)
-		var tag := Visitors.speaker_name(visit.who).to_upper()
+		var tag := tr(Visitors.speaker_name(visit.who)).to_upper()
 		var tw := font.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
 		o.draw_string_outline(font, top + Vector2(-tw * 0.5, -6), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 5, Color(0, 0, 0, 0.8))
 		o.draw_string(font, top + Vector2(-tw * 0.5, -6), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.6, 0.9, 1.0))
@@ -1642,13 +1642,13 @@ func _draw_hud(o: Node2D, font: Font) -> void:
 	if hd:
 		_draw_vignette(o)
 	var h := hour_now()
-	var clock := "DAY %d     %d h %02d" % [round_num, int(h), int(fmod(h, 1.0) * 60.0) / 15 * 15]
+	var clock := tr("DAY %d     %d h %02d") % [round_num, int(h), int(fmod(h, 1.0) * 60.0) / 15 * 15]
 	var cw := font.get_string_size(clock, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
 	o.draw_string_outline(font, Vector2((WIDTH - cw) * 0.5, 30), clock, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, 8, Color(0, 0, 0, 0.8))
 	o.draw_string(font, Vector2((WIDTH - cw) * 0.5, 30), clock, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
 	_draw_till(o, font)
 	_draw_quip(o, font)
-	var combo_text := "x%d COMBO" % combo.multiplier
+	var combo_text := tr("x%d COMBO") % combo.multiplier
 	o.draw_string(font, Vector2(WIDTH - 150, 30), combo_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 1, 1, 0.9))
 	if round_wasted > 0.05:
 		o.draw_string(font, Vector2(WIDTH - 150, 56), "wasted $%.2f" % round_wasted, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(GAS, 0.9))

@@ -171,7 +171,7 @@ const PERKS := [
 	{"id": "head_start", "name": "Longueur d'avance", "helps": "start each run with a drone nozzle", "price": 2000, "tiers": 1, "fx": {"drones": 1}},
 	{"id": "contract", "name": "Contrat du fournisseur", "helps": "gas prices rise 20% slower", "price": 450, "tiers": 3, "fx": {"price_rise_mult": 0.8}},
 	{"id": "premium", "name": "Super sans plomb", "helps": "premium gas: every sale pays 10% more", "price": 450, "tiers": 3, "fx": {"sale_mult": 1.1}},
-	{"id": "tube_man", "name": "Bonhomme gonflable", "helps": "grabs cars off the road and siphons their gas into your tank; tier 2 drops them on your lot", "price": 600, "tiers": 2, "fx": {"tube_man": 1}},
+	{"id": "tube_man", "name": "Bonhomme gonflable", "helps": "siphons passing cars' gas into your tank; tier 2 drops them on your lot", "price": 600, "tiers": 2, "fx": {"tube_man": 1}},
 	{"id": "nest_egg", "name": "Bas de laine", "helps": "start each run with $40 more", "price": 200, "tiers": 3, "fx": {"start_cash": 40.0}},
 ]
 

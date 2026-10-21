@@ -31,7 +31,7 @@ func show_offer(the_run: RunState) -> void:
 
 func _refresh() -> void:
 	_reroll.visible = run.rerolls_left > 0
-	_reroll.text = "REROLL (%d)" % run.rerolls_left
+	_reroll.text = tr("REROLL (%d)") % run.rerolls_left
 	queue_redraw()
 
 
@@ -70,11 +70,11 @@ func _draw() -> void:
 	GodUI.dim(self, size, 0.82)
 	var band := Rect2(0, 44, size.x, 74)
 	draw_rect(band, Color(0.02, 0.015, 0.01, 0.8))
-	GodUI.text(self, Vector2(576, 102), "CHOOSE ONE", 50, GodUI.GOLD, true)
+	GodUI.text(self, Vector2(576, 102), tr("CHOOSE ONE"), 50, GodUI.GOLD, true)
 	for i in run.offer.size():
 		var c := GodData.card(run.offer[i])
 		var r := card_rect(i)
 		var rise := -10.0 if i == _hover else 0.0
 		r.position.y += rise + sin(_t * 2.0 + i) * 2.0
-		GodUI.card(self, r, c.name, c.helps, GodUI.icon(c.id), GodUI.RARITY[c.rarity], i == _hover,
-			c.rarity)
+		GodUI.card(self, r, c.name, tr(c.helps), GodUI.icon(c.id), GodUI.RARITY[c.rarity], i == _hover,
+			tr(c.rarity))

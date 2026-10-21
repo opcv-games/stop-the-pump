@@ -19,6 +19,11 @@ const PAPER_INK := Color(0.14, 0.12, 0.1)
 const RED_INK := Color(0.6, 0.16, 0.12)
 
 
+## A translated string for code that isn't a node (round 9: French and English, locale/strings.csv).
+static func t(s: String) -> String:
+	return String(TranslationServer.translate(s))
+
+
 static func font() -> Font:
 	return ThemeDB.fallback_font
 

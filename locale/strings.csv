@@ -1,0 +1,279 @@
+keys,en,fr
+PAUSE,PAUSE,PAUSE
+VOLUME,VOLUME,VOLUME
+REROLL (%d),REROLL (%d),REBRASSER (%d)
+CHOOSE ONE,CHOOSE ONE,CHOISIS-EN UNE
+GOD PUMP,GOD PUMP,GOD PUMP
+"Saint-Clin-Clin-des-Meuh-Meuh, Québec","Saint-Clin-Clin-des-Meuh-Meuh, Québec","Saint-Clin-Clin-des-Meuh-Meuh, Québec"
+Best day: %d / %d   ·   Runs: %d   ·   XP: %d,Best day: %d / %d   ·   Runs: %d   ·   XP: %d,Meilleur jour : %d / %d   ·   Parties : %d   ·   XP : %d
+OPCV Games,OPCV Games,OPCV Games
+Dad came home!,Dad came home!,Papa est revenu!
+THE GAZ BAR SO FAR,THE GAZ BAR SO FAR,LE GAZ BAR JUSQU'ICI
+No runs yet. Dad's old pump is waiting.,No runs yet. Dad's old pump is waiting.,Aucune partie encore. La vieille pompe de papa t'attend.
+Runs,Runs,Parties
+Best day,Best day,Meilleur jour
+Days at the pump,Days at the pump,Jours à la pompe
+Cars fueled,Cars fueled,Chars servis
+Topped off · Perfect,Topped off · Perfect,Plein au cent · Parfait
+Overfilled · Unserved,Overfilled · Unserved,Débordé · Pas servi
+Best combo,Best combo,Meilleur combo
+Truck deliveries,Truck deliveries,Livraisons du camion
+Highest price paid,Highest price paid,Prix le plus cher payé
+"Loot, every run","Loot, every run","Recettes, toutes parties"
+"Days survived, run by run","Days survived, run by run","Jours survécus, partie par partie"
+Nothing overheard yet.,Nothing overheard yet.,Rien entendu encore.
+OVERHEARD AT THE GAZ BAR,OVERHEARD AT THE GAZ BAR,ENTENDU AU GAZ BAR
+"POSTCARDS FROM ""UN PÊCHEUR""","POSTCARDS FROM ""UN PÊCHEUR""",CARTES POSTALES D'« UN PÊCHEUR »
+day %d,day %d,jour %d
+PAPA'S GARAGE,PAPA'S GARAGE,LE GARAGE À PAPA
+XP %d,XP %d,XP %d
+Runs: %d   ·   Best day: %d,Runs: %d   ·   Best day: %d,Parties : %d   ·   Meilleur jour : %d
+Slots: %d / %d,Slots: %d / %d,Places : %d / %d
+EQUIPPED,EQUIPPED,ÉQUIPÉ
+click to equip,click to equip,clique pour équiper
+tier %d · next %d XP,tier %d · next %d XP,niveau %d · prochain %d XP
+MAX,MAX,MAX
+%d XP,%d XP,%d XP
+free,free,gratuit
+%d XP  (×%d),%d XP  (×%d),%d XP  (×%d)
+THE END  »,THE END  »,LA FIN  »
+THE NIGHT  »,THE NIGHT  »,LA NUIT  »
+FERMÉ  ·  DAY %d / %d,FERMÉ  ·  DAY %d / %d,FERMÉ  ·  JOUR %d / %d
+out of gas before closing!,out of gas before closing!,plus de gaz avant la fermeture!
+Accuracy,Accuracy,Précision
+Loot,Loot,Recettes
+XP,XP,XP
+Every car type unlocked!,Every car type unlocked!,Tous les types de chars débloqués!
+Next car type: %s  (%d / %d cars),Next car type: %s  (%d / %d cars),Prochain type de char : %s  (%d / %d chars)
+Gas left in the tank: $%.0f,Gas left in the tank: $%.0f,Gaz dans le réservoir : %.0f $
+SPECIAL EDITION,SPECIAL EDITION,ÉDITION SPÉCIALE
+L'ÉCHO DE SAINT-CLIN-CLIN,L'ÉCHO DE SAINT-CLIN-CLIN,L'ÉCHO DE SAINT-CLIN-CLIN
+DAD IS BACK!,DAD IS BACK!,PAPA EST REVENU!
+THE GAZ BAR CLOSES AFTER %d DAYS,THE GAZ BAR CLOSES AFTER %d DAYS,LE GAZ BAR FERME APRÈS %d JOURS
+"""T'es un vrai gaz bar boy,"" says the man in the orange hatchback.","""T'es un vrai gaz bar boy,"" says the man in the orange hatchback.","« T'es un vrai gaz bar boy », dit l'homme dans la hatchback orange."
+"No gas, no money, and the truck won't come. ""He'll be back,"" says Bertrand.","No gas, no money, and the truck won't come. ""He'll be back,"" says Bertrand.","Pas de gaz, pas d'argent, et le camion viendra pas. « Il va revenir », dit Bertrand."
+Days,Days,Jours
+Topped off · Perfect · Good,Topped off · Perfect · Good,Plein au cent · Parfait · Bien
+OK · Overfilled · Unserved,OK · Overfilled · Unserved,OK · Débordé · Pas servi
+XP earned,XP earned,XP gagné
++%d  (garage: %d),+%d  (garage: %d),+%d  (garage : %d)
+"Your cash at closing, day by day","Your cash at closing, day by day","Ton argent à la fermeture, jour par jour"
+The price per delivery,The price per delivery,Le prix à chaque livraison
+A game by OPCV Games,A game by OPCV Games,Un jeu de OPCV Games
+Built with the Indie Game Committee (Claude),Built with the Indie Game Committee (Claude),Fait avec l'Indie Game Committee (Claude)
+"Music: ""Roadside At Two""  ·  Pixel art drawn with claude-pxl","Music: ""Roadside At Two""  ·  Pixel art drawn with claude-pxl",Musique : « Roadside At Two »  ·  Pixel art dessiné avec claude-pxl
+ENTER,ENTER,ENTRÉE
+ESC skip,ESC skip,ÉCHAP pour passer
+LA LIVRAISON,LA LIVRAISON,LA LIVRAISON
++ $%.0f of gas in the tank,+ $%.0f of gas in the tank,+ %.0f $ de gaz dans le réservoir
+Paid: $%.0f,Paid: $%.0f,Payé : %.0f $
+Price per litre: $%.2f,Price per litre: $%.2f,Prix au litre : %.2f $
+A small delivery: no cards this time,A small delivery: no cards this time,Une petite livraison : pas de cartes cette fois
+click to skip,click to skip,clique pour passer
+ (owned), (owned), (acquis)
+ (missing), (missing), (manquant)
+$%.0f  needs %s,$%.0f  needs %s,%.0f $  demande %s
+!! You'd be left without enough for the truck.,!! You'd be left without enough for the truck.,!! Il te resterait pas assez pour le camion.
+Click again to buy anyway.,Click again to buy anyway.,Clique encore pour l'acheter quand même.
+OWNED,OWNED,ACQUIS
+click to buy,click to buy,clique pour acheter
+(not enough cash),(not enough cash),(pas assez d'argent)
+$%.0f  buy the one before it first,$%.0f  buy the one before it first,%.0f $  achète celui d'avant en premier
+TANK FULL,TANK FULL,RÉSERVOIR PLEIN
+CALL THE TRUCK,CALL THE TRUCK,APPELER LE CAMION
+BUY $%.0f OF GAS,BUY $%.0f OF GAS,ACHETER %.0f $ DE GAZ
+OPEN  ·  DAY %d  »,OPEN  ·  DAY %d  »,OUVRIR  ·  JOUR %d  »
+THE NIGHT AFTER DAY %d,THE NIGHT AFTER DAY %d,LA NUIT APRÈS LE JOUR %d
+Cash: $%.0f,Cash: $%.0f,Argent : %.0f $
+!!  THE TANK WON'T LAST TOMORROW: CALL THE TRUCK  !!,!!  THE TANK WON'T LAST TOMORROW: CALL THE TRUCK  !!,!!  RÉSERVOIR VIDE DEMAIN : APPELLE LE CAMION  !!
+CARDS,CARDS,CARTES
+GAS TANK,GAS TANK,RÉSERVOIR
+Gas: $%.0f / $%.0f,Gas: $%.0f / $%.0f,Gaz : %.0f $ / %.0f $
+about %.1f days left,about %.1f days left,environ %.1f jours restants
+about %.1f day left,about %.1f day left,environ %.1f jour restant
+Price: $%.2f / L,Price: $%.2f / L,Prix : %.2f $ / L
++%d%% every delivery,+%d%% every delivery,+%d %% à chaque livraison
+Delivery: $%.0f,Delivery: $%.0f,Livraison : %.0f $
++ choose 1 of %d cards,+ choose 1 of %d cards,+ choisis 1 de %d cartes
+NAME YOUR GAZ BAR,NAME YOUR GAZ BAR,NOMME TON GAZ BAR
+It goes up on the sign.,It goes up on the sign.,Ça va sur l'enseigne.
+ENTER to open,ENTER to open,ENTRÉE pour ouvrir
+DAY %d     %d h %02d,DAY %d     %d h %02d,JOUR %d     %d h %02d
+x%d COMBO,x%d COMBO,COMBO x%d
+RESUME  (ESC),RESUME  (ESC),REPRENDRE  (ÉCHAP)
+BACK TO THE TITLE,BACK TO THE TITLE,RETOUR AU MENU
+PLAY,PLAY,JOUER
+THE STORY,THE STORY,L'HISTOIRE
+QUIT,QUIT,QUITTER
+MENU,MENU,MENU
+NEW RUN  »,NEW RUN  »,NOUVELLE PARTIE  »
+OPEN  »,OPEN  »,OUVRIR  »
+REROLL,REROLL,REBRASSER
+PAPA'S GARAGE  »,PAPA'S GARAGE  »,LE GARAGE À PAPA  »
+common,common,commune
+rare,rare,rare
+legendary,legendary,légendaire
+SUPER,SUPER,SUPER
+PERFECT,PERFECT,PARFAIT
+GOOD,GOOD,BIEN
+OK,OK,OK
+OVERFILLED,OVERFILLED,DÉBORDÉ
+UNSERVED,UNSERVED,PAS SERVI
+TOPPED OFF!,TOPPED OFF!,PLEIN AU CENT!
+PERFECT!,PERFECT!,PARFAIT!
+OVERFILLED!,OVERFILLED!,DÉBORDÉ!
+NOZZLES,NOZZLES,PISTOLETS
+BLING,BLING,BLING
+PERKS,PERKS,AVANTAGES
+you stay awake: open until 14 h,you stay awake: open until 14 h,tu restes réveillé : ouvert jusqu'à 14 h
+Mom covers lunch: open until 16 h,Mom covers lunch: open until 16 h,maman fait le dîner : ouvert jusqu'à 16 h
+the council says yes: open until 19 h,the council says yes: open until 19 h,le conseil dit oui : ouvert jusqu'à 19 h
+open until 23 h,open until 23 h,ouvert jusqu'à 23 h
++1 car waiting when you open,+1 car waiting when you open,+1 char qui attend à l'ouverture
++2 cars waiting when you open,+2 cars waiting when you open,+2 chars qui attendent à l'ouverture
+"+3 cars waiting, and more cars pull in","+3 cars waiting, and more cars pull in","+3 chars qui attendent, et plus de chars arrêtent"
+cars cut through your lot: more pull in,cars cut through your lot: more pull in,les chars coupent par ton terrain : plus arrêtent
+every car also buys a snack: +$2,every car also buys a snack: +$2,chaque char achète aussi une collation : +2 $
+"+$4 a car, and cars wait 30% longer","+$4 a car, and cars wait 30% longer","+4 $ par char, et les chars attendent 30 % plus longtemps"
+5% chance a car tips $20 more,5% chance a car tips $20 more,5 % de chances qu'un char donne 20 $ de plus
+a wider stream: easier to land on a car,a wider stream: easier to land on a car,un jet plus large : plus facile de viser un char
+the stream bends toward a car nearby,the stream bends toward a car nearby,le jet se plie vers un char proche
+the nozzle pours 20% faster,the nozzle pours 20% faster,le pistolet verse 20 % plus vite
+the stream bends from even further,the stream bends from even further,le jet se plie de plus loin encore
+a little drone fills cars on its own,a little drone fills cars on its own,un petit drone remplit les chars tout seul
+a second drone,a second drone,un deuxième drone
+tips +20%,tips +20%,pourboires +20 %
++$2 on a Perfect or better,+$2 on a Perfect or better,+2 $ sur un Parfait ou mieux
+cars wait 30% longer,cars wait 30% longer,les chars attendent 30 % plus longtemps
+max combo +1,max combo +1,combo max +1
+every applause from the regulars: +$1,every applause from the regulars: +$1,chaque applaudissement des habitués : +1 $
+the tank holds $200 more gas,the tank holds $200 more gas,le réservoir contient 200 $ de gaz de plus
+$200 more,$200 more,200 $ de plus
+$300 more,$300 more,300 $ de plus
+"know to the hour how long the tank lasts, and get warned in the day","know to the hour how long the tank lasts, and get warned in the day","sache à l'heure près combien de temps le réservoir tient, et sois averti pendant la journée"
+a delivery costs 10% less when the tank is under 25%,a delivery costs 10% less when the tank is under 25%,une livraison coûte 10 % moins cher quand le réservoir est sous 25 %
+a partial delivery raises the price half as much,a partial delivery raises the price half as much,une livraison partielle fait monter le prix deux fois moins
+a car that waited over 3 s buys a coffee: +$1,a car that waited over 3 s buys a coffee: +$1,un char qui a attendu plus de 3 s achète un café : +1 $
+"every 7th day is hockey night: 3 more cars waiting, more cars pull in","every 7th day is hockey night: 3 more cars waiting, more cars pull in","chaque 7e jour, c'est soir de hockey : 3 chars de plus qui attendent, plus de chars arrêtent"
+every 5th car is a regular who tips double,every 5th car is a regular who tips double,chaque 5e char est un habitué qui donne le double
+tips +30% after 19 h,tips +30% after 19 h,pourboires +30 % après 19 h
+a drone fill earns $2 more,a drone fill earns $2 more,un plein par drone rapporte 2 $ de plus
+"a chip truck on the lot: cars wait 20% longer, every applause +$2","a chip truck on the lot: cars wait 20% longer, every applause +$2","une cantine sur le terrain : les chars attendent 20 % plus longtemps, chaque applaudissement +2 $"
+a big price sign by the road: every sale pays 5% more,a big price sign by the road: every sale pays 5% more,une grosse affiche de prix au bord du chemin : chaque vente rapporte 5 % de plus
+"thieves get a wheel clamp: they can't flee, and what they stole goes back in your tank","thieves get a wheel clamp: they can't flee, and what they stole goes back in your tank","les voleurs reçoivent un sabot : ils peuvent pas se sauver, et ce qu'ils ont volé retourne dans ton réservoir"
+"a customer about to give up gets clamped instead: it stops, and waits a while longer","a customer about to give up gets clamped instead: it stops, and waits a while longer",un client sur le point d'abandonner reçoit un sabot : il s'arrête et attend un peu plus
+every fourth delivery comes without a price rise,every fourth delivery comes without a price rise,une livraison sur quatre arrive sans hausse de prix
+tips ×2 for the first 2 hours of each day,tips ×2 for the first 2 hours of each day,pourboires ×2 pendant les 2 premières heures de chaque jour
+spills are halved,spills are halved,les dégâts sont réduits de moitié
++2 cars waiting every morning,+2 cars waiting every morning,+2 chars qui attendent chaque matin
+a top-off pays $4 more,a top-off pays $4 more,un plein au cent rapporte 4 $ de plus
+an OK no longer breaks the combo,an OK no longer breaks the combo,un OK brise plus le combo
+tips +35%,tips +35%,pourboires +35 %
+the stream fills two cars at once,the stream fills two cars at once,le jet remplit deux chars à la fois
+auto-aim reaches 60 further,auto-aim reaches 60 further,la visée auto porte 60 plus loin
++1 drone nozzle,+1 drone nozzle,+1 drone pistolet
+the next delivery doesn't raise the gas price,the next delivery doesn't raise the gas price,la prochaine livraison fait pas monter le prix du gaz
+every applause from the regulars: +$2,every applause from the regulars: +$2,chaque applaudissement des habitués : +2 $
+10% of fills are golden: tip ×3,10% of fills are golden: tip ×3,10 % des pleins sont dorés : pourboire ×3
+spilled gas flows back into the tank,spilled gas flows back into the tank,le gaz renversé retourne dans le réservoir
+"tips ×2, but gas prices rise twice as fast","tips ×2, but gas prices rise twice as fast","pourboires ×2, mais le prix du gaz monte deux fois plus vite"
++$300 now; the next delivery costs 40% more,+$300 now; the next delivery costs 40% more,+300 $ tout de suite; la prochaine livraison coûte 40 % de plus
+Dad's old nozzle. Honest.,Dad's old nozzle. Honest.,Le vieux pistolet de papa. Honnête.
+"a wide shower head: stream +20, flow -20%","a wide shower head: stream +20, flow -20%","une large pomme de douche : jet +20, débit -20 %"
+"flow +40%, top-off tips +50%","flow +40%, top-off tips +50%","débit +40 %, pourboires des pleins au cent +50 %"
+"flow -30%, tips +30%: for the precise","flow -30%, tips +30%: for the precise","débit -30 %, pourboires +30 % : pour les précis"
+flow ×2. Good luck.,flow ×2. Good luck.,débit ×2. Bonne chance.
+"10% golden fills (tip ×3), flow +10%","10% golden fills (tip ×3), flow +10%","10 % de pleins dorés (pourboire ×3), débit +10 %"
+luck +10,luck +10,chance +10
+flow +10%,flow +10%,débit +10 %
+the first car of each day tips double,the first car of each day tips double,le premier char de chaque jour donne le double
+cars wait 20% longer,cars wait 20% longer,les chars attendent 20 % plus longtemps
+"once a day, an overfill doesn't break the combo","once a day, an overfill doesn't break the combo","une fois par jour, un débordement brise pas le combo"
+every 10th car's gas goes back in the tank,every 10th car's gas goes back in the tank,le gaz de chaque 10e char retourne dans le réservoir
++5% tip per combo level,+5% tip per combo level,+5 % de pourboire par niveau de combo
+shop upgrades 10% cheaper,shop upgrades 10% cheaper,améliorations 10 % moins chères
+start each run with $50 more,start each run with $50 more,commence chaque partie avec 50 $ de plus
+the first delivery of each run costs 25% less,the first delivery of each run costs 25% less,la première livraison de chaque partie coûte 25 % de moins
+luck +5,luck +5,chance +5
+4 cards per delivery,4 cards per delivery,4 cartes par livraison
+1 reroll per delivery,1 reroll per delivery,1 rebrassage par livraison
+3% of fills tip ×4,3% of fills tip ×4,3 % des pleins donnent un pourboire ×4
+one more bling slot,one more bling slot,une place de bling de plus
+start each run with a drone nozzle,start each run with a drone nozzle,commence chaque partie avec un drone pistolet
+gas prices rise 20% slower,gas prices rise 20% slower,le prix du gaz monte 20 % moins vite
+premium gas: every sale pays 10% more,premium gas: every sale pays 10% more,essence super : chaque vente rapporte 10 % de plus
+siphons passing cars' gas into your tank; tier 2 drops them on your lot,siphons passing cars' gas into your tank; tier 2 drops them on your lot,siphonne le gaz des chars qui passent; niveau 2 : il les dépose sur ton terrain
+start each run with $40 more,start each run with $40 more,commence chaque partie avec 40 $ de plus
+Gaétan,Gaétan,Gaétan
+Sylvie,Sylvie,Sylvie
+Me Tremblay,Me Tremblay,Me Tremblay
+Cousin Réjean,Cousin Réjean,Cousin Réjean
+The curé,The curé,Le curé
+The mail carrier,The mail carrier,Le facteur
+"Gaétan, from across the road. Nice pump, kid.","Gaétan, from across the road. Nice pump, kid.","Gaétan, d'en face. Belle pompe, le jeune."
+"Your gas costs 19 cents more, Gaétan.","Your gas costs 19 cents more, Gaétan.","Ton gaz coûte 19 cennes de plus, Gaétan."
+Quality costs money.,Quality costs money.,"La qualité, ça se paye."
+"Hi! I'm Sylvie, Mme Gagnon's niece.","Hi! I'm Sylvie, Mme Gagnon's niece.","Allô! Moi c'est Sylvie, la nièce de Mme Gagnon."
+She's single. Just saying.,She's single. Just saying.,Elle est célibataire. Je dis ça de même.
+"Is HE single, though?","Is HE single, though?","Lui, y'é-tu célibataire?"
+Just checking the gaz bar is in good hands.,Just checking the gaz bar is in good hands.,Je viens juste voir si le gaz bar est entre bonnes mains.
+"You look nervous, Tremblay.","You look nervous, Tremblay.","T'as l'air nerveux, Tremblay."
+Me? No. Why? Who said that?,Me? No. Why? Who said that?,Moi? Non. Pourquoi? Qui a dit ça?
+Cousin Réjean! I hear you need someone for nights.,Cousin Réjean! I hear you need someone for nights.,Cousin Réjean! Paraît que tu cherches quelqu'un pour les nuits.
+He sleeps on the job.,He sleeps on the job.,Y dort sur la job.
+Only at night.,Only at night.,Juste la nuit.
+A postcard for the kid! From Lac-à-la-Truite.,A postcard for the kid! From Lac-à-la-Truite.,Une carte postale pour le jeune! Du Lac-à-la-Truite.
+"""The fish are biting. Don't spill."" Signed: un pêcheur.","""The fish are biting. Don't spill."" Signed: un pêcheur.",« Ça mord en masse. Renverse pas. » Signé : un pêcheur.
+"A fisherman, eh? I KNEW it.","A fisherman, eh? I KNEW it.","Un pêcheur, hein? Je le SAVAIS."
+"Bless this pump, my child.","Bless this pump, my child.","Je bénis cette pompe, mon enfant."
+"Your father always closed at 11. To go fishing, he said.","Your father always closed at 11. To go fishing, he said.","Ton père fermait toujours à 11 h. Pour aller à la pêche, qu'y disait."
+He said a lot of things.,He said a lot of things.,Y disait ben des affaires.
+Has anyone received any mail lately?,Has anyone received any mail lately?,Quelqu'un a reçu du courrier dernièrement?
+"Why do you ask, Maître?","Why do you ask, Maître?","Pourquoi vous demandez ça, Maître?"
+No reason. Lovely weather. Goodbye.,No reason. Lovely weather. Goodbye.,Pour rien. Beau temps. Au revoir.
+Business is slow across the road.,Business is slow across the road.,Les affaires sont tranquilles en face.
+"Lower your prices, Gaétan.","Lower your prices, Gaétan.","Baisse tes prix, Gaétan."
+Never.,Never.,Jamais.
+Another postcard! From Lac Saint-Jean.,Another postcard! From Lac Saint-Jean.,Une autre carte postale! Du Lac-Saint-Jean.
+"""Heard the gaz bar's busy. Not bad, kid."" Un pêcheur.","""Heard the gaz bar's busy. Not bad, kid."" Un pêcheur.","« Paraît que le gaz bar roule. Pas pire, le jeune. » Un pêcheur."
+How does a fisherman know about our gaz bar?,How does a fisherman know about our gaz bar?,"Comment un pêcheur peut savoir ça, pour notre gaz bar?"
+My aunt says you're getting good at this.,My aunt says you're getting good at this.,Ma tante dit que tu deviens bon là-dedans.
+I did say that.,I did say that.,C'est vrai que je l'ai dit.
+She also says you're single.,She also says you're single.,Elle dit aussi que t'es célibataire.
+Bertrand bought a bus ticket to Gaspésie. Did you know?,Bertrand bought a bus ticket to Gaspésie. Did you know?,Bertrand s'est acheté un billet d'autobus pour la Gaspésie. Le saviez-vous?
+A man is allowed a vacation.,A man is allowed a vacation.,Un homme a le droit de prendre des vacances.
+"From Gaspésie! ""Your prices are too cheap. Keep the coffee hot.""","From Gaspésie! ""Your prices are too cheap. Keep the coffee hot.""",De la Gaspésie! « Tes prix sont trop bas. Garde le café chaud. »
+He knows our prices! He's been HERE!,He knows our prices! He's been HERE!,Y connaît nos prix! Y est venu ICITTE!
+"Calm down, Ti-Guy.","Calm down, Ti-Guy.","Calme-toi, Ti-Guy."
+I may have misplaced a death certificate.,I may have misplaced a death certificate.,J'ai peut-être égaré un certificat de décès.
+MISPLACED?,MISPLACED?,ÉGARÉ?
+Forget I said anything.,Forget I said anything.,Oubliez ce que j'ai dit.
+Saw an orange hatchback at the rest stop. A fishing rod out the window.,Saw an orange hatchback at the rest stop. A fishing rod out the window.,J'ai vu une hatchback orange à la halte routière. Une canne à pêche qui dépassait de la fenêtre.
+THAT'S HIM!,THAT'S HIM!,C'EST LUI!
+"From Florida! ""Sunburnt. Bored. Out of worms. See you soon.""","From Florida! ""Sunburnt. Bored. Out of worms. See you soon.""",De la Floride! « Brûlé. Tanné. Plus de vers. À bientôt. »
+See you SOON?,See you SOON?,À BIENTÔT?
+"Better keep the coffee hot, kid.","Better keep the coffee hot, kid.","Garde le café chaud, le jeune."
+Word is your father's coming home.,Word is your father's coming home.,Paraît que ton père s'en revient.
+He still owes me $20 for worms.,He still owes me $20 for worms.,Y me doit encore 20 $ de vers.
+OPCV Games presents,OPCV Games presents,OPCV Games présente
+"In the beginning, there was gas.","In the beginning, there was gas.",Au commencement était le gaz.
+And the gas was good.,And the gas was good.,Et le gaz était bon.
+Then came the one who would pour it.,Then came the one who would pour it.,Puis vint celui qui allait le verser.
+"Saint-Clin-Clin-des-Meuh-Meuh, Québec.","Saint-Clin-Clin-des-Meuh-Meuh, Québec.","Saint-Clin-Clin-des-Meuh-Meuh, Québec."
+Your father passed away last spring.,Your father passed away last spring.,Ton père est décédé le printemps passé.
+"At the reading of the will, Me Tremblay, the notary, cleared his throat. Nervously.","At the reading of the will, Me Tremblay, the notary, cleared his throat. Nervously.","À la lecture du testament, Me Tremblay, le notaire, s'est raclé la gorge. Nerveusement."
+"""...and to my only child, I leave... THE GOD PUMP.""","""...and to my only child, I leave... THE GOD PUMP.""","« ...et à mon unique enfant, je lègue... LA GOD PUMP. »"
+It's a gas station.,It's a gas station.,C'est un gaz bar.
+"One pump. A boarded window. Ti-Guy, Mme Gagnon, Bertrand and Le Grand, four regulars who never leave.","One pump. A boarded window. Ti-Guy, Mme Gagnon, Bertrand and Le Grand, four regulars who never leave.","Une pompe. Une fenêtre placardée. Ti-Guy, Mme Gagnon, Bertrand et Le Grand, quatre habitués qui partent jamais."
+"He only opened mornings. After 11, he went fishing.","He only opened mornings. After 11, he went fishing.","Y ouvrait juste le matin. Après 11 h, y allait à la pêche."
+Are you worthy?,Are you worthy?,Seras-tu à la hauteur?
+Day 50.,Day 50.,Jour 50.
+An old orange hatchback pulls in. A fishing rod sticks out the window.,An old orange hatchback pulls in. A fishing rod sticks out the window.,Une vieille hatchback orange arrête. Une canne à pêche dépasse de la fenêtre.
+You top it off. To the cent.,You top it off. To the cent.,Tu fais le plein. Au cent près.
+The driver gets out. Sunburnt. Smells like a lake.,The driver gets out. Sunburnt. Smells like a lake.,Le chauffeur débarque. Brûlé par le soleil. Ça sent le lac.
+"""Salut, mon grand.""","""Salut, mon grand.""","« Salut, mon grand. »"
+"""After 11, I went fishing. Then I just... kept going.""","""After 11, I went fishing. Then I just... kept going.""","« Après 11 h, je suis allé à la pêche. Pis... j'ai continué. »"
+"Four postcards, signed ""un pêcheur"". Mme Gagnon gasps. Bertrand doesn't.","Four postcards, signed ""un pêcheur"". Mme Gagnon gasps. Bertrand doesn't.","Quatre cartes postales, signées « un pêcheur ». Mme Gagnon s'étouffe. Bertrand, non."
+He looks at the lot. The regulars. The jar.,He looks at the lot. The regulars. The jar.,Y regarde le terrain. Les habitués. Le pot.
+"""T'es un vrai gaz bar boy.""","""T'es un vrai gaz bar boy.""",« T'es un vrai gaz bar boy. »
+Thanks for playing.,Thanks for playing.,Merci d'avoir joué.

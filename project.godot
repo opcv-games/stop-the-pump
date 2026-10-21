@@ -30,3 +30,7 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 [rendering]
 
 environment/defaults/default_clear_color=Color(0.18, 0.18, 0.2, 1)
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://locale/strings.en.translation", "res://locale/strings.fr.translation")

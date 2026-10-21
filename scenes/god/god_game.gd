@@ -35,6 +35,7 @@ var _last_report := {}
 func _ready() -> void:
 	meta = MetaState.load_from(meta_path)
 	_apply_volume()
+	set_language(meta.language if meta.language != "" else ("fr" if OS.get_locale_language() == "fr" else "en"), false)
 	day = DAY_SCENE.instantiate()
 	day.managed = true
 	day.sound_on = sound_on
@@ -65,6 +66,7 @@ func _ready() -> void:
 	title.garage_pressed.connect(show_garage)
 	title.intro_pressed.connect(func() -> void: _play_cinematic(Cinematic.INTRO, "title"))
 	title.quit_pressed.connect(func() -> void: get_tree().quit())
+	title.language_pressed.connect(func() -> void: set_language("en" if TranslationServer.get_locale().begins_with("fr") else "fr"))
 	cinematic.finished.connect(_on_cinematic_finished)
 	naming.named.connect(_on_named)
 	report_screen.done.connect(_after_report)
@@ -162,7 +164,7 @@ func start_day() -> void:
 	day.visit = Visitors.beat_for(run.day)  # round 9: the lore drives in and chats
 	if not day.visit.is_empty():
 		var first: Array = day.visit.lines[0]
-		meta.clip("%s: %s" % [Visitors.speaker_name(first[0]), first[1]], day.visit.get("postcard", 0))
+		meta.clip("%s\t%s" % [first[0], first[1]], day.visit.get("postcard", 0))  # who, line: translated when shown
 	day.start_day(run.mods(), run.tank, run.day, meta.unlocked_cars())
 	if run.day >= GodData.FINAL_DAY:
 		var dad := day.park_customer(30.0, Vector2(GodPump.ENTRANCE.x + 60, GodPump.LOT.position.y + 70))
@@ -247,7 +249,7 @@ func toggle_pause() -> void:
 		_pause.process_mode = Node.PROCESS_MODE_ALWAYS
 		_pause.draw.connect(func() -> void:
 			GodUI.dim(_pause, _pause.size, 0.7)
-			GodUI.text(_pause, Vector2(576, 250), "PAUSE", 56, GodUI.GOLD, true, 8))
+			GodUI.text(_pause, Vector2(576, 250), tr("PAUSE"), 56, GodUI.GOLD, true, 8))
 		var resume := GodUI.button("RESUME  (ESC)", Vector2(300, 48))
 		resume.position = Vector2(426, 300)
 		resume.pressed.connect(toggle_pause)
@@ -275,7 +277,7 @@ func toggle_pause() -> void:
 			meta.save())
 		_pause.add_child(vol)
 		var vol_label := Label.new()
-		vol_label.text = "VOLUME"
+		vol_label.text = tr("VOLUME")
 		vol_label.position = Vector2(400, 440)
 		vol_label.add_theme_color_override("font_color", GodUI.GOLD)
 		_pause.add_child(vol_label)
@@ -353,6 +355,16 @@ func dev_reset_save() -> void:
 func _close_dev() -> void:
 	if dev and dev.visible:
 		toggle_dev()
+
+
+## French or English (round 9): the whole game follows TranslationServer; the choice is saved.
+func set_language(lang: String, save := true) -> void:
+	TranslationServer.set_locale(lang)
+	if save:
+		meta.language = lang
+		meta.save()
+	if title:
+		title.refresh_language()
 
 
 func _apply_volume() -> void:

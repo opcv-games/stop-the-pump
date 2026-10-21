@@ -152,4 +152,13 @@ func test_a_visitor_comes_on_the_lore_days() -> void:
 	g._after_report()
 	g.open_next_day()  # day 2: Gaétan, from across the road
 	assert_eq(g.day.visit.who, "gaetan")
-	assert_string_contains(g.meta.clippings[-1], "Gaétan", "remembered for the menu's scrapbook")
+	assert_string_contains(g.meta.clippings[-1], "gaetan", "remembered for the menu's scrapbook")
+
+
+func test_the_game_speaks_french_and_english() -> void:
+	g.set_language("fr")
+	assert_eq(g.tr("PLAY"), "JOUER")
+	assert_eq(g.tr("THE NIGHT AFTER DAY %d") % 3, "LA NUIT APRÈS LE JOUR 3")
+	assert_eq(g.meta.language, "fr", "the choice is kept")
+	g.set_language("en")
+	assert_eq(g.tr("PLAY"), "PLAY")

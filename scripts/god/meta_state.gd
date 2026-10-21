@@ -16,6 +16,7 @@ var ending_seen := false
 var intro_seen := false
 var station_name := "GAZ BAR"
 var volume := 0.8  # master volume, 0..1
+var language := ""  # "en" or "fr" (round 9); "" = not chosen yet, follow the computer
 var owned_nozzles: Array = ["classique"]
 var owned_bling: Array = []
 var perk_tiers := {}
@@ -47,6 +48,7 @@ static func load_from(p: String) -> MetaState:
 	m.intro_seen = cfg.get_value("meta", "intro_seen", false)
 	m.station_name = cfg.get_value("meta", "station_name", "GAZ BAR")
 	m.volume = cfg.get_value("meta", "volume", 0.8)
+	m.language = cfg.get_value("meta", "language", "")
 	m.owned_nozzles = cfg.get_value("garage", "nozzles", ["classique"])
 	m.owned_bling = cfg.get_value("garage", "bling", [])
 	m.perk_tiers = cfg.get_value("garage", "perks", {})
@@ -71,6 +73,7 @@ func save() -> void:
 	cfg.set_value("meta", "intro_seen", intro_seen)
 	cfg.set_value("meta", "station_name", station_name)
 	cfg.set_value("meta", "volume", volume)
+	cfg.set_value("meta", "language", language)
 	cfg.set_value("garage", "nozzles", owned_nozzles)
 	cfg.set_value("garage", "bling", owned_bling)
 	cfg.set_value("garage", "perks", perk_tiers)

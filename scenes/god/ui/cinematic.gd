@@ -142,13 +142,13 @@ func _draw() -> void:
 	draw_rect(Rect2(0, size.y - 92, size.x, 92), Color(0.02, 0.015, 0.01))
 	var a := clampf(_t / 0.7, 0.0, 1.0)
 	if s.text != "":
-		GodUI.text(self, Vector2(576, size.y - 46), s.text, 26, Color(GodUI.CREAM, a), true)
+		GodUI.text(self, Vector2(576, size.y - 46), tr(s.text), 26, Color(GodUI.CREAM, a), true)
 	if s.get("credits", false):
-		var lines := ["A game by OPCV Games", "Built with the Indie Game Committee (Claude)", "Music: \"Roadside At Two\"  ·  Pixel art drawn with claude-pxl"]
+		var lines := [tr("A game by OPCV Games"), tr("Built with the Indie Game Committee (Claude)"), tr("Music: \"Roadside At Two\"  ·  Pixel art drawn with claude-pxl")]
 		for i in lines.size():
 			GodUI.text(self, Vector2(576, 372 + i * 30), lines[i], 18, Color(GodUI.CREAM, a * 0.9), true, 4)
-	GodUI.text(self, Vector2(1130 - GodUI.font().get_string_size("ESC skip", HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x, 34),
-		"ENTER" if on_last() else "ESC skip", 13, Color(1, 1, 1, 0.4))
+	var hint := tr("ENTER") if on_last() else tr("ESC skip")
+	GodUI.text(self, Vector2(1130 - GodUI.font().get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x, 34), hint, 13, Color(1, 1, 1, 0.4))
 
 
 ## A golden sky, clouds parting, god rays, and (in some shots) a golden nozzle coming down.
@@ -192,7 +192,7 @@ func _draw_title() -> void:
 	if _t < 0.25:
 		draw_rect(Rect2(Vector2.ZERO, size), Color(1, 1, 0.9, 0.6 * (1.0 - _t / 0.25)))
 	var f := GodUI.font()
-	var title := "GOD PUMP"
+	var title := tr("GOD PUMP")
 	var fs := 130
 	var w := f.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	draw_set_transform(Vector2(576, 210) + shake, 0.0, Vector2(scale, scale))

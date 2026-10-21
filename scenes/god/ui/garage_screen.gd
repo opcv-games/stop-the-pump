@@ -115,15 +115,15 @@ func _draw() -> void:
 	if not meta:
 		return
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0.06, 0.045, 0.035, 0.96))
-	GodUI.text(self, Vector2(576, 56), "PAPA'S GARAGE", 38, GodUI.GOLD, true)
-	GodUI.text(self, Vector2(1120 - GodUI.font().get_string_size("XP %d" % meta.xp, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x, 56), "XP %d" % meta.xp, 26, GodUI.GOLD)
-	GodUI.text(self, Vector2(32, 56), "Runs: %d   ·   Best day: %d" % [meta.runs, meta.best_day], 15, Color(GodUI.CREAM, 0.7))
+	GodUI.text(self, Vector2(576, 56), tr("PAPA'S GARAGE"), 38, GodUI.GOLD, true)
+	GodUI.text(self, Vector2(1120 - GodUI.font().get_string_size("XP %d" % meta.xp, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x, 56), tr("XP %d") % meta.xp, 26, GodUI.GOLD)
+	GodUI.text(self, Vector2(32, 56), tr("Runs: %d   ·   Best day: %d") % [meta.runs, meta.best_day], 15, Color(GodUI.CREAM, 0.7))
 	for i in TABS.size():
 		var r := tab_rect(i)
 		draw_style_box(GodUI.panel_box(GodUI.GOLD if i == tab else GodUI.GOLD_DIM, Color(0.2, 0.15, 0.09) if i == tab else Color(0.1, 0.08, 0.06), 8), r)
-		GodUI.text(self, r.get_center() + Vector2(0, 6), TABS[i], 16, GodUI.GOLD if i == tab else Color(GodUI.GOLD, 0.6), true)
+		GodUI.text(self, r.get_center() + Vector2(0, 6), tr(TABS[i]), 16, GodUI.GOLD if i == tab else Color(GodUI.GOLD, 0.6), true)
 	if tab == 1:
-		GodUI.text(self, Vector2(576, 146), "Slots: %d / %d" % [meta.equipped_bling.size(), meta.bling_slots()], 14, Color(GodUI.CREAM, 0.7), true)
+		GodUI.text(self, Vector2(576, 146), tr("Slots: %d / %d") % [meta.equipped_bling.size(), meta.bling_slots()], 14, Color(GodUI.CREAM, 0.7), true)
 		var noz := GodUI.sprite("nozzle_idle")
 		if noz:  # your nozzle, wearing it all
 			var at := Vector2(940, 64) + Vector2(0, sin(_t * 1.7) * 2.0)
@@ -148,17 +148,17 @@ func _draw() -> void:
 		while fs > 11 and GodUI.font().get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > r.size.x - 14:
 			fs -= 1  # long names shrink to fit their card
 		GodUI.text(self, Vector2(r.get_center().x, r.position.y + 98), it.name, fs, GodUI.GOLD, true)
-		GodUI.para(self, Vector2(r.get_center().x, r.position.y + 122), it.helps, 13, r.size.x - 20)
+		GodUI.para(self, Vector2(r.get_center().x, r.position.y + 122), tr(it.helps), 13, r.size.x - 20)
 		var foot := ""
 		match st:
 			"equipped":
-				foot = "EQUIPPED"
+				foot = tr("EQUIPPED")
 			"owned":
-				foot = "click to equip" if tab < 2 else "tier %d · next %d XP" % [meta.perk_tiers.get(it.id, 0), p]
+				foot = tr("click to equip") if tab < 2 else tr("tier %d · next %d XP") % [meta.perk_tiers.get(it.id, 0), p]
 			"maxed":
-				foot = "MAX"
+				foot = tr("MAX")
 			_:
-				foot = "%d XP" % p if p > 0 else "free"
+				foot = tr("%d XP") % p if p > 0 else tr("free")
 		if tab == 2 and st == "shop":
-			foot = "%d XP  (×%d)" % [p, it.tiers]
+			foot = tr("%d XP  (×%d)") % [p, it.tiers]
 		GodUI.text(self, Vector2(r.get_center().x, r.end.y - 14), foot, 15, col.lightened(0.2), true)

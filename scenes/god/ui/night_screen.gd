@@ -43,9 +43,9 @@ func refresh() -> void:
 		return
 	var cost := run.delivery_cost()
 	_truck_btn.disabled = cost <= 0.0 or run.cash < minf(cost, RunState.MIN_DELIVERY)
-	_truck_btn.text = "TANK FULL" if cost <= 0.0 else ("CALL THE TRUCK" if run.cash >= cost else "BUY $%.0f OF GAS" % run.cash)
+	_truck_btn.text = tr("TANK FULL") if cost <= 0.0 else (tr("CALL THE TRUCK") if run.cash >= cost else tr("BUY $%.0f OF GAS") % run.cash)
 	_open_btn.disabled = run.tank < 1.0
-	_open_btn.text = "OPEN  ·  DAY %d  »" % (run.day + 1)
+	_open_btn.text = tr("OPEN  ·  DAY %d  »") % (run.day + 1)
 	queue_redraw()
 
 
@@ -73,19 +73,23 @@ func _draw() -> void:
 	GodUI.wood_wall(self, size, Vector2(690, 330), _t)  # round 8: Dad's office, wood paneling
 	var plate := Rect2(386, 8, 380, 74)
 	GodUI.enamel(self, plate, Color(0.93, 0.89, 0.8), Color(0.62, 0.16, 0.12))
-	GodUI.text(self, Vector2(576, 42), "THE NIGHT AFTER DAY %d" % run.day, 24, Color(0.62, 0.16, 0.12), true)
-	GodUI.text(self, Vector2(576, 68), "Cash: $%.0f" % run.cash, 19, Color(0.14, 0.12, 0.1), true)
+	GodUI.text(self, Vector2(576, 42), tr("THE NIGHT AFTER DAY %d") % run.day, 24, Color(0.62, 0.16, 0.12), true)
+	GodUI.text(self, Vector2(576, 68), tr("Cash: $%.0f") % run.cash, 19, Color(0.14, 0.12, 0.1), true)
 	_draw_tank()
 	if run.tank_warning():  # playtest 7: forgetting the truck shouldn't end a run by surprise
 		var a := 0.75 + 0.25 * sin(_t * 6.0)
 		var band := Rect2(262, 84, 440, 32)
 		draw_style_box(GodUI.panel_box(Color(GodUI.RED, a), Color(0.25, 0.04, 0.03, 0.95), 8), band)
-		GodUI.text(self, band.get_center() + Vector2(0, 7), "!!  THE TANK WON'T LAST TOMORROW: CALL THE TRUCK  !!", 15, Color(1, 0.9, 0.8, a), true)
+		var warn := tr("!!  THE TANK WON'T LAST TOMORROW: CALL THE TRUCK  !!")
+		var fs := 15
+		while fs > 10 and GodUI.font().get_string_size(warn, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > band.size.x - 16:
+			fs -= 1  # fits the band in either language
+		GodUI.text(self, band.get_center() + Vector2(0, 6), warn, fs, Color(1, 0.9, 0.8, a), true)
 		_truck_btn.modulate = Color(1, 1, 1).lerp(Color(1.4, 0.7, 0.6), 0.5 + 0.5 * sin(_t * 6.0))
 	else:
 		_truck_btn.modulate = Color.WHITE
 	# The cards picked this run.
-	GodUI.text(self, Vector2(260, 586), "CARDS" if not run.cards.is_empty() else "", 12, Color(GodUI.GOLD, 0.6))
+	GodUI.text(self, Vector2(260, 586), tr("CARDS") if not run.cards.is_empty() else "", 12, Color(GodUI.GOLD, 0.6))
 	for i in run.cards.size():
 		var c := GodData.card(run.cards[i])
 		var r := Rect2(260 + i * 44, 594, 38, 38)
@@ -98,7 +102,7 @@ func _draw() -> void:
 		var tip := Rect2(260 + _hover_card * 44, 520, 300, 64)
 		draw_style_box(GodUI.panel_box(GodUI.RARITY[c.rarity]), tip)
 		GodUI.text(self, tip.position + Vector2(12, 26), c.name, 17, GodUI.GOLD)
-		GodUI.text(self, tip.position + Vector2(12, 50), c.helps, 14, GodUI.CREAM)
+		GodUI.text(self, tip.position + Vector2(12, 50), tr(c.helps), 14, GodUI.CREAM)
 
 
 ## The GAS TANK panel (round 8): the station's industrial tank, its sight glass and dial showing the
@@ -106,7 +110,7 @@ func _draw() -> void:
 func _draw_tank() -> void:
 	var r := Rect2(16, 96, 232, 440)
 	GodUI.enamel(self, r, Color(0.12, 0.29, 0.2))  # an old-station green enamel sign
-	GodUI.text(self, Vector2(r.get_center().x, r.position.y + 36), "GAS TANK", 22, Color(0.98, 0.9, 0.6), true)
+	GodUI.text(self, Vector2(r.get_center().x, r.position.y + 36), tr("GAS TANK"), 22, Color(0.98, 0.9, 0.6), true)
 	var cap := run.tank_capacity()
 	var tank_at := Vector2(r.position.x + 28, r.position.y + 52)
 	var tex := GodUI.sprite("gas_tank")
@@ -115,11 +119,11 @@ func _draw_tank() -> void:
 	GasTankArt.draw_level(self, tank_at, 2.0, run.tank / cap, _t)
 	var days := run.days_of_gas()
 	var y := r.position.y + 196
-	GodUI.text(self, Vector2(r.get_center().x, y), "Gas: $%.0f / $%.0f" % [run.tank, cap], 16, GodUI.CREAM, true)
-	GodUI.text(self, Vector2(r.get_center().x, y + 22), "about %.1f day%s left" % [days, "s" if days >= 2.0 else ""], 16, GodUI.RED if days < 1.5 else GodUI.CREAM, true)
+	GodUI.text(self, Vector2(r.get_center().x, y), tr("Gas: $%.0f / $%.0f") % [run.tank, cap], 16, GodUI.CREAM, true)
+	GodUI.text(self, Vector2(r.get_center().x, y + 22), (tr("about %.1f days left") if days >= 2.0 else tr("about %.1f day left")) % days, 16, GodUI.RED if days < 1.5 else GodUI.CREAM, true)
 	draw_line(Vector2(r.position.x + 24, y + 40), Vector2(r.end.x - 24, y + 40), Color(1, 1, 1, 0.1), 1.0)
-	GodUI.text(self, Vector2(r.get_center().x, y + 66), "Price: $%.2f / L" % run.price, 16, GodUI.CREAM, true)
-	GodUI.text(self, Vector2(r.get_center().x, y + 86), "+%d%% every delivery" % roundi(run.price_rise() * 100.0), 13, Color(GodUI.CREAM, 0.6), true)
+	GodUI.text(self, Vector2(r.get_center().x, y + 66), tr("Price: $%.2f / L") % run.price, 16, GodUI.CREAM, true)
+	GodUI.text(self, Vector2(r.get_center().x, y + 86), tr("+%d%% every delivery") % roundi(run.price_rise() * 100.0), 13, Color(GodUI.CREAM, 0.6), true)
 	var cost := run.delivery_cost()
-	GodUI.text(self, Vector2(r.get_center().x, y + 120), "Delivery: $%.0f" % cost, 19, GodUI.GOLD if run.cash >= cost else GodUI.RED, true)
-	GodUI.text(self, Vector2(r.get_center().x, y + 142), "+ choose 1 of %d cards" % int(run.mods().cards_offered), 13, Color(GodUI.GOLD, 0.7), true)
+	GodUI.text(self, Vector2(r.get_center().x, y + 120), tr("Delivery: $%.0f") % cost, 19, GodUI.GOLD if run.cash >= cost else GodUI.RED, true)
+	GodUI.text(self, Vector2(r.get_center().x, y + 142), tr("+ choose 1 of %d cards") % int(run.mods().cards_offered), 13, Color(GodUI.GOLD, 0.7), true)

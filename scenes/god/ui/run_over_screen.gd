@@ -58,22 +58,22 @@ func _draw() -> void:
 	var R := p.end.x - 20.0
 	var band := Rect2(L, p.position.y + 14, R - L, 22)
 	draw_rect(band, red)
-	GodUI.text_in(self, bold, band.get_center() + Vector2(0, 6), "SPECIAL EDITION", 14, GodUI.PAPER, true)
-	GodUI.text_in(self, bold, Vector2(p.get_center().x, p.position.y + 78), "L'ÉCHO DE SAINT-CLIN-CLIN", 34, ink, true)
+	GodUI.text_in(self, bold, band.get_center() + Vector2(0, 6), tr("SPECIAL EDITION"), 14, GodUI.PAPER, true)
+	GodUI.text_in(self, bold, Vector2(p.get_center().x, p.position.y + 78), tr("L'ÉCHO DE SAINT-CLIN-CLIN"), 34, ink, true)
 	draw_line(Vector2(L, p.position.y + 88), Vector2(R, p.position.y + 88), ink, 2.0)
-	var headline := "DAD IS BACK!" if run.won else "THE GAZ BAR CLOSES AFTER %d DAYS" % run.day
-	var sub := "\"T'es un vrai gaz bar boy,\" says the man in the orange hatchback." if run.won else "No gas, no money, and the truck won't come. \"He'll be back,\" says Bertrand."
+	var headline := tr("DAD IS BACK!") if run.won else tr("THE GAZ BAR CLOSES AFTER %d DAYS") % run.day
+	var sub := tr("\"T'es un vrai gaz bar boy,\" says the man in the orange hatchback.") if run.won else tr("No gas, no money, and the truck won't come. \"He'll be back,\" says Bertrand.")
 	var y := p.position.y + 130.0
 	y += GodUI.para_in(self, bold, Vector2(L, y), headline, 32, R - L, ink, 1.1)
 	y += GodUI.para_in(self, ital, Vector2(L, y), sub, 15, R - L, Color(ink, 0.85))
 	draw_line(Vector2(L, y - 6), Vector2(R, y - 6), Color(ink, 0.35), 1.0)
 	var t: Dictionary = run.totals
 	var rows := [
-		["Days", "%d / %d" % [run.day, GodData.FINAL_DAY]], ["Cars fueled", str(t.cars)],
-		["Topped off · Perfect · Good", "%d · %d · %d" % [t.supers, t.perfects, t.goods]],
-		["OK · Overfilled · Unserved", "%d · %d · %d" % [t.oks, t.misses, t.unserved]],
-		["Best combo", "×%d" % t.best_combo], ["Truck deliveries", str(run.deliveries)],
-		["Loot", "$%d" % int(t.loot)], ["XP earned", "+%d  (garage: %d)" % [run.xp, meta.xp if meta else 0]],
+		[tr("Days"), "%d / %d" % [run.day, GodData.FINAL_DAY]], [tr("Cars fueled"), str(t.cars)],
+		[tr("Topped off · Perfect · Good"), "%d · %d · %d" % [t.supers, t.perfects, t.goods]],
+		[tr("OK · Overfilled · Unserved"), "%d · %d · %d" % [t.oks, t.misses, t.unserved]],
+		[tr("Best combo"), "×%d" % t.best_combo], [tr("Truck deliveries"), str(run.deliveries)],
+		[tr("Loot"), "$%d" % int(t.loot)], [tr("XP earned"), tr("+%d  (garage: %d)") % [run.xp, meta.xp if meta else 0]],
 	]
 	var ry := y + 14.0
 	for row in rows:
@@ -83,5 +83,5 @@ func _draw() -> void:
 		ry += 24.0
 	var cx := L + 370.0
 	draw_line(Vector2(cx - 12, y + 2), Vector2(cx - 12, p.end.y - 16), Color(ink, 0.35), 1.0)
-	GodChart.line(self, Rect2(cx, y + 2, R - cx, 104), run.cash_history, "Your cash at closing, day by day", "$%d", ink, ink, serif)
-	GodChart.line(self, Rect2(cx, y + 118, R - cx, 104), run.price_history, "The price per delivery", "$%.2f", ink, red, serif)
+	GodChart.line(self, Rect2(cx, y + 2, R - cx, 104), run.cash_history, tr("Your cash at closing, day by day"), "$%d", ink, ink, serif)
+	GodChart.line(self, Rect2(cx, y + 118, R - cx, 104), run.price_history, tr("The price per delivery"), "$%.2f", ink, red, serif)

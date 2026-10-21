@@ -26,7 +26,7 @@ func show_report(r: Dictionary, the_run: RunState, the_meta: MetaState) -> void:
 	run = the_run
 	meta = the_meta
 	_t = 0.0
-	_btn.text = "THE END  »" if run.won else "THE NIGHT  »"
+	_btn.text = tr("THE END  »") if run.won else tr("THE NIGHT  »")
 	visible = true
 	queue_redraw()
 
@@ -50,15 +50,15 @@ func _draw() -> void:
 	var r := Rect2(286, 52, 580, 480)
 	draw_style_box(GodUI.panel_box(GodUI.GOLD_DIM), r)
 	var day: int = report.get("day", 1)
-	GodUI.text(self, Vector2(576, 104), "FERMÉ  ·  DAY %d / %d" % [day, GodData.FINAL_DAY], 34, GodUI.GOLD, true)
+	GodUI.text(self, Vector2(576, 104), tr("FERMÉ  ·  DAY %d / %d") % [day, GodData.FINAL_DAY], 34, GodUI.GOLD, true)
 	if report.get("out_of_gas", false):
-		GodUI.text(self, Vector2(576, 134), "out of gas before closing!", 17, GodUI.RED, true)
+		GodUI.text(self, Vector2(576, 134), tr("out of gas before closing!"), 17, GodUI.RED, true)
 	var rows := [
-		["Accuracy", "%d%%" % int(report.get("accuracy", 0.0) * 100.0)],
-		["Loot", "$%.2f" % report.get("loot", 0.0)],
-		["Cars fueled", str(report.get("cars", 0))],
-		["Best combo", "x%d" % report.get("best_combo", 1)],
-		["XP", "+%d" % report.get("xp", 0)],
+		[tr("Accuracy"), "%d%%" % int(report.get("accuracy", 0.0) * 100.0)],
+		[tr("Loot"), "$%.2f" % report.get("loot", 0.0)],
+		[tr("Cars fueled"), str(report.get("cars", 0))],
+		[tr("Best combo"), "x%d" % report.get("best_combo", 1)],
+		[tr("XP"), "+%d" % report.get("xp", 0)],
 	]
 	var y := 178.0
 	for row in rows:
@@ -72,7 +72,7 @@ func _draw() -> void:
 		var x := 331.0 + i * 98.0
 		var col: Color = GodPump.TIER_COLORS[grades[i][0]]
 		GodUI.text(self, Vector2(x, 372), str(tiers.get(grades[i][0], 0)), 30, col, true)
-		GodUI.text(self, Vector2(x, 396), grades[i][1], 13, Color(col, 0.8), true)
+		GodUI.text(self, Vector2(x, 396), tr(grades[i][1]), 13, Color(col, 0.8), true)
 	# Progress to the next car type (cars filled across all runs, this one included).
 	var have: int = meta.total_cars + run.totals.cars if meta and run else 0
 	var nxt := {}
@@ -81,10 +81,10 @@ func _draw() -> void:
 			nxt = {"name": GodData.CAR_TYPES[id].name, "need": GodData.CAR_TYPES[id].unlock}
 			break
 	if nxt.is_empty():
-		GodUI.text(self, Vector2(576, 452), "Every car type unlocked!", 17, GodUI.GREEN, true)
+		GodUI.text(self, Vector2(576, 452), tr("Every car type unlocked!"), 17, GodUI.GREEN, true)
 	else:
-		GodUI.text(self, Vector2(576, 440), "Next car type: %s  (%d / %d cars)" % [nxt.name, have, nxt.need], 17, GodUI.CREAM, true)
+		GodUI.text(self, Vector2(576, 440), tr("Next car type: %s  (%d / %d cars)") % [nxt.name, have, nxt.need], 17, GodUI.CREAM, true)
 		var bar := Rect2(376, 452, 400, 12)
 		draw_rect(bar, Color(0, 0, 0, 0.5))
 		draw_rect(Rect2(bar.position, Vector2(bar.size.x * clampf(float(have) / nxt.need, 0.0, 1.0), bar.size.y)), GodUI.GOLD)
-	GodUI.text(self, Vector2(576, 500), "Gas left in the tank: $%.0f" % report.get("tank_left", 0.0), 16, Color(GodUI.CREAM, 0.7), true)
+	GodUI.text(self, Vector2(576, 500), tr("Gas left in the tank: $%.0f") % report.get("tank_left", 0.0), 16, Color(GodUI.CREAM, 0.7), true)
