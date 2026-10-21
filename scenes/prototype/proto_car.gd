@@ -33,6 +33,8 @@ var pattern := "loop"
 var color := Color(0.45, 0.55, 0.7)
 ## Pixel-art body from claude-pxl (assets/art/pixel), drawn at 2x. Null = the greybox shapes.
 var sprite: Texture2D
+## Which sprite stack the isometric view draws (#36): stack_<name>_0..7.
+var stack := "blue"
 var tiers: ScoreTiers
 var anim_t := 0.0
 var _route: Array[Vector2] = []
@@ -192,7 +194,9 @@ func _steer(goal: Vector2, dt: float, speed: float) -> void:
 
 # --- Drawing ------------------------------------------------------------------------------------
 
-func _draw() -> void:
+## The celebration and fill animation as offsets, shared by both views: how high the car is
+## lifted, how far it has spun, and how it is squashed.
+func anim_offsets() -> Dictionary:
 	var lift := 0.0
 	var spin := 0.0
 	var squash := Vector2.ONE * (1.0 + 0.16 * fill())  # swells as it fills, like a piggy bank
@@ -212,6 +216,14 @@ func _draw() -> void:
 				lift = absf(sin(k * PI * 2.0)) * 16.0
 			_:
 				spin = sin(k * PI * 4.0) * 0.12
+	return {"lift": lift, "spin": spin, "squash": squash}
+
+
+func _draw() -> void:
+	var anim := anim_offsets()
+	var lift: float = anim.lift
+	var spin: float = anim.spin
+	var squash: Vector2 = anim.squash
 	draw_set_transform(Vector2(0, 6), heading, squash * (1.0 - lift / 240.0))
 	draw_rect(Rect2(-SIZE * 0.5, SIZE), Color(0, 0, 0, 0.28))
 	draw_set_transform(Vector2(0, -lift), heading + spin, squash)
@@ -220,7 +232,7 @@ func _draw() -> void:
 		draw_texture(sprite, -sprite.get_size() * 0.5)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		if customer and accepts_fuel():
-			_draw_meter(lift)
+			draw_meter_at(self, Vector2(0, -40 - lift))
 		return
 	var body := StyleBoxFlat.new()
 	body.bg_color = color
@@ -235,32 +247,31 @@ func _draw() -> void:
 		draw_rect(Rect2(w, Vector2(10, 4)), Color(0.08, 0.08, 0.08))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if customer and accepts_fuel():
-		_draw_meter(lift)
+		draw_meter_at(self, Vector2(0, -40 - lift))
 
 
 ## Order and fill meter above the roof: an 80% notch (it can leave from there), green once past it,
 ## gold when full. Never rotated.
-func _draw_meter(lift: float) -> void:
+func draw_meter_at(ci: CanvasItem, at: Vector2) -> void:
 	var font := ThemeDB.fallback_font
-	var at := Vector2(0, -40 - lift)
 	var text := "$%.0f" % target
 	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x + 14
 	var tag := StyleBoxFlat.new()
 	tag.bg_color = Color(0.1, 0.09, 0.08, 0.92)
 	tag.set_corner_radius_all(8)
-	draw_style_box(tag, Rect2(at - Vector2(w * 0.5, 12), Vector2(w, 22)))
-	draw_string(font, at + Vector2(-w * 0.5 + 7, 5), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
+	ci.draw_style_box(tag, Rect2(at - Vector2(w * 0.5, 12), Vector2(w, 22)))
+	ci.draw_string(font, at + Vector2(-w * 0.5 + 7, 5), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
 	var bar := Rect2(at + Vector2(-30, 13), Vector2(60, 8))
-	draw_rect(bar, Color(0.1, 0.09, 0.08, 0.9))
+	ci.draw_rect(bar, Color(0.1, 0.09, 0.08, 0.9))
 	var f := fill()
 	var col := Color(0.95, 0.55, 0.15)
 	if f >= 0.995:
 		col = Color(1.0, 0.85, 0.25)
 	elif f >= LEAVE_AT:
 		col = Color(0.4, 0.9, 0.45)
-	draw_rect(Rect2(bar.position, Vector2(bar.size.x * f, bar.size.y)), col)
-	draw_rect(Rect2(bar.position + Vector2(bar.size.x * LEAVE_AT - 1, -2), Vector2(2, bar.size.y + 4)), Color.WHITE)
+	ci.draw_rect(Rect2(bar.position, Vector2(bar.size.x * f, bar.size.y)), col)
+	ci.draw_rect(Rect2(bar.position + Vector2(bar.size.x * LEAVE_AT - 1, -2), Vector2(2, bar.size.y + 4)), Color.WHITE)
 	if amount > 0.0:
 		var pct := "%d%%" % int(f * 100.0)  # beside the meter, clear of the car
-		draw_string_outline(font, at + Vector2(34, 22), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, Color(0, 0, 0, 0.8))
-		draw_string(font, at + Vector2(34, 22), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(col, 0.95))
+		ci.draw_string_outline(font, at + Vector2(34, 22), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, Color(0, 0, 0, 0.8))
+		ci.draw_string(font, at + Vector2(34, 22), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(col, 0.95))

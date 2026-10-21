@@ -94,3 +94,32 @@ function specks(c, w, h, keys, n, seed) {
 sprite("asphalt", { w: 32, h: 32 }, rect(0, 0, 32, 32, "a"), (c) => specks(c, 32, 32, "Ai", 70, 7))
 sprite("road", { w: 32, h: 32 }, rect(0, 0, 32, 32, "A"), (c) => specks(c, 32, 32, "ai", 40, 3), rect(4, 15, 16, 2, "d"))
 sprite("dirt", { w: 32, h: 32 }, rect(0, 0, 32, 32, "x"), (c) => specks(c, 32, 32, "Xz", 90, 11))
+
+// --- Isometric try: sprite-stacked cars (#36) ---------------------------------------------------
+// A boxy late-80s sedan (square headlights, chrome bumpers, long hood and trunk) as 8 top-down
+// slices, bottom to top. The game stacks them a pixel apart, turned to the car's heading and seen
+// through the isometric camera, so one drawing gives every angle.
+const SLICES = [
+  // 0: tyres and the dark underbody
+  [rect(3, 0, 6, 16, "t"), rect(20, 0, 6, 16, "t"), rect(1, 2, 28, 12, "B")],
+  // 1: tyres and the lower body
+  [rect(3, 0, 6, 16, "t"), rect(20, 0, 6, 16, "t"), rect(0, 1, 30, 14, "B")],
+  // 2: body sides, chrome bumpers, square lights
+  [rect(0, 1, 30, 14, "b"), rect(0, 1, 1, 14, "M"), rect(29, 1, 1, 14, "M"),
+    rect(28, 2, 2, 3, "y"), rect(28, 11, 2, 3, "y"), rect(0, 2, 1, 3, "r"), rect(0, 11, 1, 3, "r")],
+  // 3: body with a chrome trim line
+  [rect(0, 1, 30, 14, "b"), hline(1, 1, 28, "M"), hline(1, 14, 28, "M")],
+  // 4: hood and trunk tops, lit
+  [rect(0, 1, 30, 14, "L"), rect(1, 2, 28, 12, "b")],
+  // 5-6: the cabin's glass all round, with pillars at the corners
+  [rect(9, 2, 13, 12, "w"), rect(9, 2, 1, 1, "b"), rect(21, 2, 1, 1, "b"), rect(9, 13, 1, 1, "b"), rect(21, 13, 1, 1, "b"), rect(14, 2, 1, 12, "b")],
+  [rect(9, 2, 13, 12, "W"), rect(14, 2, 1, 12, "b"), rect(10, 3, 11, 10, "w")],
+  // 7: the roof
+  [rect(10, 3, 11, 10, "R"), rect(11, 4, 9, 8, "b")],
+]
+SLICES.forEach((ops, i) => sprite(`_stack_${i}`, { w: 30, h: 16 }, ...ops))
+const STACK_BODIES = { blue: null, ...BODIES }
+for (const [name, body] of Object.entries(STACK_BODIES))
+  SLICES.forEach((_, i) => body
+    ? sprite(`stack_${name}_${i}`, { base: `_stack_${i}`, swap: { b: body[0], B: body[1], L: body[2], R: body[3] } })
+    : sprite(`stack_${name}_${i}`, { base: `_stack_${i}` }))

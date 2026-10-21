@@ -30,6 +30,9 @@ const GAS := Color(0.98, 0.76, 0.18)
 const PIXEL := "res://assets/art/pixel/out/sprites/%s.png"
 const CAR_SPRITES := ["car", "car_red", "car_green", "car_cream", "car_purple", "car_white"]
 const NOZZLE_TIP := Vector2(90, 66)  # the spout's tip in the nozzle sprite, at 2x
+## Isometric try (#36): the world is drawn into a half-resolution viewport and doubled on screen.
+const ISO_VIEWPORT := Vector2(576, 324)
+const STACKS := ["blue", "red", "green", "cream", "purple", "white"]
 
 @export var flow_rate := 4.0
 ## A safeguard: the round's gas is what really ends it.
@@ -82,6 +85,13 @@ var _overlay: Node2D
 var _sfx := {}
 var _glug: AudioStreamPlayer
 var _tex := {}
+## I switches between the isometric try (the default for now) and the top-down view.
+var iso := true
+## World (top-down) to iso viewport pixels: x runs down-right, y down-left, at 0.4 scale.
+var iso_xf := Transform2D(Vector2(1, 0.5) * 0.4, Vector2(-1, 0.5) * 0.4, Vector2(209.6, -21.2))
+var _iso_vp: SubViewport
+var _iso_view: IsoView
+var _iso_sprite: Sprite2D
 
 
 func _ready() -> void:
@@ -93,11 +103,18 @@ func _ready() -> void:
 		var path := PIXEL % id
 		if ResourceLoader.exists(path):
 			_tex[id] = load(path)
+	for body in STACKS:
+		for i in 8:
+			var path := PIXEL % ("stack_%s_%d" % [body, i])
+			if ResourceLoader.exists(path):
+				_tex["stack_%s_%d" % [body, i]] = load(path)
 	add_child(combo)
 	_overlay = Node2D.new()
 	_overlay.z_index = 10
 	_overlay.draw.connect(_draw_overlay)
 	add_child(_overlay)
+	_build_iso()
+	set_iso(iso)
 	if sound_on:
 		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN  # the nozzle is the cursor
 		for id in ["sfx_super_perfect", "sfx_perfect", "sfx_good", "sfx_ok", "sfx_miss", "pop", "counter_1", "counter_2", "counter_3"]:
@@ -111,21 +128,64 @@ func _ready() -> void:
 		add_child(_glug)
 
 
+func _build_iso() -> void:
+	_iso_vp = SubViewport.new()
+	_iso_vp.size = Vector2i(ISO_VIEWPORT)
+	_iso_vp.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	_iso_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(_iso_vp)
+	_iso_view = IsoView.new()
+	_iso_view.game = self
+	_iso_vp.add_child(_iso_view)
+	_iso_sprite = Sprite2D.new()
+	_iso_sprite.texture = _iso_vp.get_texture()
+	_iso_sprite.centered = false
+	_iso_sprite.scale = Vector2(2, 2)
+	_iso_sprite.visible = iso  # in case the view was switched before the game was ready
+	add_child(_iso_sprite)
+	move_child(_iso_sprite, _overlay.get_index())
+
+
+func tex(id: String) -> Texture2D:
+	return _tex.get(id)
+
+
+## World point to screen point in the current view.
+func scr(w: Vector2) -> Vector2:
+	return (iso_xf * w) * 2.0 if iso else w
+
+
+## Screen point (the mouse) to the world point on the ground beneath it.
+func to_world(sp: Vector2) -> Vector2:
+	return iso_xf.affine_inverse() * (sp / 2.0) if iso else sp
+
+
+func set_iso(on: bool) -> void:
+	iso = on
+	if _iso_sprite:
+		_iso_sprite.visible = on
+	for car in cars:
+		car.visible = not on
+	queue_redraw()
+
+
 func _exit_tree() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
-		aim(event.position)
+		aim(to_world(event.position))
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		aim(event.position)
+		aim(to_world(event.position))
 		set_pouring(event.pressed)
 	elif event is InputEventKey and event.pressed and not event.echo:
 		if event.physical_keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE] and round_over:
 			next_round()
 		elif event.physical_keycode == KEY_ESCAPE:
 			get_tree().quit()
+		elif event.physical_keycode == KEY_I:
+			set_iso(not iso)
 
 
 func _process(delta: float) -> void:
@@ -174,6 +234,8 @@ func step(dt: float) -> void:
 	_step_fx(dt)
 	queue_redraw()
 	_overlay.queue_redraw()
+	if iso and _iso_view:
+		_iso_view.queue_redraw()
 
 
 func _pour(dt: float) -> void:
@@ -200,7 +262,7 @@ func _pour(dt: float) -> void:
 		end_round()  # out of gas
 		return
 	if rng.randf() < 0.6:
-		_bits.append({"pos": _aim, "vel": Vector2(rng.randf_range(-60, 60), rng.randf_range(-90, -30)),
+		_bits.append({"pos": scr(_aim), "vel": Vector2(rng.randf_range(-60, 60), rng.randf_range(-90, -30)),
 			"life": 0.35, "color": GAS, "size": 2.5})
 
 
@@ -238,6 +300,8 @@ func _new_car(at: Vector2) -> ProtoCar:
 	var look := rng.randi() % CAR_COLORS.size()
 	car.color = CAR_COLORS[look]
 	car.sprite = _tex.get(CAR_SPRITES[look % CAR_SPRITES.size()])
+	car.stack = STACKS[look % STACKS.size()]
+	car.visible = not iso
 	add_child(car)
 	move_child(car, _overlay.get_index())  # cars draw under the stream and HUD
 	cars.append(car)
@@ -347,21 +411,21 @@ func _burst(car: ProtoCar, t: String) -> void:
 	var n := 26 if t == ScoreTiers.SUPER_PERFECT else (16 if t == ScoreTiers.PERFECT else 8)
 	for i in n:
 		var a := rng.randf() * TAU
-		_bits.append({"pos": car.position, "vel": Vector2.from_angle(a) * rng.randf_range(80, 260),
+		_bits.append({"pos": scr(car.position), "vel": Vector2.from_angle(a) * rng.randf_range(80, 260),
 			"life": rng.randf_range(0.4, 0.8), "color": col, "size": rng.randf_range(2.5, 5.0)})
 	if t == ScoreTiers.SUPER_PERFECT or t == ScoreTiers.PERFECT:
 		for i in (10 if t == ScoreTiers.SUPER_PERFECT else 5):
-			_bits.append({"pos": car.position + Vector2(rng.randf_range(-30, 30), rng.randf_range(-30, 10)),
+			_bits.append({"pos": scr(car.position) + Vector2(rng.randf_range(-30, 30), rng.randf_range(-30, 10)),
 				"vel": Vector2(rng.randf_range(-40, 40), rng.randf_range(-160, -60)), "life": rng.randf_range(0.6, 1.0),
 				"color": Color.WHITE, "size": 0.0, "sparkle": true})
 	if t == ScoreTiers.MISS:  # overflow: gas sprays out of the tank
 		for i in 18:
-			_bits.append({"pos": car.position, "vel": Vector2(rng.randf_range(-120, 120), rng.randf_range(-260, -80)),
+			_bits.append({"pos": scr(car.position), "vel": Vector2(rng.randf_range(-120, 120), rng.randf_range(-260, -80)),
 				"life": 0.7, "color": GAS, "size": 4.0})
 		_spill(car.position + Vector2(rng.randf_range(-20, 20), 20), 0.8)
 	drop_cash(car.position, car.paid - car.tip, car.tip, COINS[t])
 	# Say exactly what was achieved: how full, what grade, what the tip was.
-	var top := car.position + Vector2(0, -64)
+	var top := scr(car.position) + Vector2(0, -64)
 	_floaters.append({"text": "%d%%" % int(car.fill() * 100.0), "pos": top, "life": 1.4, "color": col, "size": 34})
 	_floaters.append({"text": ProtoCar.grade_name(t), "pos": top + Vector2(0, 26), "life": 1.4, "color": col,
 		"size": 24 if t == ScoreTiers.SUPER_PERFECT else 18})
@@ -420,7 +484,8 @@ func _step_money(dt: float) -> void:
 				if m.t >= MONEY_REST:
 					m.state = "fly"
 					m.t = 0.0
-					m.from = m.pos
+					m.from = scr(m.pos)  # from here on it travels on the screen
+					m.screen = true
 			"fly":
 				var k: float = clampf(m.t / MONEY_FLY, 0.0, 1.0)
 				var j := k * k  # pulled in, faster and faster
@@ -465,6 +530,8 @@ func _play(id: String) -> void:
 
 ## The table: dark ground, the road along the top, the lot, the gold puddles.
 func _draw() -> void:
+	if iso:
+		return  # the isometric viewport draws the world
 	draw_rect(Rect2(-20, -20, WIDTH + 40, HEIGHT + 40), Color(0.16, 0.13, 0.10))
 	if _tex.has("dirt"):
 		_tile("dirt", Rect2(-20, -20, WIDTH + 40, HEIGHT + 40))
@@ -513,19 +580,24 @@ func _tile(id: String, r: Rect2) -> void:
 ## Above the cars: the stream, the god nozzle, coins in flight, bursts, words and the HUD.
 func _draw_overlay() -> void:
 	var o := _overlay
-	var tip := _nozzle + NOZZLE_RAISE
+	var land := scr(_aim)
+	var tip := scr(_nozzle) + NOZZLE_RAISE
+	if iso:  # meters float over the stacked cars
+		for car in cars:
+			if car.customer and car.accepts_fuel():
+				car.draw_meter_at(o, scr(car.position) + Vector2(0, -44 - car.anim_offsets().lift * 0.8))
 	draw_shadow_ring(o)
 	if pouring:
 		var prev := tip
 		for i in range(1, 11):
 			var k := i / 10.0
-			var p := tip.lerp(_aim, k) + Vector2(sin(_t * 30.0 + i) * 2.0 * k, 0)
+			var p := tip.lerp(land, k) + Vector2(sin(_t * 30.0 + i) * 2.0 * k, 0)
 			o.draw_line(prev, p, GAS, 6.0 - k * 2.0, true)
 			prev = p
 		for i in 4:
 			var k := fmod(_t * 3.0 + i * 0.25, 1.0)
-			o.draw_circle(tip.lerp(_aim, k) + Vector2(sin(_t * 20.0 + i * 2.0) * 3.0, 0), 3.0, GAS.lightened(0.2))
-		o.draw_circle(_aim, 7.0 + sin(_t * 25.0) * 1.5, Color(GAS, 0.6))
+			o.draw_circle(tip.lerp(land, k) + Vector2(sin(_t * 20.0 + i * 2.0) * 3.0, 0), 3.0, GAS.lightened(0.2))
+		o.draw_circle(land, 7.0 + sin(_t * 25.0) * 1.5, Color(GAS, 0.6))
 	_draw_nozzle(o, tip)
 	for b in _bits:
 		if b.get("sparkle", false) and _tex.has("sparkle"):
@@ -545,6 +617,11 @@ func _draw_overlay() -> void:
 
 
 func draw_shadow_ring(o: Node2D) -> void:
+	if iso:  # the landing spot lies flat on the ground
+		o.draw_set_transform(scr(_aim), 0.0, Vector2(1.0, 0.5))
+		o.draw_arc(Vector2.ZERO, 16.0, 0, TAU, 24, Color(1, 1, 1, 0.35), 2.0, true)
+		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	o.draw_arc(_aim, 14.0, 0, TAU, 24, Color(1, 1, 1, 0.35), 2.0, true)
 
 
@@ -569,26 +646,27 @@ func _draw_money(o: Node2D, m: Dictionary) -> void:
 	if m.t < 0.0 and m.state == "drop":
 		return
 	var lift := Vector2(0, -m.z)
-	o.draw_circle(m.pos + Vector2(0, 3), 5.0 if m.kind == "coin" else 7.0, Color(0, 0, 0, 0.25))
+	var at: Vector2 = m.pos if m.get("screen", false) else scr(m.pos)
+	o.draw_circle(at + Vector2(0, 3), 5.0 if m.kind == "coin" else 7.0, Color(0, 0, 0, 0.25))
 	if m.kind == "bill" and _tex.has("bill"):
-		o.draw_set_transform(m.pos + lift, m.rot, Vector2(2.0, 2.0 * (0.7 + 0.3 * sin(m.rot * 2.0))))  # flutters
+		o.draw_set_transform(at + lift, m.rot, Vector2(2.0, 2.0 * (0.7 + 0.3 * sin(m.rot * 2.0))))  # flutters
 		o.draw_texture(_tex["bill"], -_tex["bill"].get_size() * 0.5)
 		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	elif m.kind == "coin" and _tex.has("coin_0"):
 		var frame := int(fposmod(m.rot, TAU) / TAU * 4.0) % 4  # spinning
 		var tex: Texture2D = _tex["coin_%d" % frame]
-		o.draw_set_transform(m.pos + lift, 0.0, Vector2(2, 2))
+		o.draw_set_transform(at + lift, 0.0, Vector2(2, 2))
 		o.draw_texture(tex, -tex.get_size() * 0.5)
 		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	elif m.kind == "bill":
-		o.draw_set_transform(m.pos + lift, m.rot, Vector2(1.0, 0.75 + 0.25 * sin(m.rot * 2.0)))  # flutters
+		o.draw_set_transform(at + lift, m.rot, Vector2(1.0, 0.75 + 0.25 * sin(m.rot * 2.0)))  # flutters
 		o.draw_rect(Rect2(-10, -5, 20, 10), Color(0.36, 0.62, 0.36))
 		o.draw_rect(Rect2(-8, -3, 16, 6), Color(0.52, 0.78, 0.5), false, 1.0)
 		o.draw_circle(Vector2.ZERO, 2.2, Color(0.25, 0.45, 0.25))
 		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		var squash := absf(cos(m.rot))  # spins edge-on and back
-		o.draw_set_transform(m.pos + lift, 0.0, Vector2(maxf(squash, 0.25), 1.0))
+		o.draw_set_transform(at + lift, 0.0, Vector2(maxf(squash, 0.25), 1.0))
 		o.draw_circle(Vector2.ZERO, 6.0, Color(0.85, 0.62, 0.15))
 		o.draw_circle(Vector2(-1, -1), 4.5, Color(1.0, 0.84, 0.3))
 		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

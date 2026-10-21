@@ -11,6 +11,7 @@ func before_each() -> void:
 	game = SCENE.instantiate()
 	game.auto_traffic = false  # tests place cars themselves
 	game.sound_on = false
+	game.iso = false  # most rules are checked in world coordinates; the iso tests switch it on
 	add_child_autofree(game)
 	game.rng.seed = 4
 
@@ -184,3 +185,29 @@ func test_dropped_cash_lands_in_the_counter() -> void:
 		game.step(0.05)
 	assert_true(game.money.is_empty())
 	assert_almost_eq(game.shown_cash, game.cash, 0.01)
+
+
+func test_iso_view_maps_the_mouse_back_to_the_ground() -> void:
+	game.set_iso(true)
+	var w := Vector2(640, 410)
+	assert_almost_eq(game.to_world(game.scr(w)).distance_to(w), 0.0, 0.01)
+	assert_ne(game.scr(w), w, "the iso view moves things on screen")
+
+
+func test_iso_view_hides_the_flat_cars_and_pours_where_the_mouse_points() -> void:
+	game.set_iso(true)
+	var car := _car(10.0)
+	assert_false(car.visible)
+	game.aim(game.to_world(game.scr(car.position)))
+	game.set_pouring(true)
+	game.step(1.0)
+	assert_almost_eq(car.amount, game.flow_rate, 0.01)
+
+
+func test_i_switches_views() -> void:
+	var before: bool = game.iso
+	var key := InputEventKey.new()
+	key.physical_keycode = KEY_I
+	key.pressed = true
+	game._unhandled_input(key)
+	assert_ne(game.iso, before)

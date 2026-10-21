@@ -5,7 +5,9 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[innovation]` **God-pump prototype: a giant nozzle pours from the sky onto cars driving around the lot** (#36, greybox, awaiting playtest; pivot candidate)
+- [x] `[innovation]` **God-pump prototype: a giant nozzle pours from the sky onto cars driving around the lot** (#36, kept: this is the game now)
+- [ ] `[art]` **Isometric view for the god pump, styled after the dépanneur reference** (next)
+- [ ] `[standard]` **Move the god pump into the real game: night shop (tree, station tab, fuel order), opening hours, intro, simulator** (after the isometric test)
 - [ ] `[standard]` **15-second days and an HOURS branch (Dad only opened mornings)** (#35, v0.30.0, awaiting playtest)
 - [ ] `[juice]` **Piggy-bank car: the car swells as it fills, pops on the stop, and coins of different values fly to your cash** (next)
 - [x] `[tech]` **Balance pass with the simulator** (#34, v0.29.0, kept; superseded by #35's numbers)
@@ -65,7 +67,6 @@
 
 ## Parked (good ideas that are out of scope until the core loop is proven)
 - Future phase: car types (diesel, electric, environmentalist, ...) with their own rules (designer, 2026-10-20)
-- Art direction: pixel art with claude-pxl (pixel-art-as-code). Decide after the god-pump prototype; it would replace the low-poly 3D look
 - Pump as a character (Roger Rabbit style)
 - Receipts and invoices
 - Hiring attendants (replaces skill); see Self-service pumps for the guarded version

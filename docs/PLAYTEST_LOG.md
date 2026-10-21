@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-20 — God pump, round 3: cash drop, $75 gas, pixel art  (#36)
+Hypothesis: Cash that drops and flies to the counter, a shorter gas tank and pixel art make the god pump feel finished enough to commit to.
+Variable: coins on result → bills (sale) and coins (tip) dropped on the lot; $150 → $75 of gas; greybox → claude-pxl pixel art
+Sessions: 1 (self: 1, others: 0)
+Observed: "Cash drop is incredible now." The gas amount is right. The pixel-art style is working. "God Pump is 1000% the right direction."
+Biggest weakness: none blocking; wants to try an isometric view. Art reference: a photo of regulars in front of a small-town Québec dépanneur (plaid flannel, denim, browns and beiges, an aluminium storefront with shelves of oil cans, a red curb, a boxy 80s sedan).
+Decision: KEPT. The god pump becomes the game. Next: try isometric (toggle to compare), styled after the reference.
+
 ## 2026-10-20 — God pump, round 2: 80% rule and tips  (#36)
 Hypothesis: Leaving at 80% with tips growing toward 100%, overflow as waste and gas as the round limit make juggling feel good and make Perfects desirable.
 Variable: exact-stop tiers → 80% rule + tip curve; clock → round gas
