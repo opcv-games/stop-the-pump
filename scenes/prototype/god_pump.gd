@@ -177,7 +177,7 @@ func _ready() -> void:
 			"nozzle_idle", "nozzle_squeeze", "pump_hud", "tip_jar", "gauge_face", "bench", "clock_face",
 			"sign_ouvert", "sign_ferme", "storefront", "dirt2", "grass_a", "grass_b", "grass_c", "oil_stain", "crack",
 			"hatch", "concrete", "tree", "tire_pile", "dumpster", "regular_0_clap", "regular_1_clap", "regular_2_clap",
-			"regular_3_clap", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
+			"regular_3_clap", "badge_thief", "badge_electric", "badge_sweeper", "badge_clumsy", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
 			"regular_1_cheer", "regular_2_cheer", "regular_3_cheer"]:
 		var path := PIXEL % id
 		if ResourceLoader.exists(path):
@@ -1120,6 +1120,7 @@ func _draw_overlay() -> void:
 		for car in cars:
 			if car.customer and car.accepts_fuel():
 				car.draw_meter_at(o, car_top(car) + Vector2(0, -46))
+	_draw_badges(o)
 	draw_shadow_ring(o)
 	_draw_pump(o, tip)
 	if pouring:
@@ -1149,6 +1150,22 @@ func _draw_overlay() -> void:
 		o.draw_string_outline(font, f.pos - Vector2(w * 0.5, 0), f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, 6, Color(0, 0, 0, 0.8))
 		o.draw_string(font, f.pos - Vector2(w * 0.5, 0), f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, Color(f.color, clampf(f.life * 2.0, 0.0, 1.0)))
 	_draw_hud(o, font)
+
+
+## Troublemakers wear a badge (a mask, a lightning bolt, a broom, dizzy stars); Dad wears his name.
+func _draw_badges(o: Node2D) -> void:
+	for car in cars:
+		if not car.accepts_fuel() or (car.role == "" and car.type_id != "papa"):
+			continue
+		var top := car_top(car) + Vector2(0, (-96.0 if car.customer else -22.0) + sin(_t * 4.0 + car.position.x) * 3.0)
+		if car.type_id == "papa":
+			GodUI.text(o, top + Vector2(0, -6), "PAPA", 22, Color(1.0, 0.85, 0.3), true, 6)
+			continue
+		var tex: Texture2D = _tex.get("badge_" + car.role)
+		if tex:
+			o.draw_set_transform(top, 0.0, Vector2(2, 2))
+			o.draw_texture(tex, -tex.get_size() * 0.5)
+			o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func draw_shadow_ring(o: Node2D) -> void:

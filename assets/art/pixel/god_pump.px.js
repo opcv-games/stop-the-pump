@@ -297,3 +297,58 @@ sprite("dumpster", { w: 34, h: 24, outline: "k" },
 // The rundown car: the sedan stack, rusted brown, a wheel missing.
 const RUST = { b: "#7a4a2a", B: "#5a341c", L: "#9a6a44", R: "#4a2a16", w: "#556066", W: "#3c464c", y: "#665544", M: "#6a5a4a" }
 SLICES.forEach((_, i) => sprite(`stack_rust_${i}`, { base: `_stack_${i}`, swap: RUST }, ...(i <= 1 ? [rect(20, 0, 6, 3, "_")] : [])))
+
+// =============================================================================================
+// GOD PUMP car types (#37): one sprite stack per type, from a generic shape description, plus a badge
+// floating over the troublemakers so they read at a glance.
+// =============================================================================================
+pal({ "<": "#e8c33a", ">": "#a8861a", "{": "#222226", "}": "#3a3a42", "[": "#8ab8a0", "]": "#3d7a5a", "|": "#d0d0c8" })
+
+// spec: len (pixels), cab [x0, x1] (the cabin, front is +x), body keys {b, B, L, R}, flags: bed (open
+// cargo bed behind the cabin), tall (a box: van, truck), low (a sports car: no roof slice).
+function stackSlices(name, spec) {
+  const L = spec.len, W = 16, [c0, c1] = spec.cab
+  const { b, B, Lt, R } = spec.keys
+  const wheelA = 3, wheelB = L - 10
+  const slices = [
+    [rect(wheelA, 0, 6, 16, "t"), rect(wheelB, 0, 6, 16, "t"), rect(1, 2, L - 2, 12, B)],
+    [rect(wheelA, 0, 6, 16, "t"), rect(wheelB, 0, 6, 16, "t"), rect(0, 1, L, 14, B)],
+    [rect(0, 1, L, 14, b), rect(0, 1, 1, 14, "M"), rect(L - 1, 1, 1, 14, "M"),
+      rect(L - 2, 2, 2, 3, "y"), rect(L - 2, 11, 2, 3, "y"), rect(0, 2, 1, 3, "r"), rect(0, 11, 1, 3, "r")],
+    [rect(0, 1, L, 14, b), hline(1, 1, L - 2, "M"), hline(1, 14, L - 2, "M")],
+  ]
+  const full = (k) => [rect(0, 1, L, 14, k)]
+  if (spec.tall) {
+    slices.push(full(b), [rect(0, 1, L, 14, b), rect(L - 5, 2, 4, 12, "w"), rect(3, 1, L - 10, 1, "w"), rect(3, 14, L - 10, 1, "w")],
+      [rect(0, 1, L, 14, b), rect(L - 5, 2, 4, 12, "W")], [rect(0, 1, L, 14, R), rect(1, 2, L - 2, 12, Lt)])
+  } else {
+    const top = [rect(0, 1, L, 14, Lt), rect(1, 2, L - 2, 12, b)]
+    if (spec.bed) top.push(rect(2, 3, c0 - 3, 10, "{"))       // the open bed, seen from above
+    slices.push(top)
+    const glass = (k) => [rect(c0, 2, c1 - c0, 12, k), rect(c0, 2, 1, 1, b), rect(c1 - 1, 2, 1, 1, b), rect(c0, 13, 1, 1, b), rect(c1 - 1, 13, 1, 1, b)]
+    const bedWalls = spec.bed ? [rect(1, 1, c0 - 1, 1, b), rect(1, 14, c0 - 1, 1, b), rect(1, 1, 1, 14, b)] : []
+    slices.push([...glass("w"), ...bedWalls], [...glass("W"), rect(c0 + 1, 3, c1 - c0 - 2, 10, "w"), ...bedWalls])
+    slices.push(spec.low ? [rect(c0 + 1, 3, c1 - c0 - 2, 10, R)] : [rect(c0 + 1, 3, c1 - c0 - 2, 10, R), rect(c0 + 2, 4, c1 - c0 - 4, 8, b)])
+  }
+  slices.forEach((ops, i) => sprite(`stack_${name}_${i}`, { w: L, h: W }, ...ops, ...(spec.extra ? spec.extra(i) : [])))
+}
+const K4 = (b, B, Lt, R) => ({ b, B, Lt, R })
+stackSlices("pickup", { len: 36, cab: [17, 26], bed: true, keys: K4("#3e6a8a", "#28465c", "#6a94b4", "#1e3446") })
+stackSlices("cadillac", { len: 38, cab: [15, 27], keys: K4("#e8e4da", "#b8b2a4", "#fbf8f0", "#9a2a2a") })
+stackSlices("bazou", { len: 28, cab: [9, 20], keys: K4("#8a5a3a", "#5e3a22", "#a87a54", "#4a2a16"),
+  extra: (i) => i === 3 ? [px(6, 1, "{"), px(14, 14, "{"), px(21, 2, "o")] : [] })
+stackSlices("racer", { len: 30, cab: [12, 20], low: true, keys: K4("#d0302a", "#8a1a16", "#f06050", "#2a2a2a"),
+  extra: (i) => i === 4 ? [rect(1, 7, 28, 2, "w")] : [] })
+stackSlices("sweeper", { len: 32, cab: [22, 30], tall: true, keys: K4("<", ">", "#f2dc6a", "#6a5a1a"),
+  extra: (i) => i <= 1 ? [circ(4, 2, 2, "M"), circ(4, 13, 2, "M")] : (i === 7 ? [rect(10, 6, 6, 4, "o")] : []) })
+stackSlices("thief", { len: 30, cab: [10, 21], keys: K4("{", "#121214", "}", "#0a0a0c") })
+stackSlices("clumsy", { len: 32, cab: [22, 30], tall: true, keys: K4("#8a8a6a", "#5a5a44", "#aaa88a", "#4a4a38"),
+  extra: (i) => i === 3 || i === 4 ? [px(8, 1, "K"), px(9, 1, "K"), px(20, 14, "K"), px(21, 14, "K")] : [] })
+stackSlices("electric", { len: 24, cab: [8, 18], keys: K4("[", "]", "#b4dcc4", "#2a5a40"),
+  extra: (i) => i === 7 ? [text(13, 6, "E", "y", { align: "c" })] : [] })
+
+// Badges floating over the troublemakers.
+sprite("badge_thief", { w: 14, h: 10, outline: "k" }, rect(0, 2, 14, 5, "{"), rect(2, 3, 3, 3, "w"), rect(9, 3, 3, 3, "w"), px(3, 4, "k"), px(10, 4, "k"))
+sprite("badge_electric", { w: 10, h: 14, outline: "k" }, poly([6, 0, 1, 8, 5, 8, 3, 13, 9, 5, 5, 5], "y"))
+sprite("badge_sweeper", { w: 12, h: 14, outline: "k" }, rect(5, 0, 2, 9, "n"), poly([1, 9, 11, 9, 12, 13, 0, 13], "<"))
+sprite("badge_clumsy", { w: 14, h: 10, outline: "k" }, circ(3, 5, 2, "y"), circ(10, 3, 2, "y"), px(7, 8, "y"))
