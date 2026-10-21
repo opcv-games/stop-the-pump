@@ -64,3 +64,9 @@ Feature: A GOD PUMP run  (#37, docs/GOD_PUMP_PLAN.md)
   Scenario: Every Garage perk shows on the lot  (round 8)
     Given I own a perk in Papa's Garage
     Then its prop is on the lot every day of every run
+
+  Scenario: Bling on the nozzle  (round 8)
+    Given I own bling in Papa's Garage
+    Then every piece I own is a gold ring or bracelet on the nozzle's handle
+    And every piece I've equipped shows on the nozzle as itself
+    And the dangling ones (dice, pine, medal, rabbit's foot) swing when I move the nozzle

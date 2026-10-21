@@ -77,6 +77,9 @@ var owned := {}
 var links: Array = []
 var perks := {}
 var bling: Array = []
+var bling_owned: Array = []
+## The bling hanging off and standing on the nozzle (round 8): a component that swings with it.
+var nozzle_bling := NozzleBling.new()
 var day_num := 1
 ## Drone nozzles: each {pos, car, state, goal}.
 var drones: Array[Dictionary] = []
@@ -426,6 +429,9 @@ func set_pouring(on: bool) -> void:
 func step(dt: float) -> void:
 	_t += dt
 	_nozzle = _nozzle.lerp(_aim, minf(dt * 18.0, 1.0))
+	nozzle_bling.equipped = bling
+	nozzle_bling.owned = bling_owned
+	nozzle_bling.step(dt, _nozzle)
 	if not round_over:
 		round_t += dt
 		if auto_traffic:
@@ -1372,6 +1378,7 @@ func _draw_nozzle(o: Node2D, tip: Vector2) -> void:
 		o.draw_set_transform(tip - NOZZLE_TIP, 0.0, Vector2(2, 2))
 		o.draw_texture(_tex[id], Vector2.ZERO)
 		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		nozzle_bling.draw(o, tip - NOZZLE_TIP, 2.0, tex)
 		return
 	var hand := tip + Vector2(-58, -30)
 	o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

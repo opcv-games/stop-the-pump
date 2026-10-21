@@ -13,6 +13,8 @@ var tab := 0
 var _hover := -1
 var _t := 0.0
 var _flash := {}
+## The BLING tab's preview (round 8): the nozzle wearing what you've equipped, swaying gently.
+var _bling := NozzleBling.new()
 
 
 func _init() -> void:
@@ -98,6 +100,10 @@ func _gui_input(e: InputEvent) -> void:
 func _process(dt: float) -> void:
 	if visible:
 		_t += dt
+		if meta:
+			_bling.equipped = meta.equipped_bling
+			_bling.owned = meta.owned_bling
+			_bling.step(dt, Vector2(sin(_t * 1.7) * 40.0, 0))
 		for k in _flash.keys():
 			_flash[k] += dt
 			if _flash[k] > 0.6:
@@ -118,6 +124,11 @@ func _draw() -> void:
 		GodUI.text(self, r.get_center() + Vector2(0, 6), TABS[i], 16, GodUI.GOLD if i == tab else Color(GodUI.GOLD, 0.6), true)
 	if tab == 1:
 		GodUI.text(self, Vector2(576, 146), "Slots: %d / %d" % [meta.equipped_bling.size(), meta.bling_slots()], 14, Color(GodUI.CREAM, 0.7), true)
+		var noz := GodUI.sprite("nozzle_idle")
+		if noz:  # your nozzle, wearing it all
+			var at := Vector2(940, 64) + Vector2(0, sin(_t * 1.7) * 2.0)
+			draw_texture_rect(noz, Rect2(at, noz.get_size() * 1.6), false)
+			_bling.draw(self, at, 1.6, func(id: String) -> Texture2D: return GodUI.sprite(id))
 	var list := items()
 	for i in list.size():
 		var it: Dictionary = list[i]
@@ -133,7 +144,10 @@ func _draw() -> void:
 		var tex := GodUI.icon(it.id)
 		if tex:
 			draw_texture_rect(tex, Rect2(Vector2(r.get_center().x - 32, r.position.y + 12), Vector2(64, 64)), false, Color.WHITE if st != "shop" or meta.xp >= p else Color(0.55, 0.55, 0.55))
-		GodUI.text(self, Vector2(r.get_center().x, r.position.y + 98), it.name, 16 if r.size.x > 200.0 else 14, GodUI.GOLD, true)
+		var fs := 16 if r.size.x > 200.0 else 14
+		while fs > 11 and GodUI.font().get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > r.size.x - 14:
+			fs -= 1  # long names shrink to fit their card
+		GodUI.text(self, Vector2(r.get_center().x, r.position.y + 98), it.name, fs, GodUI.GOLD, true)
 		GodUI.para(self, Vector2(r.get_center().x, r.position.y + 122), it.helps, 13, r.size.x - 20)
 		var foot := ""
 		match st:
