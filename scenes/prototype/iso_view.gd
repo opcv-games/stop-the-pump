@@ -183,7 +183,8 @@ func _draw_regulars() -> void:
 	if bench:
 		draw_texture(bench, base - Vector2(0, 8))
 	for r in game.regulars:
-		var tex: Texture2D = game.tex(r.sprite + ("_cheer" if r.cheer > 0.0 else ""))
+		var pose := "_cheer" if r.cheer > 0.0 else ("_clap" if r.clap > 0.0 and int(r.clap * 10.0) % 2 == 0 else "")
+		var tex: Texture2D = game.tex(r.sprite + pose)
 		if not tex:
 			continue
 		var bob := 1.0 if sin(game._t * 1.3 + r.bob) > 0.85 else 0.0

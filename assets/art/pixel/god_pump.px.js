@@ -86,9 +86,9 @@ function specks(c, w, h, keys, n, seed) {
   let s = seed
   for (let i = 0; i < n; i++) {
     s = (s * 1103515245 + 12345) % 2147483648
-    const x = s % w
+    const x = (s >> 16) % w   // the high bits: the low bits of this generator repeat quickly
     s = (s * 1103515245 + 12345) % 2147483648
-    const y = s % h
+    const y = (s >> 16) % h
     c.px(x, y, keys[i % keys.length])
   }
 }
@@ -193,6 +193,15 @@ sprite("gauge_face", { w: 26, h: 15, outline: "k" },
 
 // --- The regulars, seated, after the reference photos. Two poses: hanging out, and cheering.
 function regular(name, o) {
+  // A third pose (playtest 6): applauding, hands together in front of the chest.
+  sprite(name + "_clap", { w: 18, h: 26, outline: "k" },
+    rect(4, 19, 4, 6, o.pants), rect(10, 19, 4, 6, o.pants), rect(3, 24, 5, 2, "K"), rect(10, 24, 5, 2, "K"),
+    rect(3, 16, 12, 4, o.pants), rect(3, 8, 12, 9, o.shirt),
+    ...(o.check ? [(c) => { for (let y = 8; y < 17; y += 2) for (let x = 3 + (y % 4 ? 1 : 0); x < 15; x += 2) c.px(x, y, o.check) }] : []),
+    rect(4, 9, 3, 4, o.shirt), rect(11, 9, 3, 4, o.shirt), rect(7, 11, 4, 2, o.shirt), circ(9, 11, 1, "s"),
+    circ(9, 4, 4, "s"), rect(5, 0, 8, 3, o.hair), px(7, 4, "k"), px(11, 4, "k"),
+    rect(8, 6, 3, 2, "k"),                                    // open mouth: "BRAVO!"
+    ...(o.glasses ? [ring(7, 4, 1, "K"), ring(11, 4, 1, "K")] : []))
   for (const cheer of [false, true]) {
     sprite(name + (cheer ? "_cheer" : ""), { w: 18, h: 26, outline: "k" },
       rect(4, 19, 4, 6, o.pants), rect(10, 19, 4, 6, o.pants), rect(3, 24, 5, 2, "K"), rect(10, 24, 5, 2, "K"),   // legs, shoes
@@ -244,3 +253,47 @@ sprite("storefront", { w: 132, h: 44 },
   rect(6, 8, 78, 1, "4"), rect(6, 35, 78, 1, "4"),
   rect(92, 8, 18, 32, "3"), rect(92, 8, 18, 1, "4"), rect(92, 8, 1, 32, "4"), rect(109, 8, 1, 32, "4"),   // the door
   rect(93, 9, 3, 30, "6"))
+
+
+// =============================================================================================
+// Playtest 6 (HD-2D): the ground and the junk around the lot, after the satellite photos.
+// =============================================================================================
+pal({ "7": "#3e2c1e", "8": "#4a3424", "9": "#55402c", "0": "#4a6a2e", "!": "#5f8a3a", "@": "#7aa34a",
+      "~": "#8f9086", "$": "#a8a99e", "%": "#6e6f68", "^": "#c9b03a", "&": "#2a2a2a" })
+
+// Darker, patchier dirt (the satellite lots are packed brown earth with stones).
+sprite("dirt2", { w: 32, h: 32 }, rect(0, 0, 32, 32, "8"), (c) => specks(c, 32, 32, "79~", 120, 17))
+// Patches of grass to scatter on the dirt.
+function grass(name, w, h, seed) {
+  sprite(name, { w, h }, (c) => {
+    let s = seed
+    for (let i = 0; i < w * h * 0.55; i++) {
+      s = (s * 1103515245 + 12345) % 2147483648; const x = (s >> 16) % w
+      s = (s * 1103515245 + 12345) % 2147483648; const y = (s >> 16) % h
+      const dx = (x - w / 2) / (w / 2), dy = (y - h / 2) / (h / 2)
+      if (dx * dx + dy * dy < 1) c.px(x, y, "0!@"[i % 3])
+    }
+  })
+}
+grass("grass_a", 24, 16, 5)
+grass("grass_b", 32, 20, 9)
+grass("grass_c", 16, 12, 13)
+sprite("oil_stain", { w: 20, h: 12 }, ellipse(10, 6, 9, 5, "&"), ellipse(8, 5, 4, 2, "%"))
+sprite("crack", { w: 32, h: 8 }, line(0, 4, 8, 2, "&"), line(8, 2, 15, 5, "&"), line(15, 5, 24, 3, "&"), line(24, 3, 31, 6, "&"), line(15, 5, 17, 7, "&"))
+sprite("hatch", { w: 16, h: 16 }, rect(0, 0, 16, 16, "a"), (c) => { for (let i = -16; i < 16; i += 6) c.line(i, 16, i + 16, 0, "^") })
+sprite("concrete", { w: 32, h: 32 }, rect(0, 0, 32, 32, "$"), (c) => specks(c, 32, 32, "~%", 40, 23))
+
+// A maple: round canopy, a trunk; drawn upright, it stands in the 3D scene.
+sprite("tree", { w: 40, h: 56, outline: "k" },
+  rect(18, 34, 5, 22, "Z"), rect(18, 34, 2, 22, "I"),
+  circ(20, 18, 16, "0"), circ(13, 22, 10, "!"), circ(27, 20, 11, "!"), circ(17, 12, 9, "@"), circ(25, 10, 6, "@"))
+// A pile of old tyres, and a green garbage container (the satellite photos have both).
+sprite("tire_pile", { w: 30, h: 22, outline: "k" },
+  ellipse(8, 17, 7, 4, "t"), ellipse(8, 17, 3, 1, "K"), ellipse(22, 17, 7, 4, "t"), ellipse(22, 17, 3, 1, "K"),
+  ellipse(15, 11, 7, 4, "t"), ellipse(15, 11, 3, 1, "K"), ellipse(15, 5, 7, 4, "t"), ellipse(15, 5, 3, 1, "K"))
+sprite("dumpster", { w: 34, h: 24, outline: "k" },
+  rect(0, 6, 34, 18, "V"), rect(0, 6, 34, 3, "v"), rect(2, 10, 30, 1, "u"), rect(0, 3, 34, 4, "u"),
+  rect(4, 22, 4, 2, "K"), rect(26, 22, 4, 2, "K"), text(17, 13, "DECHETS", "q", { align: "c" }))
+// The rundown car: the sedan stack, rusted brown, a wheel missing.
+const RUST = { b: "#7a4a2a", B: "#5a341c", L: "#9a6a44", R: "#4a2a16", w: "#556066", W: "#3c464c", y: "#665544", M: "#6a5a4a" }
+SLICES.forEach((_, i) => sprite(`stack_rust_${i}`, { base: `_stack_${i}`, swap: RUST }, ...(i <= 1 ? [rect(20, 0, 6, 3, "_")] : [])))

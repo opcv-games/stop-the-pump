@@ -28,6 +28,8 @@ var tier := ""
 var paid := 0.0
 var tip := 0.0
 var heading := 0.0
+## +1 eastbound (may pull in), -1 westbound (drives by).
+var road_dir := 1.0
 var moving := true
 var pattern := "loop"
 var color := Color(0.45, 0.55, 0.7)
@@ -73,16 +75,29 @@ func fill() -> float:
 func stream_left() -> String:
 	if not accepts_fuel() or amount < target * LEAVE_AT - 0.0001:
 		return ""
-	var f := fill()
-	if f >= 0.995:
-		tier = ScoreTiers.SUPER_PERFECT if spilled <= 0.25 else ScoreTiers.PERFECT  # topped off / full
-	elif f >= 0.95:
-		tier = ScoreTiers.GOOD
-	else:
-		tier = ScoreTiers.OK
+	tier = grade(fill(), spilled)
 	phase = Phase.CELEBRATE
 	anim_t = 0.0
 	return tier
+
+
+## The grade for a fill (GOD PUMP plan): an overfill (a spill over $0.25) is a Miss; then Topped off
+## (99.5%+), Perfect (97%+), Good (90%+), OK (80%+).
+static func grade(f: float, spill: float) -> String:
+	if spill > 0.25:
+		return ScoreTiers.MISS
+	if f >= 0.995:
+		return ScoreTiers.SUPER_PERFECT
+	if f >= 0.97:
+		return ScoreTiers.PERFECT
+	if f >= 0.90:
+		return ScoreTiers.GOOD
+	return ScoreTiers.OK
+
+
+## How close the fill came, from 0 to 1 (an overfill counts against it): the day report's accuracy.
+func accuracy() -> float:
+	return clampf(1.0 - absf(amount + spilled - target) / maxf(target, 0.01), 0.0, 1.0)
 
 
 ## What the grade says on screen.
@@ -91,10 +106,12 @@ static func grade_name(t: String) -> String:
 		ScoreTiers.SUPER_PERFECT:
 			return "TOPPED OFF!"
 		ScoreTiers.PERFECT:
-			return "FULL"
+			return "PERFECT!"
 		ScoreTiers.GOOD:
-			return "ALMOST FULL"
-	return "GOOD ENOUGH"
+			return "GOOD"
+		ScoreTiers.MISS:
+			return "OVERFILLED!"
+	return "OK"
 
 
 ## Sends the car off the lot (round over, or after its celebration).
@@ -126,8 +143,10 @@ func step(dt: float, game: GodPump) -> void:
 	_fill_wobble = maxf(_fill_wobble - dt * 3.0, 0.0)
 	match phase:
 		Phase.ROAD:
-			position.x += ROAD_SPEED * dt
-			if customer and position.x >= game.ENTRANCE.x and game.lot_has_room():
+			position.x += ROAD_SPEED * dt * road_dir
+			if road_dir < 0.0 and position.x < -100:
+				phase = Phase.GONE
+			elif customer and position.x >= game.ENTRANCE.x and game.lot_has_room():
 				phase = Phase.ENTERING
 				_route = [Vector2(game.ENTRANCE.x, game.LOT.position.y + 40)]
 				game.customers_arrived += 1

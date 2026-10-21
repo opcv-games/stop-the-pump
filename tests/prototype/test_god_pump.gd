@@ -53,15 +53,16 @@ func test_at_80_percent_the_car_pays_and_leaves() -> void:
 
 func test_tips_grow_toward_100_percent() -> void:
 	assert_eq(game.tip_for(0.85, 0.0), game.tip_for(0.85, 0.0))
-	assert_lt(game.tip_for(0.85, 0.0), game.tip_for(0.95, 0.0))
+	assert_almost_eq(game.tip_for(0.85, 0.0), 0.0, 0.001, "OK fills don't tip")
+	assert_lt(game.tip_for(0.92, 0.0), game.tip_for(0.95, 0.0))
 	assert_lt(game.tip_for(0.95, 0.0), game.tip_for(1.0, 0.0), "topped off tips the most")
 	assert_almost_eq(game.tip_for(1.0, 1.0), 0.0, 0.001, "overfilled: no tip")
-	assert_almost_eq(game.tip_for(0.8, 0.0), 0.0, 0.001)
+	assert_almost_eq(game.tip_for(0.9, 0.0), 0.0, 0.001)
 
 
 func test_fill_grades() -> void:
-	var cases := [[17.0, 0.0, ScoreTiers.OK], [19.2, 0.0, ScoreTiers.GOOD], [20.0, 0.0, ScoreTiers.SUPER_PERFECT],
-		[20.0, 2.0, ScoreTiers.PERFECT]]
+	var cases := [[17.0, 0.0, ScoreTiers.OK], [18.5, 0.0, ScoreTiers.GOOD], [19.5, 0.0, ScoreTiers.PERFECT],
+		[20.0, 0.0, ScoreTiers.SUPER_PERFECT], [20.0, 2.0, ScoreTiers.MISS]]
 	for c in cases:
 		var car := _car(20.0)
 		car.amount = c[0]
@@ -292,3 +293,41 @@ func test_views_cycle_hd_pixel_flat() -> void:
 	assert_eq(game.view, "flat")
 	game.cycle_view()
 	assert_eq(game.view, "hd")
+
+
+
+# --- GOD PUMP plan: grades, regulars, day stats ---------------------------------------------------
+
+func test_regulars_applaud_a_perfect_and_cheer_a_top_off() -> void:
+	var car := _car(20.0)
+	car.amount = 19.5
+	game._settle(car)
+	assert_eq(car.tier, ScoreTiers.PERFECT)
+	for r in game.regulars:
+		assert_gt(r.clap, 0.0)
+	var car2 := _car(10.0, Vector2(700, 400))
+	car2.amount = 10.0
+	game._settle(car2)
+	for r in game.regulars:
+		assert_gt(r.cheer, 0.0)
+
+
+func test_the_day_counts_grades_cars_accuracy_and_xp() -> void:
+	game.reset_day_stats()
+	for amount in [20.0, 19.5, 18.5, 17.0]:
+		var car := _car(20.0, Vector2(300 + amount * 20, 400))
+		car.amount = amount
+		game._settle(car)
+	assert_eq(game.day_stats.cars, 4)
+	assert_eq(game.day_stats.tiers[ScoreTiers.SUPER_PERFECT], 1)
+	assert_eq(game.day_stats.tiers[ScoreTiers.OK], 1)
+	assert_almost_eq(game.day_accuracy(), (1.0 + 0.975 + 0.925 + 0.85) / 4.0, 0.001)
+	assert_gt(game.day_stats.xp, 4)
+
+
+func test_cars_left_under_80_percent_at_closing_are_misses() -> void:
+	game.reset_day_stats()
+	var car := _car(20.0)
+	car.amount = 5.0
+	game.end_round()
+	assert_eq(game.day_stats.tiers[ScoreTiers.MISS], 1)

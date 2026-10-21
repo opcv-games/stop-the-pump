@@ -149,17 +149,19 @@ func _ready() -> void:
 	# The regulars (designer's reference photos): plaid and a moustache, a brown jacket and glasses,
 	# a grey cardigan, a leather jacket and a beer. Seated on the bench by the store.
 	for i in 4:
-		regulars.append({"sprite": "regular_%d" % i, "seat": i, "cheer": 0.0, "bob": rng.randf() * TAU})
+		regulars.append({"sprite": "regular_%d" % i, "seat": i, "cheer": 0.0, "clap": 0.0, "bob": rng.randf() * TAU})
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # crisp pixels; cars and the overlay inherit it
 	for id in CAR_SPRITES + ["nozzle", "bill", "coin_0", "coin_1", "coin_2", "coin_3", "puddle_s", "puddle_m",
 			"puddle_l", "sparkle", "asphalt", "road", "dirt", "neon_gazbar", "neon_gazbar_off", "neon_gaz", "neon_bar",
 			"nozzle_idle", "nozzle_squeeze", "pump_hud", "tip_jar", "gauge_face", "bench", "clock_face",
-			"sign_ouvert", "sign_ferme", "storefront", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
+			"sign_ouvert", "sign_ferme", "storefront", "dirt2", "grass_a", "grass_b", "grass_c", "oil_stain", "crack",
+			"hatch", "concrete", "tree", "tire_pile", "dumpster", "regular_0_clap", "regular_1_clap", "regular_2_clap",
+			"regular_3_clap", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
 			"regular_1_cheer", "regular_2_cheer", "regular_3_cheer"]:
 		var path := PIXEL % id
 		if ResourceLoader.exists(path):
 			_tex[id] = load(path)
-	for body in STACKS:
+	for body in STACKS + ["rust"]:
 		for i in 8:
 			var path := PIXEL % ("stack_%s_%d" % [body, i])
 			if ResourceLoader.exists(path):
@@ -399,8 +401,13 @@ func car_at(p: Vector2) -> ProtoCar:
 
 
 func spawn_road_car() -> ProtoCar:
-	var car := _new_car(Vector2(-60, ROAD_Y + rng.randf_range(-8, 8)))
-	car.customer = rng.randf() < customer_chance
+	# Two-way traffic (playtest 6): cars heading east ride the near lane and may pull in; westbound
+	# cars on the far lane just drive by.
+	var east := rng.randf() < 0.55
+	var car := _new_car(Vector2(-60, ROAD_Y + 12 + rng.randf_range(-3, 3)) if east else Vector2(WIDTH + 60, ROAD_Y - 14 + rng.randf_range(-3, 3)))
+	car.road_dir = 1.0 if east else -1.0
+	car.heading = 0.0 if east else PI
+	car.customer = east and rng.randf() < customer_chance
 	car.pattern = ProtoCar.PATTERNS[rng.randi() % ProtoCar.PATTERNS.size()]
 	car.target = orders[rng.randi() % orders.size()]
 	cars_spawned += 1
@@ -461,12 +468,10 @@ func separation(me: ProtoCar) -> Vector2:
 ## The tip grows from nothing at 80% to max_tip at 100% (squared, so the last few percent count most);
 ## topping off adds a bonus; overfilling (a spill over $0.25) loses the tip altogether.
 func tip_for(fill: float, spilled: float) -> float:
-	if fill < ProtoCar.LEAVE_AT:
-		return 0.0
-	if spilled > 0.25:
-		return 0.0  # overfilled: no tip (god-pump playtest 5)
-	var k := clampf((fill - ProtoCar.LEAVE_AT) / (1.0 - ProtoCar.LEAVE_AT), 0.0, 1.0)
-	var tip := max_tip * k * k
+	if fill < 0.9 or spilled > 0.25:
+		return 0.0  # OK fills and overfills don't tip
+	var k := clampf((fill - 0.9) / 0.1, 0.0, 1.0)
+	var tip := max_tip * pow(k, 1.5)
 	if fill >= 0.995:
 		tip += topoff_bonus
 	return tip
@@ -477,6 +482,7 @@ func _settle(car: ProtoCar) -> void:
 	if t == "":
 		return
 	combo.register(t)
+	_count(car, t)
 	car.tip = tip_for(car.fill(), car.spilled)
 	var sale := minf(car.amount, car.target)
 	car.paid = sale + car.tip
@@ -489,7 +495,48 @@ func _settle(car: ProtoCar) -> void:
 		neon_flash = {ScoreTiers.SUPER_PERFECT: 1.8, ScoreTiers.PERFECT: 1.1, ScoreTiers.GOOD: 0.6}[t]
 		neon_tier = t
 		say(QUIPS[t])
+	# The regulars: everyone throws their arms up for a top-off and applauds a Perfect.
+	for r in regulars:
+		if t == ScoreTiers.SUPER_PERFECT:
+			r.cheer = 1.3
+		elif t == ScoreTiers.PERFECT:
+			r.clap = 1.3
+	if t == ScoreTiers.MISS:
+		say(QUIPS.spill)
+		regulars[quip_who].cheer = 0.0
 	_burst(car, t)
+
+
+## The day's numbers for the report (GOD PUMP plan): grades, cars, accuracy, loot.
+var day_stats := {}
+
+
+func reset_day_stats() -> void:
+	day_stats = {"tiers": {ScoreTiers.SUPER_PERFECT: 0, ScoreTiers.PERFECT: 0, ScoreTiers.GOOD: 0,
+		ScoreTiers.OK: 0, ScoreTiers.MISS: 0}, "cars": 0, "accuracy_sum": 0.0, "xp": 0}
+
+
+func _count(car: ProtoCar, t: String) -> void:
+	if day_stats.is_empty():
+		reset_day_stats()
+	day_stats.tiers[t] += 1
+	day_stats.cars += 1
+	day_stats.accuracy_sum += car.accuracy()
+	day_stats.xp += xp_for(t)
+
+
+## XP for one car: 1 for filling it, plus the combo multiplier on Good or better, plus 5 for a top-off.
+func xp_for(t: String) -> int:
+	var xp := 1
+	if t in [ScoreTiers.SUPER_PERFECT, ScoreTiers.PERFECT, ScoreTiers.GOOD]:
+		xp += combo.multiplier
+	if t == ScoreTiers.SUPER_PERFECT:
+		xp += 5
+	return xp
+
+
+func day_accuracy() -> float:
+	return day_stats.accuracy_sum / day_stats.cars if not day_stats.is_empty() and day_stats.cars > 0 else 0.0
 
 
 ## One of the regulars says something (a random one, from `pool`).
@@ -524,6 +571,7 @@ func end_round() -> void:
 			_settle(car)  # 80% or more: settles as usual
 			continue
 		if car.customer and car.accepts_fuel():
+			_count(car, ScoreTiers.MISS)  # still under 80% at closing: a miss
 			var partial := minf(car.amount, car.target)  # they pay for what they got, no tip
 			round_earned += partial
 			round_sales += partial
@@ -548,6 +596,7 @@ func next_round() -> void:
 	puddles.clear()  # the lot is hosed down between rounds
 	sign_flip = 1.0  # FERMÉ -> OUVERT
 	_spill_quipped = 0.0
+	reset_day_stats()
 	tank = tank_size
 	combo.reset()
 
@@ -689,6 +738,7 @@ func _step_fx(dt: float) -> void:
 	quip_t = maxf(quip_t - dt, 0.0)
 	for r in regulars:
 		r.cheer = maxf(r.cheer - dt, 0.0)
+		r.clap = maxf(r.clap - dt, 0.0)
 	if not round_over and not regulars.is_empty():
 		_next_idle_quip -= dt
 		if _next_idle_quip <= 0.0 and quip_t <= 0.0:
@@ -882,7 +932,6 @@ func _draw_pump(o: Node2D, tip: Vector2) -> void:
 	var a := PI * (1.0 - clampf(tank / tank_size, 0.0, 1.0))
 	o.draw_line(c, c + Vector2(cos(a), -sin(a)) * 13.0, Color(0.75, 0.1, 0.08), 2.0, true)
 	o.draw_circle(c, 2.5, Color(0.1, 0.1, 0.1))
-	o.draw_string(ThemeDB.fallback_font, at + Vector2(0, -6), "GAZ $%.0f" % tank, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, GAS)
 
 
 ## Tips in the jar (coins pile up inside), sales as a heap of bills beside it. No running counter:

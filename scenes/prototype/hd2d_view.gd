@@ -38,6 +38,8 @@ func setup(owner_game: GodPump) -> void:
 	_build_ground()
 	_build_store()
 	_build_regulars()
+	_build_surroundings()
+	_build_dust()
 
 
 static func to3(w: Vector2, h := 0.0) -> Vector3:
@@ -99,7 +101,7 @@ func _build_world() -> void:
 	_env.fog_density = 0.008
 	_env.adjustment_enabled = true  # a touch of grading: warmer, punchier
 	_env.adjustment_contrast = 1.12
-	_env.adjustment_saturation = 1.12
+	_env.adjustment_saturation = 1.04
 	var we := WorldEnvironment.new()
 	we.environment = _env
 	add_child(we)
@@ -120,12 +122,12 @@ func _build_world() -> void:
 	camera.current = true
 	var attrs := CameraAttributesPractical.new()  # tilt-shift: the road behind and the near edge go soft
 	attrs.dof_blur_far_enabled = true
-	attrs.dof_blur_far_distance = 27.5
+	attrs.dof_blur_far_distance = 29.0
 	attrs.dof_blur_far_transition = 5.0
 	attrs.dof_blur_near_enabled = true
 	attrs.dof_blur_near_distance = 23.5
 	attrs.dof_blur_near_transition = 2.5
-	attrs.dof_blur_amount = 0.2
+	attrs.dof_blur_amount = 0.1  # half of the first try (playtest 6: too strong)
 	camera.attributes = attrs
 
 
@@ -151,8 +153,10 @@ func _flat(size: Vector2, at: Vector3, mat: Material) -> MeshInstance3D:
 
 func _build_ground() -> void:
 	var tile := 64.0 * K  # a 32 px tile drawn at 2x
-	var dirt := Vector2(40, 30)
-	_flat(dirt, Vector3(11.5, -0.01, 7.0), _pixel_mat(game.tex("dirt"), dirt / tile))
+	var dirt := Vector2(44, 34)
+	var dirt_mat := _pixel_mat(game.tex("dirt2"), dirt / tile)
+	dirt_mat.albedo_color = Color(0.72, 0.68, 0.66)  # darker, less red under the warm sun (playtest 6)
+	_flat(dirt, Vector3(11.5, -0.01, 7.0), dirt_mat)
 	var road := Vector2(40, 64 * K)
 	_flat(road, Vector3(11.5, 0.0, GodPump.ROAD_Y * K), _pixel_mat(game.tex("road"), road / tile))
 	var lot := GodPump.LOT
@@ -166,6 +170,112 @@ func _build_ground() -> void:
 	line_mat.albedo_color = Color(0.8, 0.8, 0.75)
 	for i in 9:
 		_flat(Vector2(4, 60) * K, to3(Vector2(lot.position.x + 72 + i * 98, lot.end.y - 40), 0.008), line_mat)
+
+
+func _decal(tex_id: String, w: Vector2, rot: float, size_k := 1.0, h := 0.006) -> MeshInstance3D:
+	var tex: Texture2D = game.tex(tex_id)
+	if not tex:
+		return null
+	var m := _pixel_mat(tex)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	var mi := _flat(tex.get_size() * PX * size_k, to3(w, h), m)
+	mi.rotation.y = rot
+	return mi
+
+
+## Around the lot, after the designer's satellite photos: patchy grass on dark dirt, a concrete
+## curb and a grass strip round the lot, white bollards, a sidewalk along the street, the yellow
+## hatching in front of the store, old concrete pump pads, cracks and oil stains, a rundown car, a
+## tire pile, a garbage container and two maples.
+func _build_surroundings() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1985
+	var lot := GodPump.LOT
+	var keep_out := [lot.grow(30), Rect2(-200, GodPump.ROAD_Y - 50, 1600, 100), STORE.grow(20)]
+	for i in 70:  # grass patches on the dirt
+		var p := Vector2(rng.randf_range(-150, 1300), rng.randf_range(90, 760))
+		var blocked := false
+		for r in keep_out:
+			if r.has_point(p):
+				blocked = true
+		if not blocked:
+			_decal(["grass_a", "grass_b", "grass_c"][i % 3], p, rng.randf() * TAU, rng.randf_range(1.0, 2.2), 0.003)
+	var concrete := _pixel_mat(game.tex("concrete"), Vector2(4, 1))
+	var curb_h := 0.08
+	var c := lot.get_center()
+	_box(Vector3(lot.size.x * K + 0.2, curb_h, 0.14), to3(Vector2(c.x, lot.end.y), curb_h * 0.5), concrete)   # south
+	_box(Vector3(0.14, curb_h, lot.size.y * K), to3(Vector2(lot.position.x, c.y), curb_h * 0.5), concrete)    # west
+	_box(Vector3(0.14, curb_h, lot.size.y * K), to3(Vector2(lot.end.x, c.y), curb_h * 0.5), concrete)         # east
+	var green := _pixel_mat(game.tex("grass_b"))
+	green.albedo_texture = null
+	green.albedo_color = Color(0.32, 0.45, 0.2)
+	_flat(Vector2(lot.size.x * K + 1.2, 0.6), to3(Vector2(c.x, lot.end.y + 22), 0.004), green)               # grass strip
+	_flat(Vector2(0.6, lot.size.y * K), to3(Vector2(lot.end.x + 22, c.y), 0.004), green)
+	var bollard_mat := _wall_mat(Color(0.88, 0.87, 0.82))
+	var x := lot.position.x + 40
+	while x < lot.end.x - 20:  # white bollards along the south edge
+		_box(Vector3(0.22, 0.24, 0.22), to3(Vector2(x, lot.end.y + 10), 0.12), bollard_mat)
+		x += 70
+	_flat(Vector2(44, 0.5), to3(Vector2(576, GodPump.ROAD_Y + 40), 0.004), _pixel_mat(game.tex("concrete"), Vector2(60, 1)))   # sidewalk
+	_flat(Vector2(44, 0.5), to3(Vector2(576, GodPump.ROAD_Y - 40), 0.004), _pixel_mat(game.tex("concrete"), Vector2(60, 1)))
+	var hatch := _pixel_mat(game.tex("hatch"), Vector2(16, 1))
+	_flat(Vector2(STORE.size.x * K, 0.5), to3(Vector2(STORE.get_center().x, STORE.end.y + 18), 0.007), hatch)
+	for pad in [Vector2(560, 205), Vector2(700, 205)]:  # the old pump islands, flush concrete pads
+		_flat(Vector2(110, 26) * K, to3(pad, 0.006), _pixel_mat(game.tex("concrete"), Vector2(2, 1)))
+	for i in 9:  # wear on the lot
+		_decal("crack", Vector2(rng.randf_range(lot.position.x + 60, lot.end.x - 60), rng.randf_range(lot.position.y + 40, lot.end.y - 40)), rng.randf() * TAU, rng.randf_range(1.2, 2.0), 0.008)
+	for i in 7:
+		_decal("oil_stain", Vector2(rng.randf_range(lot.position.x + 60, lot.end.x - 60), rng.randf_range(lot.position.y + 40, lot.end.y - 40)), rng.randf() * TAU, rng.randf_range(1.0, 1.6), 0.008)
+	# The rundown car, rusting on the dirt beside the lot.
+	var wreck := Node3D.new()
+	add_child(wreck)
+	var q := PlaneMesh.new()
+	q.size = Vector2(30, 16) * PX
+	for i in 16:
+		var mi := MeshInstance3D.new()
+		mi.mesh = q
+		mi.material_override = _slice_mat("rust", i / 2)
+		mi.position = Vector3(0, 0.03 + i * CAR_SLICE_GAP * 0.5, 0)
+		wreck.add_child(mi)
+	wreck.position = to3(Vector2(60, 430))
+	wreck.rotation = Vector3(0.06, 1.2, 0.04)  # sagging on a flat tyre
+	_upright(game.tex("tire_pile"), to3(Vector2(66, 540), 0.44), true)
+	_upright(game.tex("dumpster"), to3(Vector2(1085, 236), 0.48), true)
+	for t in [Vector2(1110, 470), Vector2(-20, 640), Vector2(330, 110)]:
+		_upright(game.tex("tree"), to3(t, 1.12), true)
+
+
+## Dust motes drifting through the morning light.
+func _build_dust() -> void:
+	var dust := CPUParticles3D.new()
+	dust.amount = 140
+	dust.lifetime = 9.0
+	dust.preprocess = 9.0
+	dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	dust.emission_box_extents = Vector3(12, 1.6, 6)
+	dust.position = Vector3(11.5, 1.8, 7.0)
+	dust.direction = Vector3(1, 0.1, 0.3)
+	dust.spread = 60.0
+	dust.gravity = Vector3(0, -0.02, 0)
+	dust.initial_velocity_min = 0.05
+	dust.initial_velocity_max = 0.25
+	dust.scale_amount_min = 0.6
+	dust.scale_amount_max = 1.4
+	var mote := QuadMesh.new()
+	mote.size = Vector2(0.035, 0.035)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.billboard_keep_scale = true
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(1.0, 0.92, 0.75, 0.55)
+	m.emission_enabled = true
+	m.emission = Color(1.0, 0.85, 0.6)
+	m.emission_energy_multiplier = 0.6
+	mote.material = m
+	dust.mesh = mote
+	add_child(dust)
 
 
 func _wall_mat(c: Color) -> StandardMaterial3D:
@@ -382,7 +492,8 @@ func _sync_store() -> void:
 		clock_hands[1].rotation.z = -fmod(h, 1.0) * TAU
 	for i in regular_sprites.size():
 		var r: Dictionary = game.regulars[i]
-		regular_sprites[i].texture = game.tex(r.sprite + ("_cheer" if r.cheer > 0.0 else ""))
+		var pose := "_cheer" if r.cheer > 0.0 else ("_clap" if r.clap > 0.0 and int(r.clap * 10.0) % 2 == 0 else "")
+		regular_sprites[i].texture = game.tex(r.sprite + pose)
 		var bob := 0.04 if sin(t * 1.3 + r.bob) > 0.85 else 0.0
 		var hop := 0.12 * absf(sin(r.cheer * 12.0)) if r.cheer > 0.0 else 0.0
 		regular_sprites[i].position.y = 0.52 + bob + hop
