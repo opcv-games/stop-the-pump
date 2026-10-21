@@ -206,6 +206,8 @@ func step(dt: float, game: GodPump) -> void:
 			if moving:
 				_move_pattern(dt, game)
 				position += game.separation(self) * dt  # cars nudge apart instead of stacking
+				# Fast cars (the racer) overshoot their turns: the curb keeps everyone on the lot.
+				position = position.clamp(game.LOT.position + Vector2(24, 20), game.LOT.end - Vector2(24, 20))
 		Phase.CELEBRATE:
 			anim_t += dt
 			if anim_t >= CELEBRATE_SECONDS:

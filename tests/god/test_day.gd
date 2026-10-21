@@ -341,3 +341,15 @@ func test_the_regulars_cheer_from_wherever_they_are() -> void:
 	assert_eq(RegularsCrew.pose(r), "sit_cheer")
 	r.state = "inside"
 	assert_eq(RegularsCrew.pose(r), "", "inside, nobody sees them")
+
+
+func test_fast_cars_stay_on_the_lot() -> void:
+	_open()
+	var car := _parked("racer", Vector2(900, 560))
+	car.moving = true
+	car.heading = PI * 0.5  # pointing at the bottom curb, at racer speed
+	for i in 200:
+		game.step(0.05)
+		assert_true(GodPump.LOT.has_point(car.position), "still on the lot at step %d" % i)
+		if not car.accepts_fuel():
+			break
