@@ -206,6 +206,8 @@ func _draw_car(car: ProtoCar) -> void:
 	for i in 8:
 		var tex: Texture2D = game.tex("stack_%s_%d" % [car.stack, i])
 		if not tex:
+			tex = game.tex("stack_blue_%d" % i)  # a car type not drawn yet
+		if not tex:
 			continue
 		var xf := Transform2D(0.0, base - Vector2(0, i + lift)) * linear * Transform2D(car.heading + anim.spin, Vector2(2, 2) * anim.squash, 0.0, Vector2.ZERO)
 		draw_set_transform_matrix(xf)

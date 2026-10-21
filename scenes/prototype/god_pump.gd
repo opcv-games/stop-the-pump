@@ -58,6 +58,27 @@ const STACKS := ["blue", "red", "green", "cream", "purple", "white", "orange"]
 var auto_traffic := true
 var sound_on := true
 
+## GOD PUMP (docs/GOD_PUMP_PLAN.md): GodGame runs the day through start_day() and listens for day_over;
+## unmanaged (tests, the old prototype) the day shows its own summary.
+signal day_over(report: Dictionary)
+var managed := false
+## The numbers this day runs on (GodMods.compute): upgrades, cards, Papa's Garage.
+var mods := GodData.BASE.duplicate()
+## Car types that can show up today (unlocked in the meta).
+var car_pool: Array = ["sedan"]
+var day_num := 1
+## Drone nozzles: each {pos, car, state, goal}.
+var drones: Array[Dictionary] = []
+var _first_car_done := false
+var _cars_today := 0
+var _saves_left := 0
+var _best_combo := 1
+var fines := 0.0
+var stolen := 0.0
+var applause := 0
+const DRONE_FLOW := 2.2
+const DRONE_SPEED := 260.0
+
 var rng := RandomNumberGenerator.new()
 var tiers := ScoreTiers.new()
 var economy := FuelEconomy.new()
@@ -161,7 +182,7 @@ func _ready() -> void:
 		var path := PIXEL % id
 		if ResourceLoader.exists(path):
 			_tex[id] = load(path)
-	for body in STACKS + ["rust"]:
+	for body in STACKS + ["rust"] + GodData.CAR_ORDER:
 		for i in 8:
 			var path := PIXEL % ("stack_%s_%d" % [body, i])
 			if ResourceLoader.exists(path):
@@ -271,6 +292,12 @@ func regular_head(i: int) -> Variant:
 	return null
 
 
+## The gaz bar's name goes up on the sign (HD-2D view).
+func set_station_name(text: String) -> void:
+	if _hd_view:
+		_hd_view.set_station_name(text)
+
+
 func tex(id: String) -> Texture2D:
 	return _tex.get(id)
 
@@ -305,9 +332,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		aim(to_world(event.position))
 		set_pouring(event.pressed)
 	elif event is InputEventKey and event.pressed and not event.echo:
-		if event.physical_keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE] and round_over:
+		if event.physical_keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE] and round_over and not managed:
 			next_round()
-		elif event.physical_keycode == KEY_ESCAPE:
+		elif event.physical_keycode == KEY_ESCAPE and not managed:
 			get_tree().quit()
 		elif event.physical_keycode == KEY_I:
 			cycle_view()
@@ -358,6 +385,10 @@ func step(dt: float) -> void:
 		if car.phase == ProtoCar.Phase.GONE:
 			cars.erase(car)
 			car.queue_free()
+	if not round_over:
+		_step_patience(dt)
+		_step_roles(dt)
+		_step_drones(dt)
 	_step_fx(dt)
 	queue_redraw()
 	_overlay.queue_redraw()
@@ -369,23 +400,38 @@ func _pour(dt: float) -> void:
 	if not pouring:
 		return
 	var car := car_at(_aim)
+	if not car and mods.auto_aim > 0.0:  # auto-aim: the stream bends toward a car nearby
+		car = nearest_customer(_aim, mods.auto_aim + ProtoCar.SIZE.x * 0.55)
+	if car and car.role in ["thief", "electric"]:
+		_react(car)
+		car = null
 	if car != _stream_car:
 		if _stream_car:
 			_settle(_stream_car)  # the stream slid off: a car 80% full or more settles now
 		_stream_car = car
-	var dollars := minf(flow_rate * dt, tank)
+	var dollars := minf(flow_rate * dt * (car.fill_speed if car else 1.0), tank)
+	if not car or car.amount >= car.target:
+		dollars *= mods.spill_mult  # gas saver: less runs onto the ground
 	tank -= dollars
 	round_poured += dollars
 	if car:
 		var overflow := car.receive(dollars)
 		if overflow > 0.0:  # the tank is full: it runs down the side of the car
-			round_wasted += overflow
-			_spill(car.position + Vector2(rng.randf_range(-24, 24), rng.randf_range(12, 22)), overflow)
+			_waste(overflow, car.position + Vector2(rng.randf_range(-24, 24), rng.randf_range(12, 22)))
+		if int(mods.twin_stream) > 0:  # twin stream: a second car nearby fills too
+			var other := nearest_customer(car.position, 120.0, car)
+			if other:
+				var d2 := minf(flow_rate * dt * other.fill_speed, tank)
+				tank -= d2
+				round_poured += d2
+				var o2 := other.receive(d2)
+				if o2 > 0.0:
+					_waste(o2, other.position + Vector2(0, 18))
 	else:
-		round_wasted += dollars
-		_spill(_aim, dollars)
+		_waste(dollars, _aim)
 	if tank <= 0.0001:
 		tank = 0.0
+		_floaters.append({"text": "PLUS DE GAZ!", "pos": Vector2(WIDTH * 0.5, 260), "life": 2.5, "color": Color(1, 0.4, 0.3), "size": 40})
 		end_round()  # out of gas
 		return
 	if rng.randf() < 0.6:
@@ -394,10 +440,48 @@ func _pour(dt: float) -> void:
 
 
 func car_at(p: Vector2) -> ProtoCar:
+	var reach := ProtoCar.SIZE.x * 0.55 + float(mods.get("stream_radius", 0.0))
 	for car in cars:
-		if car.customer and car.accepts_fuel() and p.distance_to(car.position) <= ProtoCar.SIZE.x * 0.55:
+		if (car.customer or car.role in ["thief", "electric"]) and car.accepts_fuel() and p.distance_to(car.position) <= reach:
 			return car
 	return null
+
+
+## The nearest customer still taking fuel within `reach` of `p` (auto-aim, twin stream, drones).
+func nearest_customer(p: Vector2, reach: float, except: ProtoCar = null) -> ProtoCar:
+	var best: ProtoCar = null
+	var best_d := reach
+	for car in cars:
+		if car == except or not car.customer or not car.accepts_fuel():
+			continue
+		var d := p.distance_to(car.position)
+		if d <= best_d:
+			best_d = d
+			best = car
+	return best
+
+
+## Spilled gas: a puddle, counted as wasted (the recycler sends some back to the tank).
+func _waste(dollars: float, at: Vector2) -> void:
+	round_wasted += dollars
+	_spill(at, dollars)
+	if int(mods.get("recycle", 0)) > 0:
+		tank += dollars * 0.7
+
+
+## Pouring on the thief scares it off; pouring on the electric car earns a fine.
+func _react(car: ProtoCar) -> void:
+	if car.angry:
+		return
+	car.angry = true
+	var top := scr(car.position) + Vector2(0, -60)
+	if car.role == "thief":
+		_floaters.append({"text": "SAUVE-TOI!", "pos": top, "life": 1.6, "color": Color(1, 0.6, 0.3), "size": 22})
+	else:
+		fines += 10.0
+		cash -= 10.0
+		_floaters.append({"text": "JE SUIS ÉLECTRIQUE! -$10", "pos": top, "life": 1.8, "color": Color(0.5, 1, 0.6), "size": 20})
+	car.leave(self)
 
 
 func spawn_road_car() -> ProtoCar:
@@ -407,9 +491,14 @@ func spawn_road_car() -> ProtoCar:
 	var car := _new_car(Vector2(-60, ROAD_Y + 12 + rng.randf_range(-3, 3)) if east else Vector2(WIDTH + 60, ROAD_Y - 14 + rng.randf_range(-3, 3)))
 	car.road_dir = 1.0 if east else -1.0
 	car.heading = 0.0 if east else PI
-	car.customer = east and rng.randf() < customer_chance
 	car.pattern = ProtoCar.PATTERNS[rng.randi() % ProtoCar.PATTERNS.size()]
 	car.target = orders[rng.randi() % orders.size()]
+	if east and rng.randf() < customer_chance:
+		car.set_type(_pick_type(), rng)  # it pulls in: a customer, or one of the troublemakers
+		car.wants_in = true
+	else:
+		car.customer = false
+	car.patience = 24.0 * mods.patience_mult
 	cars_spawned += 1
 	return car
 
@@ -467,13 +556,34 @@ func separation(me: ProtoCar) -> Vector2:
 
 ## The tip grows from nothing at 80% to max_tip at 100% (squared, so the last few percent count most);
 ## topping off adds a bonus; overfilling (a spill over $0.25) loses the tip altogether.
+## Everything that multiplies a car's tip today: the car type, the shop, cards, the meta, procs.
+func _tip_mult(car: ProtoCar) -> float:
+	var m: float = car.tip_mult * mods.tip_mult
+	if car.by_drone:
+		m *= 0.5
+	if int(mods.happy_hour) > 0 and hour_now() < GodData.OPEN_HOUR + 2.0:
+		m *= 2.0
+	if not _first_car_done:
+		_first_car_done = true
+		m *= mods.first_car_tip_mult
+	if int(mods.get("bobblehead", 0)) > 0:
+		m *= 1.0 + 0.05 * combo.multiplier
+	if mods.golden_chance > 0.0 and rng.randf() < mods.golden_chance:
+		m *= 3.0
+		_floaters.append({"text": "DORÉ!", "pos": scr(car.position) + Vector2(0, -130), "life": 1.4, "color": Color(1, 0.85, 0.2), "size": 24})
+	if mods.jackpot_chance > 0.0 and rng.randf() < mods.jackpot_chance:
+		m *= 4.0
+		_floaters.append({"text": "JACKPOT!", "pos": scr(car.position) + Vector2(0, -130), "life": 1.6, "color": Color(1, 0.5, 0.9), "size": 26})
+	return m
+
+
 func tip_for(fill: float, spilled: float) -> float:
 	if fill < 0.9 or spilled > 0.25:
 		return 0.0  # OK fills and overfills don't tip
 	var k := clampf((fill - 0.9) / 0.1, 0.0, 1.0)
 	var tip := max_tip * pow(k, 1.5)
 	if fill >= 0.995:
-		tip += topoff_bonus
+		tip += mods.get("topoff_bonus", topoff_bonus)
 	return tip
 
 
@@ -481,10 +591,27 @@ func _settle(car: ProtoCar) -> void:
 	var t := car.stream_left()
 	if t == "":
 		return
-	combo.register(t)
+	var breaks := not combo.tiers.extends_combo(t)
+	if t == ScoreTiers.OK and int(mods.combo_lock) > 0:
+		breaks = false  # combo lock: an OK keeps the chain
+	if t == ScoreTiers.MISS and _saves_left > 0:
+		_saves_left -= 1  # Saint Christophe: an overfill forgiven
+		breaks = false
+	if not car.by_drone and (breaks or combo.tiers.extends_combo(t)):
+		combo.register(t)
+	_best_combo = maxi(_best_combo, combo.multiplier)
 	_count(car, t)
-	car.tip = tip_for(car.fill(), car.spilled)
-	var sale := minf(car.amount, car.target)
+	car.tip = tip_for(car.fill(), car.spilled) * _tip_mult(car)
+	if t in [ScoreTiers.SUPER_PERFECT, ScoreTiers.PERFECT]:
+		car.tip += mods.perfect_bonus + mods.applause_bonus
+		applause += 1
+	if mods.loto_chance > 0.0 and rng.randf() < mods.loto_chance:
+		car.tip += 20.0
+		_floaters.append({"text": "LOTO! +$20", "pos": scr(car.position) + Vector2(0, -110), "life": 1.6, "color": Color(1, 0.9, 0.3), "size": 22})
+	var sale: float = minf(car.amount, car.target) * car.pay_share + mods.per_car_bonus
+	_cars_today += 1
+	if int(mods.refund_every) > 0 and _cars_today % int(mods.refund_every) == 0:
+		tank += car.amount  # rabbit's foot: this car's gas goes back in the tank
 	car.paid = sale + car.tip
 	round_earned += car.paid
 	round_tips += car.tip
@@ -579,6 +706,71 @@ func end_round() -> void:
 			if partial > 0.0:
 				drop_cash(car.position, partial, 0.0)
 			car.leave(self)
+	if managed:
+		day_over.emit(day_report())
+
+
+## Opens a day for GodGame: today's mods, the gas in the station's tank, the day number and the car
+## types that can show up. The clock limits the day (7 h to the closing hour); the tank can end it early.
+func start_day(m: Dictionary, tank_dollars: float, day_n: int, pool: Array) -> void:
+	mods = m.duplicate()
+	car_pool = pool
+	day_num = day_n
+	flow_rate = 4.0 * mods.flow_mult
+	round_seconds = (mods.close_hour - GodData.OPEN_HOUR) * GodData.HOUR_SECONDS
+	customer_chance = mods.customer_chance
+	combo.max_multiplier = int(mods.combo_max)
+	next_round()
+	round_num = day_n
+	tank = tank_dollars
+	_first_car_done = false
+	_cars_today = 0
+	_saves_left = int(mods.overfill_saves)
+	_best_combo = 1
+	fines = 0.0
+	stolen = 0.0
+	applause = 0
+	for car in cars.duplicate():
+		cars.erase(car)
+		car.queue_free()
+	for i in int(mods.queue):  # cars already waiting when you open (marketing)
+		var car := park_customer(0.0, random_lot_point())
+		car.set_type(_pick_type(true), rng)
+		car.patience = 24.0 * mods.patience_mult
+	drones.clear()
+	for i in int(mods.drones):
+		drones.append({"pos": Vector2(WIDTH * 0.5 + i * 40, 140), "car": null, "state": "idle", "goal": 0.0})
+
+
+## Today's report for GodGame and the end-of-day screen.
+func day_report() -> Dictionary:
+	if day_stats.is_empty():
+		reset_day_stats()
+	return {"day": day_num, "loot": round_earned - fines, "sales": round_sales, "tips": round_tips,
+		"tank_left": tank, "xp": day_stats.xp, "cars": day_stats.cars, "tiers": day_stats.tiers.duplicate(),
+		"accuracy": day_accuracy(), "best_combo": _best_combo, "wasted": round_wasted, "fines": fines,
+		"stolen": stolen, "out_of_gas": tank <= 0.0001}
+
+
+## A car type for a new car, weighted; troublemakers ramp in over the first days.
+func _pick_type(customers_only := false) -> String:
+	var total := 0.0
+	var weights := {}
+	for id in car_pool:
+		var t: Dictionary = GodData.CAR_TYPES[id]
+		if customers_only and not t.get("customer", true):
+			continue
+		var w: float = t.weight
+		if t.has("role") and t.role != "clumsy":
+			w *= clampf(day_num / 6.0, 0.25, 1.0)
+		weights[id] = w
+		total += w
+	var pick := rng.randf() * total
+	for id in weights:
+		pick -= weights[id]
+		if pick <= 0.0:
+			return id
+	return "sedan"
 
 
 func next_round() -> void:
@@ -716,6 +908,114 @@ func _step_money(dt: float) -> void:
 		shown_cash = cash
 		jar_shown = tip_jar
 		bills_shown = round_sales
+
+
+## A customer left waiting too long drives off: a Miss (they pay for what they got).
+func _step_patience(dt: float) -> void:
+	for car in cars:
+		if not car.customer or car.phase != ProtoCar.Phase.WANDER or car == _stream_car:
+			continue
+		car.waited += dt
+		if car.waited > car.patience:
+			if car.fill() >= ProtoCar.LEAVE_AT:
+				_settle(car)
+				continue
+			_count(car, ScoreTiers.MISS)
+			var partial := minf(car.amount, car.target) * car.pay_share
+			round_earned += partial
+			round_sales += partial
+			cash += partial
+			if partial > 0.0:
+				drop_cash(car.position, partial, 0.0)
+			_floaters.append({"text": "TROP LONG!", "pos": scr(car.position) + Vector2(0, -60), "life": 1.4, "color": Color(1, 0.4, 0.3), "size": 20})
+			combo.register(ScoreTiers.MISS)
+			car.leave(self)
+
+
+## The troublemakers and helpers (GodData.CAR_TYPES roles).
+func _step_roles(dt: float) -> void:
+	for car in cars:
+		if car.phase != ProtoCar.Phase.WANDER:
+			continue
+		car.role_t += dt
+		match car.role:
+			"sweeper":  # cleans the puddles it drives over, then leaves
+				for p in puddles.duplicate():
+					if p.pos.distance_to(car.position) < 46.0:
+						puddles.erase(p)
+				if car.role_t > 14.0:
+					car.leave(self)
+			"electric":  # wanders a while, then leaves; it never wanted gas
+				if car.role_t > 10.0:
+					car.leave(self)
+			"thief":  # siphons gas from a customer, then flees with it
+				if not car.victim or not is_instance_valid(car.victim) or not car.victim.accepts_fuel():
+					car.victim = nearest_customer(car.position, 2000.0, car)
+				if car.victim:
+					car.moving = car.position.distance_to(car.victim.position) > 60.0
+					if car.moving:
+						car.heading = rotate_toward(car.heading, (car.victim.position - car.position).angle(), 3.0 * dt)
+						car.position += Vector2.from_angle(car.heading) * 120.0 * dt
+					else:
+						var take := minf(3.0 * dt, car.victim.amount)
+						if take > 0.0 and car.stolen == 0.0:
+							_floaters.append({"text": "VOLEUR!", "pos": scr(car.position) + Vector2(0, -60), "life": 1.4, "color": Color(1, 0.3, 0.3), "size": 22})
+						car.victim.amount -= take
+						car.stolen += take
+						stolen += take
+				if car.role_t > 7.0 or car.stolen > 12.0:
+					car.leave(self)
+			"clumsy":  # bumps into cars, who spill some of their gas
+				car.bump_cool = maxf(car.bump_cool - dt, 0.0)
+				if car.bump_cool <= 0.0:
+					for other in cars:
+						if other != car and other.customer and other.accepts_fuel() and other.amount > 1.0 \
+								and other.position.distance_to(car.position) < 52.0:
+							var lost: float = other.amount * 0.25
+							other.amount -= lost
+							_waste(lost, other.position + Vector2(0, 16))
+							_floaters.append({"text": "BANG!", "pos": scr(other.position) + Vector2(0, -60), "life": 1.2, "color": Color(1, 0.7, 0.3), "size": 24})
+							car.bump_cool = 3.0
+							break
+
+
+## Drone nozzles: each flies to a customer nobody is pouring on, fills it to a good-but-not-perfect
+## level on its own (slower than you, half the tip, no combo), and moves on. The automation.
+func _step_drones(dt: float) -> void:
+	for d in drones:
+		var car: ProtoCar = d.car
+		if car and (not is_instance_valid(car) or not car.accepts_fuel()):
+			car = null
+			d.car = null
+		if not car:
+			for c in cars:
+				if c.customer and c.accepts_fuel() and not c.drone_target and c != _stream_car and c.amount < c.target * 0.8:
+					car = c
+					c.drone_target = true
+					d.car = c
+					d.goal = rng.randf_range(0.86, 0.995)
+					break
+			if not car:
+				continue
+		var gap: Vector2 = car.position - d.pos
+		if gap.length() > 8.0:
+			d.pos += gap.normalized() * minf(DRONE_SPEED * dt, gap.length())
+			d.state = "flying"
+			continue
+		d.state = "pouring"
+		var dollars := minf(DRONE_FLOW * dt * car.fill_speed, tank)
+		tank -= dollars
+		round_poured += dollars
+		car.receive(dollars)
+		if car.fill() >= d.goal or car.amount >= car.target:
+			car.by_drone = true
+			_settle(car)
+			d.car = null
+			d.state = "idle"
+		if tank <= 0.0001:
+			tank = 0.0
+			end_round()
+			return
 
 
 func _step_fx(dt: float) -> void:
@@ -1009,7 +1309,7 @@ func _draw_hud(o: Node2D, font: Font) -> void:
 	if hd:
 		_draw_vignette(o)
 	var h := hour_now()
-	var clock := "ROUND %d     %d h %02d" % [round_num, int(h), int(fmod(h, 1.0) * 60.0) / 15 * 15]
+	var clock := "DAY %d     %d h %02d" % [round_num, int(h), int(fmod(h, 1.0) * 60.0) / 15 * 15]
 	var cw := font.get_string_size(clock, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
 	o.draw_string_outline(font, Vector2((WIDTH - cw) * 0.5, 30), clock, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, 8, Color(0, 0, 0, 0.8))
 	o.draw_string(font, Vector2((WIDTH - cw) * 0.5, 30), clock, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
@@ -1019,7 +1319,7 @@ func _draw_hud(o: Node2D, font: Font) -> void:
 	o.draw_string(font, Vector2(WIDTH - 150, 30), combo_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 1, 1, 0.9))
 	if round_wasted > 0.05:
 		o.draw_string(font, Vector2(WIDTH - 150, 56), "wasted $%.2f" % round_wasted, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(GAS, 0.9))
-	if round_over:
+	if round_over and not managed:
 		o.draw_rect(Rect2(0, 0, WIDTH, HEIGHT), Color(0, 0, 0, 0.55))
 		var lines := ["FERMÉ   ROUND %d" % round_num, "",
 			"Sales (the bills)      $%.2f" % round_sales,

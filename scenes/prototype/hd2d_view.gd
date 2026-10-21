@@ -72,6 +72,25 @@ func ground_at(sp: Vector2) -> Vector2:
 	return Vector2(hit.x, hit.z) / K
 
 
+var _name_label: Label3D
+
+
+## The gaz bar's name on a sign above the storefront.
+func set_station_name(text: String) -> void:
+	if not _name_label:
+		_name_label = Label3D.new()
+		_name_label.font_size = 96
+		_name_label.pixel_size = 0.006
+		_name_label.outline_size = 18
+		_name_label.modulate = Color(1.0, 0.86, 0.4)
+		_name_label.outline_modulate = Color(0.15, 0.08, 0.04)
+		_name_label.shaded = false
+		_name_label.double_sided = true
+		_name_label.position = to3(Vector2(STORE.position.x + STORE.size.x * 0.32, STORE.end.y), STORE_H + 0.22) + Vector3(0, 0, 0.05)
+		add_child(_name_label)
+	_name_label.text = text.to_upper()
+
+
 func regular_head(i: int) -> Vector2:
 	return screen(BENCH + Vector2(18 + i * SEAT_GAP, 0), 1.25)
 
@@ -388,6 +407,8 @@ func _process(_dt: float) -> void:
 
 
 func _slice_mat(stack: String, i: int) -> StandardMaterial3D:
+	if not game.tex("stack_%s_%d" % [stack, i]):
+		stack = "blue"  # a car type whose sprite stack isn't drawn yet
 	var key := "%s_%d" % [stack, i]
 	if not _slice_mats.has(key):
 		var m := _pixel_mat(game.tex("stack_" + key))

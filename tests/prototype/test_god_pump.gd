@@ -281,7 +281,7 @@ func test_hd2d_view_mirrors_every_car_in_3d() -> void:
 	game.set_view("hd")
 	_car(20.0)
 	_car(15.0, Vector2(700, 300))
-	await wait_frames(2)
+	game._hd_view._sync_cars()
 	assert_eq(game._hd_view._cars.size(), 2)
 
 

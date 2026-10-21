@@ -39,6 +39,25 @@ var sprite: Texture2D
 var stack := "blue"
 var tiers: ScoreTiers
 var anim_t := 0.0
+## Car type (GodData.CAR_TYPES): its role and rules.
+var type_id := "sedan"
+var role := ""  # "", "sweeper", "thief", "electric", "clumsy"
+var fill_speed := 1.0  # how fast its tank takes fuel
+var pay_share := 1.0  # share of the sale it pays (the pickup haggles)
+var tip_mult := 1.0
+var speed_mult := 1.0
+## Seconds spent waiting in the lot; past its patience it drives off (a Miss).
+var waited := 0.0
+var patience := 24.0
+var drone_target := false  # a drone has claimed it
+var wants_in := false  # on the road: will pull in (customers and troublemakers)
+var by_drone := false  # filled by a drone
+# Role state.
+var role_t := 0.0
+var victim: ProtoCar
+var stolen := 0.0
+var bump_cool := 0.0
+var angry := false
 var _route: Array[Vector2] = []
 var _fill_wobble := 0.0
 var _t := 0.0
@@ -55,7 +74,7 @@ var _goal := Vector2.ZERO
 
 ## Fuel lands on this car. What doesn't fit overflows; the caller spills it on the ground.
 func receive(dollars: float) -> float:
-	var take := minf(dollars, maxf(target - amount, 0.0))
+	var take := minf(dollars, maxf(target - amount, 0.0))  # (GodPump already scales by fill_speed)
 	amount += take
 	_fill_wobble = 1.0
 	var overflow := dollars - take
@@ -120,6 +139,22 @@ func leave(game: GodPump) -> void:
 	_route = [game.EXIT, Vector2(game.EXIT.x + 60, game.ROAD_Y), Vector2(game.WIDTH + 120, game.ROAD_Y)]
 
 
+## Applies a car type's rules (GodData.CAR_TYPES).
+func set_type(id: String, rng: RandomNumberGenerator) -> void:
+	var t: Dictionary = GodData.CAR_TYPES.get(id, GodData.CAR_TYPES.sedan)
+	type_id = id
+	role = t.get("role", "")
+	customer = t.get("customer", true)
+	fill_speed = t.get("fill_speed", 1.0)
+	pay_share = t.get("pay", 1.0)
+	tip_mult = t.get("tip", 1.0)
+	speed_mult = t.get("speed", 1.0)
+	var orders: Array = t.get("orders", [20.0])
+	target = orders[rng.randi() % orders.size()]
+	if id != "sedan":
+		stack = t.get("stack", id)
+
+
 ## Sets up this car's movement pattern around the lot.
 func start_pattern(game: GodPump) -> void:
 	var lot := game.LOT
@@ -146,7 +181,7 @@ func step(dt: float, game: GodPump) -> void:
 			position.x += ROAD_SPEED * dt * road_dir
 			if road_dir < 0.0 and position.x < -100:
 				phase = Phase.GONE
-			elif customer and position.x >= game.ENTRANCE.x and game.lot_has_room():
+			elif (customer or wants_in) and position.x >= game.ENTRANCE.x and game.lot_has_room():
 				phase = Phase.ENTERING
 				_route = [Vector2(game.ENTRANCE.x, game.LOT.position.y + 40)]
 				game.customers_arrived += 1
@@ -171,7 +206,9 @@ func step(dt: float, game: GodPump) -> void:
 
 
 func _move_pattern(dt: float, game: GodPump) -> void:
-	var speed: float = PATTERN_SPEED[pattern]
+	var speed: float = PATTERN_SPEED[pattern] * speed_mult
+	if role == "clumsy":
+		heading += sin(_t * 7.0) * 1.2 * dt  # can't drive straight
 	match pattern:
 		"loop":
 			_theta += _dir * speed / ((_radii.x + _radii.y) * 0.5) * dt
