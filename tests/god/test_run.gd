@@ -35,7 +35,7 @@ func test_the_truck_fills_the_tank_at_the_wholesale_price() -> void:
 	r.tank = 400.0
 	r.cash = 1000.0
 	var cost := r.delivery_cost()
-	assert_almost_eq(cost, 400.0 / GodData.PUMP_PRICE * GodData.WHOLESALE_START, 0.5)
+	assert_almost_eq(cost, (r.tank_capacity() - 400.0) / GodData.PUMP_PRICE * GodData.WHOLESALE_START, 0.5)
 	assert_true(r.call_truck())
 	assert_almost_eq(r.tank, r.tank_capacity(), 0.01)
 	assert_almost_eq(r.cash, 1000.0 - cost, 0.01)
