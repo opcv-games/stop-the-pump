@@ -31,7 +31,7 @@ const GAS := Color(0.98, 0.76, 0.18)
 ## A safeguard: the round's gas is what really ends it.
 @export var round_seconds := 45.0
 ## Gas the round starts with, in pump dollars.
-@export var tank_size := 150.0
+@export var tank_size := 75.0  # god-pump playtest 2: $150 took too long
 ## Tip at 100% full; a top-off without spilling adds the bonus.
 @export var max_tip := 6.0
 @export var topoff_bonus := 2.0
@@ -60,14 +60,16 @@ var shown_cash := 0.0
 var cars_spawned := 0
 var customers_arrived := 0
 var pouring := false
-var tank := 150.0
+var tank := 75.0
 var round_tips := 0.0
 
 var _aim := Vector2(WIDTH * 0.5, 380)
 var _nozzle := _aim
 var _stream_car: ProtoCar
 var _next_car := 0.0
-var _coins: Array[Dictionary] = []
+## Cash dropped by cars (#36): bills for the sale, coins for the tip. They fall out of the car,
+## bounce, lie on the lot for a beat, then get pulled into the cash counter.
+var money: Array[Dictionary] = []
 var _bits: Array[Dictionary] = []
 var _floaters: Array[Dictionary] = []
 var _shake := 0.0
@@ -296,7 +298,7 @@ func end_round() -> void:
 			round_earned += partial
 			cash += partial
 			if partial > 0.0:
-				_coin_spray(car.position, partial, 2, Color(0.8, 0.8, 0.8))
+				drop_cash(car.position, partial, 0.0)
 			car.leave(self)
 
 
@@ -339,10 +341,7 @@ func _burst(car: ProtoCar, t: String) -> void:
 			_bits.append({"pos": car.position, "vel": Vector2(rng.randf_range(-120, 120), rng.randf_range(-260, -80)),
 				"life": 0.7, "color": GAS, "size": 4.0})
 		_spill(car.position + Vector2(rng.randf_range(-20, 20), 20), 0.8)
-	# Silver coins for the sale, gold ones for the tip: the tip is visibly the prize.
-	_coin_spray(car.position, car.paid - car.tip, 4, Color(0.82, 0.82, 0.86))
-	if car.tip >= 0.01:
-		_coin_spray(car.position, car.tip, COINS[t], Color(1.0, 0.82, 0.25))
+	drop_cash(car.position, car.paid - car.tip, car.tip, COINS[t])
 	# Say exactly what was achieved: how full, what grade, what the tip was.
 	var top := car.position + Vector2(0, -64)
 	_floaters.append({"text": "%d%%" % int(car.fill() * 100.0), "pos": top, "life": 1.4, "color": col, "size": 34})
@@ -356,22 +355,70 @@ func _burst(car: ProtoCar, t: String) -> void:
 	_play("pop")
 
 
-## Money bursts out of the car, hangs a beat, then arcs to the cash counter.
-func _coin_spray(from: Vector2, value: float, n: int, col: Color) -> void:
-	for i in n:
-		_coins.append({"from": from, "pop": from + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(20, 55),
-			"t": -i * 0.05, "dur": 0.75, "value": value / n, "color": col})
+const MONEY_REST := 0.45
+const MONEY_FLY := 0.55
+
+
+## The car drops its cash: one bill per ~$5 of sale, gold coins for the tip (more for better grades).
+func drop_cash(from: Vector2, sale: float, tip: float, tip_coins := 4) -> void:
+	var bills := clampi(ceili(sale / 5.0), 1, 8) if sale > 0.0 else 0
+	for i in bills:
+		_drop("bill", from, sale / bills, i)
+	if tip >= 0.01:
+		for i in tip_coins:
+			_drop("coin", from, tip / tip_coins, bills + i)
+
+
+func _drop(kind: String, from: Vector2, value: float, i: int) -> void:
+	var bill := kind == "bill"
+	money.append({"kind": kind, "value": value, "pos": from, "z": 8.0,
+		"vel": Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(40, 120 if bill else 160),
+		"vz": rng.randf_range(160, 240) if bill else rng.randf_range(220, 320),
+		"rot": rng.randf() * TAU, "spin": rng.randf_range(-6, 6), "state": "drop", "t": -i * 0.03, "from": from})
+
+
+func _step_money(dt: float) -> void:
+	for m in money.duplicate():
+		m.t += dt
+		if m.t < 0.0:
+			continue
+		match m.state:
+			"drop":
+				var bill: bool = m.kind == "bill"
+				m.pos += m.vel * dt
+				m.vel *= 1.0 - (3.0 if bill else 1.6) * dt
+				m.vz -= (380.0 if bill else 900.0) * dt  # bills float down, coins drop
+				m.z += m.vz * dt
+				m.rot += m.spin * dt * (1.0 if bill else 2.5)
+				if m.z <= 0.0:
+					m.z = 0.0
+					if not bill and m.vz < -80.0:
+						m.vz = -m.vz * 0.45  # coins bounce
+						_play("counter_%d" % (rng.randi() % 3 + 1))
+					else:
+						m.state = "rest"
+						m.t = 0.0
+			"rest":
+				if m.t >= MONEY_REST:
+					m.state = "fly"
+					m.t = 0.0
+					m.from = m.pos
+			"fly":
+				var k: float = clampf(m.t / MONEY_FLY, 0.0, 1.0)
+				var j := k * k  # pulled in, faster and faster
+				var mid: Vector2 = (m.from + CASH_AT) * 0.5 + Vector2(0, -90)
+				m.pos = m.from.lerp(mid, j).lerp(mid.lerp(CASH_AT, j), j)
+				m.z = 0.0
+				if k >= 1.0:
+					shown_cash += m.value
+					money.erase(m)
+					_play("counter_%d" % (rng.randi() % 3 + 1))
+	if money.is_empty():
+		shown_cash = cash
 
 
 func _step_fx(dt: float) -> void:
-	for c in _coins.duplicate():
-		c.t += dt
-		if c.t >= c.dur:
-			shown_cash += c.value
-			_coins.erase(c)
-			_play("counter_%d" % (rng.randi() % 3 + 1))
-	if _coins.is_empty():
-		shown_cash = cash
+	_step_money(dt)
 	for b in _bits.duplicate():
 		b.life -= dt
 		b.pos += b.vel * dt
@@ -443,10 +490,8 @@ func _draw_overlay() -> void:
 	_draw_nozzle(o, tip)
 	for b in _bits:
 		o.draw_circle(b.pos, b.size, Color(b.color, clampf(b.life * 2.0, 0.0, 1.0)))
-	for c in _coins:
-		var p := _coin_pos(c)
-		o.draw_circle(p, 7.0, c.color)
-		o.draw_circle(p + Vector2(-2, -2), 3.0, c.color.lightened(0.4))
+	for m in money:
+		_draw_money(o, m)
 	var font := ThemeDB.fallback_font
 	for f in _floaters:
 		var w := font.get_string_size(f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size).x
@@ -470,15 +515,24 @@ func _draw_nozzle(o: Node2D, tip: Vector2) -> void:
 	o.draw_circle(tip, 5.0, Color(0.1, 0.1, 0.1))
 
 
-func _coin_pos(c: Dictionary) -> Vector2:
-	if c.t < 0.0:
-		return c.from
-	var k: float = clampf(c.t / c.dur, 0.0, 1.0)
-	if k < 0.3:  # burst out of the car
-		return c.from.lerp(c.pop, ease(k / 0.3, 0.4))
-	var j := (k - 0.3) / 0.7
-	var mid: Vector2 = (c.pop + CASH_AT) * 0.5 + Vector2(0, -120)
-	return c.pop.lerp(mid, j).lerp(mid.lerp(CASH_AT, j), j)
+## A green bill or a gold coin, with its shadow on the ground while it falls.
+func _draw_money(o: Node2D, m: Dictionary) -> void:
+	if m.t < 0.0 and m.state == "drop":
+		return
+	var lift := Vector2(0, -m.z)
+	o.draw_circle(m.pos + Vector2(0, 3), 5.0 if m.kind == "coin" else 7.0, Color(0, 0, 0, 0.25))
+	if m.kind == "bill":
+		o.draw_set_transform(m.pos + lift, m.rot, Vector2(1.0, 0.75 + 0.25 * sin(m.rot * 2.0)))  # flutters
+		o.draw_rect(Rect2(-10, -5, 20, 10), Color(0.36, 0.62, 0.36))
+		o.draw_rect(Rect2(-8, -3, 16, 6), Color(0.52, 0.78, 0.5), false, 1.0)
+		o.draw_circle(Vector2.ZERO, 2.2, Color(0.25, 0.45, 0.25))
+		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		var squash := absf(cos(m.rot))  # spins edge-on and back
+		o.draw_set_transform(m.pos + lift, 0.0, Vector2(maxf(squash, 0.25), 1.0))
+		o.draw_circle(Vector2.ZERO, 6.0, Color(0.85, 0.62, 0.15))
+		o.draw_circle(Vector2(-1, -1), 4.5, Color(1.0, 0.84, 0.3))
+		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_hud(o: Node2D, font: Font) -> void:

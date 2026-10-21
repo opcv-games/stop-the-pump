@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-20 — God pump, round 2: 80% rule and tips  (#36)
+Hypothesis: Leaving at 80% with tips growing toward 100%, overflow as waste and gas as the round limit make juggling feel good and make Perfects desirable.
+Variable: exact-stop tiers → 80% rule + tip curve; clock → round gas
+Sessions: 1 (self: 1, others: 0)
+Observed: "Makes the juggling feel good and the animation makes you want to hit perfects." "Excellent round of upgrades." Running out of gas took too long. Movement patterns weren't readable yet, but that's expert-level play.
+Biggest weakness: rounds too long ($150 of gas).
+Decision: KEPT. Gas halved to $75. Next: cars drop their cash (bills for the sale, coins for the tip), and a pixel-art juice pass with claude-pxl.
+
 ## 2026-10-20 — God-pump prototype, first look  (#36)
 Hypothesis: Aiming a giant nozzle at cars driving around the lot is more fun than holding keys, and multi-car juggling deepens Mastery.
 Variable: hold keys per pump → aim and pour with the mouse (separate greybox scene)

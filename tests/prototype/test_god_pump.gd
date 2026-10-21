@@ -160,3 +160,27 @@ func test_round_end_sends_cars_away_paying_what_they_got() -> void:
 	game.end_round()
 	assert_eq(car.phase, ProtoCar.Phase.LEAVING)
 	assert_almost_eq(game.round_earned, 8.0, 0.01)
+
+
+func test_a_filled_car_drops_bills_for_the_sale_and_coins_for_the_tip() -> void:
+	var car := _car(20.0)
+	_pour_on(car, 5.0)  # $20: topped off
+	game.set_pouring(false)
+	var bills := game.money.filter(func(m: Dictionary) -> bool: return m.kind == "bill")
+	var coins := game.money.filter(func(m: Dictionary) -> bool: return m.kind == "coin")
+	assert_gt(bills.size(), 0)
+	assert_gt(coins.size(), 0)
+	var sale := 0.0
+	for b in bills:
+		sale += b.value
+	assert_almost_eq(sale, 20.0, 0.01)
+
+
+func test_dropped_cash_lands_in_the_counter() -> void:
+	var car := _car(20.0)
+	_pour_on(car, 5.0)
+	game.set_pouring(false)
+	for i in 60:
+		game.step(0.05)
+	assert_true(game.money.is_empty())
+	assert_almost_eq(game.shown_cash, game.cash, 0.01)
