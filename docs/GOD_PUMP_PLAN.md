@@ -38,8 +38,8 @@ the fuel truck's bills catch up with you, or until day 50, when an old car pulls
 - **Between runs**: XP buys permanent things in Papa's Garage: nozzles, bling, perks.
 
 ## Starting numbers (to tune with the bot)
-- Pump price $2/L. Wholesale starts at $1.00/L, ×1.12 per delivery.
-- Tank: $700 of gas (350 L), about a week at day-1 pace. Starts full (Dad's last delivery).
+- Pump price $2/L. Wholesale starts at $1.20/L, ×1.08 per delivery (balance bot, docs/balance/GOD_PUMP_BALANCE.md).
+- Tank: $700 of gas (350 L), about five days at day-1 pace. Starts full (Dad's last delivery).
 - Starting cash $60. Flow $4/s.
 - Customers: orders $10–$30 (sedans), more with other types.
 

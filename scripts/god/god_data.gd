@@ -21,7 +21,7 @@ const FX_OPS := {
 const BASE := {
 	"close_hour": 13.0, "queue": 0, "customer_chance": 0.5, "per_car_bonus": 0.0, "perfect_bonus": 0.0,
 	"topoff_bonus": 2.0, "stream_radius": 0.0, "auto_aim": 0.0, "drones": 0, "combo_max": 5, "applause_bonus": 0.0,
-	"loto_chance": 0.0, "luck": 0.0, "start_cash": 60.0, "tank_capacity": 800.0, "flow_mult": 1.0,
+	"loto_chance": 0.0, "luck": 0.0, "start_cash": 60.0, "tank_capacity": 700.0, "flow_mult": 1.0,
 	"tip_mult": 1.0, "patience_mult": 1.0, "spill_mult": 1.0, "happy_hour": 0, "twin_stream": 0,
 	"golden_chance": 0.0, "recycle": 0, "first_car_tip_mult": 1.0, "combo_lock": 0, "overfill_saves": 0,
 	"refund_every": 0, "upgrade_discount": 0.0, "jackpot_chance": 0.0, "first_delivery_discount": 0.0,
@@ -151,8 +151,8 @@ const HOUR_SECONDS := 4.5
 const OPEN_HOUR := 7.0
 ## Gas price: pump price per litre, and the wholesale price the truck starts at, rising per delivery.
 const PUMP_PRICE := 2.0
-const WHOLESALE_START := 1.0
-const PRICE_RISE := 0.12
+const WHOLESALE_START := 1.2  # balance bot (#37): fresh runs reach about day 13
+const PRICE_RISE := 0.08
 
 
 static func branch(id: String) -> Dictionary:
