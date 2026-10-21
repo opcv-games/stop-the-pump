@@ -6,7 +6,8 @@
 
 ## Now (committed, top = highest priority)
 - [x] `[innovation]` **God-pump prototype: a giant nozzle pours from the sky onto cars driving around the lot** (#36, kept: this is the game now)
-- [x] `[art]` **Scene view for the god pump: isometric tried, three-quarter top-down kept; dépanneur, neon, regulars, vintage pump, tip jar** (#36, v0.32.0, awaiting playtest)
+- [x] `[art]` **Scene view for the god pump: isometric tried, three-quarter top-down kept; dépanneur, neon, regulars, vintage pump, tip jar** (#36, v0.32.0, kept)
+- [ ] `[art]` **HD-2D try: pixel art in a lit 3D scene (shadows, bloom, tilt-shift)** (#36, v0.33.0, awaiting playtest)
 - [ ] `[standard]` **Move the god pump into the real game: night shop (tree, station tab, fuel order), opening hours, intro, simulator** (after the isometric test)
 - [ ] `[standard]` **15-second days and an HOURS branch (Dad only opened mornings)** (#35, v0.30.0, awaiting playtest)
 - [ ] `[juice]` **Piggy-bank car: the car swells as it fills, pops on the stop, and coins of different values fly to your cash** (next)

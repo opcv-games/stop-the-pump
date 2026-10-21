@@ -225,3 +225,22 @@ sprite("sign_ferme", { w: 28, h: 9, outline: "k" }, rect(0, 0, 28, 9, "q"), text
 // Neon variants for the pinball flash: only GAZ lit, only BAR lit.
 sprite("neon_gaz", { base: "neon_gazbar", swap: {} }, rect(2, 14, 26, 10, "j"), text(15, 14, "BAR", "#5a2a26", { scale: 2, align: "c", gap: 1 }))
 sprite("neon_bar", { base: "neon_gazbar", swap: {} }, rect(2, 2, 26, 11, "j"), text(15, 3, "GAZ", "#5a2a26", { scale: 2, align: "c", gap: 1 }))
+
+// --- HD-2D try (#36): the store's front as one texture for the 3D facade. The clock and the
+// OUVERT/FERME sign are separate sprites so they can move.
+pal({ D: "#d9c9a3", "2": "#b8a57e", "3": "#33404a", "4": "#c7ccd0", "5": "#8a6a44", "6": "#4a5a66" })
+sprite("storefront", { w: 132, h: 44 },
+  rect(0, 0, 132, 44, "D"), rect(0, 40, 132, 4, "2"), rect(0, 0, 132, 2, "2"),
+  rect(6, 8, 78, 28, "3"),                                      // the glass front
+  (c) => {
+    const items = "rgbwFhe"
+    for (let shelf = 0; shelf < 3; shelf++) {
+      const y = 12 + shelf * 8
+      c.rect(7, y + 4, 76, 1, "5")                              // shelf board
+      for (let x = 9, i = shelf; x < 82; x += 4, i++) c.rect(x, y, 2, 4, items[i % items.length])
+    }
+    for (let m = 6; m <= 84; m += 19.5) c.rect(Math.round(m), 8, 1, 28, "4")   // aluminium mullions
+  },
+  rect(6, 8, 78, 1, "4"), rect(6, 35, 78, 1, "4"),
+  rect(92, 8, 18, 32, "3"), rect(92, 8, 18, 1, "4"), rect(92, 8, 1, 32, "4"), rect(109, 8, 1, 32, "4"),   // the door
+  rect(93, 9, 3, 30, "6"))

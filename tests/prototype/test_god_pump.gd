@@ -11,7 +11,7 @@ func before_each() -> void:
 	game = SCENE.instantiate()
 	game.auto_traffic = false  # tests place cars themselves
 	game.sound_on = false
-	game.iso = false  # most rules are checked in world coordinates; the iso tests switch it on
+	game.view = "flat"  # most rules are checked in world coordinates; the view tests switch views
 	add_child_autofree(game)
 	game.rng.seed = 4
 
@@ -210,12 +210,12 @@ func test_iso_view_hides_the_flat_cars_and_pours_where_the_mouse_points() -> voi
 
 
 func test_i_switches_views() -> void:
-	var before: bool = game.iso
+	var before: String = game.view
 	var key := InputEventKey.new()
 	key.physical_keycode = KEY_I
 	key.pressed = true
 	game._unhandled_input(key)
-	assert_ne(game.iso, before)
+	assert_ne(game.view, before)
 
 
 # --- Requests after the isometric try (#36) -----------------------------------------------------
@@ -267,3 +267,28 @@ func test_the_regulars_hang_out_and_react() -> void:
 	car.amount = 10.0
 	game._settle(car)
 	assert_ne(game.quip_text, "", "someone has something to say about a top-off")
+
+
+func test_hd2d_view_maps_the_mouse_back_to_the_ground() -> void:
+	game.set_view("hd")
+	await wait_frames(2)
+	var w := Vector2(640, 410)
+	assert_almost_eq(game.to_world(game.scr(w)).distance_to(w), 0.0, 0.5)
+
+
+func test_hd2d_view_mirrors_every_car_in_3d() -> void:
+	game.set_view("hd")
+	_car(20.0)
+	_car(15.0, Vector2(700, 300))
+	await wait_frames(2)
+	assert_eq(game._hd_view._cars.size(), 2)
+
+
+func test_views_cycle_hd_pixel_flat() -> void:
+	game.set_view("hd")
+	game.cycle_view()
+	assert_eq(game.view, "pixel")
+	game.cycle_view()
+	assert_eq(game.view, "flat")
+	game.cycle_view()
+	assert_eq(game.view, "hd")

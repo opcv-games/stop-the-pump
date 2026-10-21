@@ -121,8 +121,15 @@ var _overlay: Node2D
 var _sfx := {}
 var _glug: AudioStreamPlayer
 var _tex := {}
-## I switches between the isometric try (the default for now) and the top-down view.
-var iso := true
+## Which view draws the lot (I cycles them): "hd" (HD-2D: pixel art in a lit 3D scene, the try after
+## god-pump playtest 5), "pixel" (the three-quarter pixel view) or "flat" (top-down greybox).
+@export var view := "hd"
+## True while the three-quarter pixel view is up; `hd` while the HD-2D view is.
+var iso := false
+var hd := false
+var _hd_vp: SubViewport
+var _hd_view: HD2DView
+var _hd_sprite: Sprite2D
 ## World (top-down) to iso viewport pixels: x runs down-right, y down-left, at 0.4 scale.
 ## World (top-down) to the scene view's pixels: a high-angle three-quarter camera, the ground
 ## foreshortened to 0.8 (designer's ask after the isometric try).
@@ -147,7 +154,7 @@ func _ready() -> void:
 	for id in CAR_SPRITES + ["nozzle", "bill", "coin_0", "coin_1", "coin_2", "coin_3", "puddle_s", "puddle_m",
 			"puddle_l", "sparkle", "asphalt", "road", "dirt", "neon_gazbar", "neon_gazbar_off", "neon_gaz", "neon_bar",
 			"nozzle_idle", "nozzle_squeeze", "pump_hud", "tip_jar", "gauge_face", "bench", "clock_face",
-			"sign_ouvert", "sign_ferme", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
+			"sign_ouvert", "sign_ferme", "storefront", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
 			"regular_1_cheer", "regular_2_cheer", "regular_3_cheer"]:
 		var path := PIXEL % id
 		if ResourceLoader.exists(path):
@@ -163,7 +170,8 @@ func _ready() -> void:
 	_overlay.draw.connect(_draw_overlay)
 	add_child(_overlay)
 	_build_iso()
-	set_iso(iso)
+	_build_hd()
+	set_view(view)
 	ProtoCar.gauge_tex = _tex.get("gauge_face")
 	if sound_on:
 		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN  # the nozzle is the cursor
@@ -202,27 +210,86 @@ func _build_iso() -> void:
 	move_child(_iso_sprite, _overlay.get_index())
 
 
+## The HD-2D scene renders at twice the base resolution and is shown at half size: crisp on any screen.
+func _build_hd() -> void:
+	_hd_vp = SubViewport.new()
+	_hd_vp.size = Vector2i(int(WIDTH) * 2, int(HEIGHT) * 2)
+	_hd_vp.own_world_3d = true
+	_hd_vp.msaa_3d = Viewport.MSAA_4X
+	_hd_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(_hd_vp)
+	_hd_view = HD2DView.new()
+	_hd_vp.add_child(_hd_view)
+	_hd_view.setup(self)
+	_hd_sprite = Sprite2D.new()
+	_hd_sprite.texture = _hd_vp.get_texture()
+	_hd_sprite.centered = false
+	_hd_sprite.scale = Vector2(0.5, 0.5)
+	_hd_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_hd_sprite.visible = false
+	add_child(_hd_sprite)
+	move_child(_hd_sprite, _overlay.get_index())
+
+
+func set_view(v: String) -> void:
+	view = v
+	iso = v == "pixel"
+	hd = v == "hd"
+	if _iso_sprite:
+		_iso_sprite.visible = iso
+	if _hd_sprite:
+		_hd_sprite.visible = hd
+	if _hd_vp:
+		_hd_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if hd else SubViewport.UPDATE_DISABLED
+	for car in cars:
+		car.visible = v == "flat"
+	queue_redraw()
+
+
+func cycle_view() -> void:
+	set_view({"hd": "pixel", "pixel": "flat", "flat": "hd"}[view])
+
+
+## Where a car's roof is on screen, in the current view.
+func car_top(car: ProtoCar) -> Vector2:
+	var lift: float = car.anim_offsets().lift
+	if hd and _hd_view:
+		return _hd_view.screen(car.position, 0.5 + lift * HD2DView.K)
+	if iso:
+		return scr(car.position) - Vector2(0, 16 + lift * 0.8)
+	return car.position - Vector2(0, 16 + lift)
+
+
+## Where regular `i`'s head is on screen (for speech bubbles), or null in the flat view.
+func regular_head(i: int) -> Variant:
+	if hd and _hd_view:
+		return _hd_view.regular_head(i)
+	if iso and _iso_view:
+		return _iso_view.seat_screen(i)
+	return null
+
+
 func tex(id: String) -> Texture2D:
 	return _tex.get(id)
 
 
 ## World point to screen point in the current view.
 func scr(w: Vector2) -> Vector2:
+	if hd and _hd_view:
+		return _hd_view.screen(w)
 	return (iso_xf * w) * 2.0 if iso else w
 
 
 ## Screen point (the mouse) to the world point on the ground beneath it.
 func to_world(sp: Vector2) -> Vector2:
+	if hd and _hd_view:
+		return _hd_view.ground_at(sp)
 	return iso_xf.affine_inverse() * (sp / 2.0) if iso else sp
 
 
+## Kept for the older tests: on = the three-quarter pixel view, off = flat.
 func set_iso(on: bool) -> void:
-	iso = on
-	if _iso_sprite:
-		_iso_sprite.visible = on
-	for car in cars:
-		car.visible = not on
-	queue_redraw()
+	set_view("pixel" if on else "flat")
 
 
 func _exit_tree() -> void:
@@ -241,7 +308,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.physical_keycode == KEY_ESCAPE:
 			get_tree().quit()
 		elif event.physical_keycode == KEY_I:
-			set_iso(not iso)
+			cycle_view()
 
 
 func _process(delta: float) -> void:
@@ -359,7 +426,7 @@ func _new_car(at: Vector2) -> ProtoCar:
 	car.color = CAR_COLORS[look]
 	car.sprite = _tex.get(CAR_SPRITES[look % CAR_SPRITES.size()])
 	car.stack = STACKS[look % STACKS.size()]
-	car.visible = not iso
+	car.visible = view == "flat"
 	add_child(car)
 	move_child(car, _overlay.get_index())  # cars draw under the stream and HUD
 	cars.append(car)
@@ -645,8 +712,8 @@ func _play(id: String) -> void:
 
 ## The table: dark ground, the road along the top, the lot, the gold puddles.
 func _draw() -> void:
-	if iso:
-		return  # the isometric viewport draws the world
+	if view != "flat":
+		return  # a scene view draws the world
 	draw_rect(Rect2(-20, -20, WIDTH + 40, HEIGHT + 40), Color(0.16, 0.13, 0.10))
 	if _tex.has("dirt"):
 		_tile("dirt", Rect2(-20, -20, WIDTH + 40, HEIGHT + 40))
@@ -696,13 +763,13 @@ func _tile(id: String, r: Rect2) -> void:
 func _draw_overlay() -> void:
 	var o := _overlay
 	var land := scr(_aim)
-	if iso and pouring and _stream_car:  # the stream lands on the car's roof
-		land = scr(_stream_car.position) - Vector2(0, 16 + _stream_car.anim_offsets().lift * 0.8)
+	if view != "flat" and pouring and _stream_car:  # the stream lands on the car's roof
+		land = car_top(_stream_car)
 	var tip := scr(_nozzle) + NOZZLE_RAISE + Vector2(-4, 6) * _kick
-	if iso:  # gauges float over the stacked cars
+	if view != "flat":  # gauges float over the cars
 		for car in cars:
 			if car.customer and car.accepts_fuel():
-				car.draw_meter_at(o, scr(car.position) + Vector2(0, -62 - car.anim_offsets().lift * 0.8))
+				car.draw_meter_at(o, car_top(car) + Vector2(0, -46))
 	draw_shadow_ring(o)
 	_draw_pump(o, tip)
 	if pouring:
@@ -735,7 +802,7 @@ func _draw_overlay() -> void:
 
 
 func draw_shadow_ring(o: Node2D) -> void:
-	if iso:  # the landing spot lies flat on the ground
+	if view != "flat":  # the landing spot lies flat on the ground
 		o.draw_set_transform(scr(_aim), 0.0, Vector2(1.0, 0.5))
 		o.draw_arc(Vector2.ZERO, 16.0, 0, TAU, 24, Color(1, 1, 1, 0.35), 2.0, true)
 		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -850,9 +917,12 @@ func _draw_till(o: Node2D, font: Font) -> void:
 
 ## What the regulars say, in a bubble over the one who said it.
 func _draw_quip(o: Node2D, font: Font) -> void:
-	if quip_t <= 0.0 or quip_text == "" or not iso or not _iso_view:
+	if quip_t <= 0.0 or quip_text == "":
 		return
-	var head := _iso_view.seat_screen(regulars[quip_who].seat)
+	var where: Variant = regular_head(regulars[quip_who].seat)
+	if where == null:
+		return
+	var head: Vector2 = where
 	var w := font.get_string_size(quip_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 18
 	var box := Rect2(head + Vector2(-16, -46), Vector2(w, 26))
 	box.position.x = clampf(box.position.x, 6, WIDTH - w - 6)
@@ -866,7 +936,29 @@ func _draw_quip(o: Node2D, font: Font) -> void:
 	o.draw_string(font, box.position + Vector2(9, 18), quip_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.1, 0.09, 0.08, minf(quip_t * 3.0, 1.0)))
 
 
+var _vignette: GradientTexture2D
+
+
+## HD-2D's soft dark edges.
+func _draw_vignette(o: Node2D) -> void:
+	if not _vignette:
+		var g := Gradient.new()
+		g.set_color(0, Color(0, 0, 0, 0))
+		g.set_color(1, Color(0.05, 0.03, 0.02, 0.55))
+		g.set_offset(0, 0.55)
+		_vignette = GradientTexture2D.new()
+		_vignette.gradient = g
+		_vignette.fill = GradientTexture2D.FILL_RADIAL
+		_vignette.fill_from = Vector2(0.5, 0.5)
+		_vignette.fill_to = Vector2(1.05, 1.05)
+		_vignette.width = 256
+		_vignette.height = 144
+	o.draw_texture_rect(_vignette, Rect2(0, 0, WIDTH, HEIGHT), false)
+
+
 func _draw_hud(o: Node2D, font: Font) -> void:
+	if hd:
+		_draw_vignette(o)
 	var h := hour_now()
 	var clock := "ROUND %d     %d h %02d" % [round_num, int(h), int(fmod(h, 1.0) * 60.0) / 15 * 15]
 	var cw := font.get_string_size(clock, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
