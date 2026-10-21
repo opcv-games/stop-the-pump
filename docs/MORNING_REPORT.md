@@ -1,7 +1,7 @@
 # Good morning: GOD PUMP v0.40.0
 
 Built overnight from your brief (plan: `docs/GOD_PUMP_PLAN.md`). Everything is on the branch
-`hypothesis/god-pump-run`, pushed, with 100 tests passing. Nothing is merged into `main` until you've
+`hypothesis/god-pump-run`, pushed, with 101 tests passing. Nothing is merged into `main` until you've
 played it.
 
 ![A day](art/godpump_day.png)
@@ -56,7 +56,9 @@ To start over from scratch, delete the save: `~/Library/Application Support/Godo
     - **No Garage upgrades:** the median run ends around day 13.
     - **Strong Garage upgrades:** median day 36, with 4 in 20 reaching day 50.
     - Details are in `docs/balance/GOD_PUMP_BALANCE.md`.
-14. **The old key-per-pump game is retired:** its code and tests are removed (still in git history), and its specs are archived in `features/retired/`.
+14. **Every night-shop upgrade shows on the station:** 18 pixel props pop in the morning after you buy them, from the traffic light, car wash and lotto machine to extra tanks, street lamps, cousin Réjean at the door and the jukebox (`art/godpump_upgraded.png`).
+15. **ESC pauses a day**, with a volume slider and a way back to the title.
+16. **The old key-per-pump game is retired:** its code and tests are removed (still in git history), and its specs are archived in `features/retired/`.
 
 ## Decisions I took for you (veto any of them)
 - **The bill is the fuel truck only**, with no separate weekly rent. Its rising price is the escalating bill, and each delivery deals the 3 cards. You suggested tying the bill to refuelling, and this keeps one bill, not two.
@@ -70,10 +72,9 @@ To start over from scratch, delete the save: `~/Library/Application Support/Godo
 - **New car types make runs harder:** the bot does worse once the pickup, Bazou and racer unlock. They should feel like a challenge, not a punishment.
 - **The cars' sprite stacks look flat** when seen straight from above. Fine at the game's camera angle, rough in the flat view.
 - **Placeholder sounds** are synthesized and sound like it.
-- **No settings screen** (volume, fullscreen).
-- **The old 3D props aren't in the HD-2D station:** the upgrade props from the old game (tanks, billboard, jukebox) don't appear when you buy those upgrades.
+- **Settings:** only a volume slider (in the pause menu); no fullscreen option yet.
 
 ## Screenshots (docs/art/)
 `godpump_day.png` · `godpump_title.png` · `godpump_report.png` · `godpump_night.png` ·
 `godpump_cards.png` · `godpump_garage.png` · `godpump_car_types.png` · `godpump_drones.png` ·
-`godpump_m1_polish.png`
+`godpump_m1_polish.png` · `godpump_upgraded.png`

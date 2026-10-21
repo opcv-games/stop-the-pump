@@ -32,6 +32,7 @@ var _last_report := {}
 
 func _ready() -> void:
 	meta = MetaState.load_from(meta_path)
+	_apply_volume()
 	day = DAY_SCENE.instantiate()
 	day.managed = true
 	day.sound_on = sound_on
@@ -233,6 +234,24 @@ func toggle_pause() -> void:
 			day.round_over = true
 			show_title())
 		_pause.add_child(quit)
+		var vol := HSlider.new()
+		vol.min_value = 0.0
+		vol.max_value = 1.0
+		vol.step = 0.05
+		vol.value = meta.volume
+		vol.position = Vector2(476, 440)
+		vol.size = Vector2(200, 24)
+		vol.focus_mode = Control.FOCUS_NONE
+		vol.value_changed.connect(func(v: float) -> void:
+			meta.volume = v
+			_apply_volume()
+			meta.save())
+		_pause.add_child(vol)
+		var vol_label := Label.new()
+		vol_label.text = "VOLUME"
+		vol_label.position = Vector2(400, 440)
+		vol_label.add_theme_color_override("font_color", GodUI.GOLD)
+		_pause.add_child(vol_label)
 		ui.add_child(_pause)
 		_pause.visible = false
 	_pause.visible = not _pause.visible
@@ -240,6 +259,12 @@ func toggle_pause() -> void:
 	if sound_on:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if _pause.visible else Input.MOUSE_MODE_HIDDEN
 	_pause.queue_redraw()
+
+
+func _apply_volume() -> void:
+	var bus := AudioServer.get_bus_index("Master")
+	AudioServer.set_bus_volume_db(bus, linear_to_db(maxf(meta.volume, 0.001)))
+	AudioServer.set_bus_mute(bus, meta.volume <= 0.01)
 
 
 func _unhandled_input(e: InputEvent) -> void:
