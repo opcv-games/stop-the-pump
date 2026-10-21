@@ -16,6 +16,10 @@ const ROAD_Y := 78.0
 const LOT := Rect2(120, 170, 912, 420)
 const ENTRANCE := Vector2(300, ROAD_Y)
 const EXIT := Vector2(900, 180)
+## The tube man (Bonhomme gonflable, round 8) dances here, by the road left of the entrance.
+const TUBE_AT := Vector2(1060, 138)
+const TUBE_EVERY := 8.0
+const TUBE_REACH := 240.0
 const CASH_AT := Vector2(70, 26)
 ## Where tips and sales land on screen: the tip jar, and the pile of bills beside it.
 const JAR_AT := Vector2(1104, 588)
@@ -69,6 +73,10 @@ var mods := GodData.BASE.duplicate()
 var car_pool: Array = ["sedan"]
 ## The night-shop upgrades owned (GodGame sets it at opening): the station shows them as props.
 var owned := {}
+## Round 8: the two-parent upgrades and Papa's Garage perks (tiers) and bling the lot and nozzle show.
+var links: Array = []
+var perks := {}
+var bling: Array = []
 var day_num := 1
 ## Drone nozzles: each {pos, car, state, goal}.
 var drones: Array[Dictionary] = []
@@ -78,6 +86,12 @@ var _saves_left := 0
 ## Round 8: today is hockey night (Soirée du hockey), and the low-gas alarm has spoken (Jauge d'alarme).
 var hockey_night := false
 var _alarm_said := false
+## The tube man: seconds to his next grab, and what he brought in today.
+var _tube_cd := 3.0
+var tube_gas := 0.0
+var tube_grabs := 0
+## Gold blobs he spits toward the pump: {t, from, to} in screen space.
+var _spits: Array[Dictionary] = []
 ## Below this much gas, the alarm (Jauge d'alarme) blinks on the pump and a regular says so.
 const LOW_GAS := 60.0
 var _best_combo := 1
@@ -314,8 +328,34 @@ func set_station_name(text: String) -> void:
 		_hd_view.set_station_name(text)
 
 
+## A claude-pxl sprite by name, loaded the first time it's asked for (round 8: many props).
 func tex(id: String) -> Texture2D:
-	return _tex.get(id)
+	if not _tex.has(id):
+		var path := PIXEL % id
+		_tex[id] = load(path) if ResourceLoader.exists(path) else null
+	return _tex[id]
+
+
+## A claude-pxl animation strip (assets/art/pixel/out/anims/<id>.png), frames side by side.
+func anim_tex(id: String) -> Texture2D:
+	var key := "anim:" + id
+	if not _tex.has(key):
+		var path := "res://assets/art/pixel/out/anims/%s.png" % id
+		_tex[key] = load(path) if ResourceLoader.exists(path) else null
+	return _tex[key]
+
+
+## Everything the station owns that shows on the lot (round 8): shop nodes, links and Garage perks.
+## GodGame hands the day `owned`, `links` and `perks` each morning.
+func owns_upgrade(id: String) -> bool:
+	if id in links or perks.get(id, 0) > 0:
+		return true
+	for b in GodData.BRANCHES:
+		var level: int = owned.get(b.id, 0)
+		for i in mini(level, b.nodes.size()):
+			if b.nodes[i].id == id:
+				return true
+	return false
 
 
 ## World point to screen point in the current view.
@@ -405,6 +445,7 @@ func step(dt: float) -> void:
 		_step_patience(dt)
 		_step_roles(dt)
 		_step_drones(dt)
+		_step_tube_man(dt)
 		if int(mods.get("tank_alarm", 0)) > 0 and tank < LOW_GAS and not _alarm_said:
 			_alarm_said = true  # Jauge d'alarme: the regulars notice before you run dry
 			say(QUIPS.low_gas)
@@ -521,6 +562,52 @@ func spawn_road_car() -> ProtoCar:
 	car.patience = 24.0 * mods.patience_mult
 	cars_spawned += 1
 	return car
+
+
+## The tube man (Bonhomme gonflable): every few seconds he grabs a car driving by within his reach.
+func _step_tube_man(dt: float) -> void:
+	for s in _spits.duplicate():
+		s.t += dt
+		if s.t > 0.7:
+			_spits.erase(s)
+	var tier := int(mods.get("tube_man", 0))
+	if tier <= 0:
+		return
+	_tube_cd -= dt
+	if _tube_cd > 0.0:
+		return
+	for car in cars:
+		if car.phase == ProtoCar.Phase.ROAD and not car.wants_in and absf(car.position.x - TUBE_AT.x) < TUBE_REACH:
+			car.grab(self, tier >= 2)
+			_tube_cd = TUBE_EVERY
+			return
+
+
+## He's got it: its gas goes into the tank (spat as gold blobs at the pump).
+func tube_siphon(car: ProtoCar) -> void:
+	var gas := rng.randf_range(8.0, 16.0)
+	tank += gas
+	tube_gas += gas
+	tube_grabs += 1
+	_floaters.append({"text": "+$%d DE GAZ" % int(gas), "pos": scr(TUBE_AT) + Vector2(-130, -40), "life": 1.4, "color": GAS, "size": 20})
+	var mouth := scr(TUBE_AT) + Vector2(0, -150)
+	for i in 6:
+		_spits.append({"t": -i * 0.09, "from": mouth, "to": PUMP_AT + Vector2(36, 24)})
+	_play("pop")
+
+
+## Tier 2: he sets the emptied car down on the lot, where it wants a fill like any customer.
+func tube_drop(car: ProtoCar) -> void:
+	car.set_type(_pick_type(true), rng)
+	car.customer = true
+	car.amount = 0.0
+	car.spilled = 0.0
+	car.waited = 0.0
+	car.patience = 24.0 * mods.patience_mult
+	car.phase = ProtoCar.Phase.WANDER
+	car.pattern = ProtoCar.PATTERNS[rng.randi() % ProtoCar.PATTERNS.size()]
+	car.start_pattern(self)
+	customers_arrived += 1
 
 
 ## A customer already parked in the lot (tests, and handy for tuning).
@@ -765,6 +852,10 @@ func start_day(m: Dictionary, tank_dollars: float, day_n: int, pool: Array) -> v
 	_cars_today = 0
 	_saves_left = int(mods.overfill_saves)
 	_alarm_said = false
+	_tube_cd = 3.0
+	tube_gas = 0.0
+	tube_grabs = 0
+	_spits.clear()
 	var hockey_every := int(mods.get("hockey_every", 0))
 	hockey_night = hockey_every > 0 and day_n % hockey_every == 0
 	if hockey_night:  # Soirée du hockey: the whole town drives by
@@ -795,7 +886,8 @@ func day_report() -> Dictionary:
 	return {"day": day_num, "loot": round_earned - fines, "sales": round_sales, "tips": round_tips,
 		"tank_left": tank, "xp": day_stats.xp, "cars": day_stats.cars, "tiers": day_stats.tiers.duplicate(),
 		"accuracy": day_accuracy(), "best_combo": _best_combo, "wasted": round_wasted, "fines": fines,
-		"stolen": stolen, "out_of_gas": tank <= 0.0001, "hockey": hockey_night}
+		"stolen": stolen, "out_of_gas": tank <= 0.0001, "hockey": hockey_night,
+		"tube_gas": tube_gas, "tube_grabs": tube_grabs}
 
 
 ## A car type for a new car, weighted; troublemakers ramp in over the first days.
@@ -1170,6 +1262,8 @@ func _draw_overlay() -> void:
 			if car.customer and car.accepts_fuel():
 				car.draw_meter_at(o, car_top(car) + Vector2(0, -46))
 	_draw_badges(o)
+	if not hd:
+		_draw_tube_man_2d(o)
 	_draw_drones(o)
 	draw_shadow_ring(o)
 	_draw_pump(o, tip)
@@ -1199,7 +1293,31 @@ func _draw_overlay() -> void:
 		var w := font.get_string_size(f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size).x
 		o.draw_string_outline(font, f.pos - Vector2(w * 0.5, 0), f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, 6, Color(0, 0, 0, 0.8))
 		o.draw_string(font, f.pos - Vector2(w * 0.5, 0), f.text, HORIZONTAL_ALIGNMENT_LEFT, -1, f.size, Color(f.color, clampf(f.life * 2.0, 0.0, 1.0)))
+	_draw_spits(o)
 	_draw_hud(o, font)
+
+
+## The tube man in the flat and pixel views (the HD-2D view stands him up in 3D).
+func _draw_tube_man_2d(o: Node2D) -> void:
+	if int(mods.get("tube_man", 0)) <= 0:
+		return
+	var strip := anim_tex("tube_man")
+	if not strip:
+		return
+	var fw := strip.get_width() / 8.0
+	var at := scr(TUBE_AT) - Vector2(fw, strip.get_height() * 2.0) + Vector2(0, 8)
+	o.draw_texture_rect_region(strip, Rect2(at, Vector2(fw, strip.get_height()) * 2.0), Rect2(fw * (int(_t * 10.0) % 8), 0, fw, strip.get_height()))
+
+
+## What the tube man spits: gold blobs arcing from his mouth to the pump.
+func _draw_spits(o: Node2D) -> void:
+	for s in _spits:
+		if s.t < 0.0:
+			continue
+		var k: float = clampf(s.t / 0.7, 0.0, 1.0)
+		var p: Vector2 = s.from.lerp(s.to, k) + Vector2(0, -sin(k * PI) * 160.0)
+		o.draw_circle(p, 7.0 - k * 2.0, GAS)
+		o.draw_circle(p + Vector2(-2, -2), 2.5, GAS.lightened(0.5))
 
 
 ## Drone nozzles hover over the lot with a shadow beneath; when one pours, a thin gold stream.

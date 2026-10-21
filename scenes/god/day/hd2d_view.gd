@@ -261,8 +261,9 @@ func _build_surroundings() -> void:
 	wreck.rotation = Vector3(0.06, 1.2, 0.04)  # sagging on a flat tyre
 	_upright(game.tex("tire_pile"), to3(Vector2(66, 540), 0.44), true)
 	_upright(game.tex("dumpster"), to3(Vector2(1085, 236), 0.48), true)
-	for t in [Vector2(1110, 470), Vector2(-20, 640), Vector2(330, 110)]:
+	for t in [Vector2(1075, 645), Vector2(-20, 640), Vector2(330, 110)]:
 		_upright(game.tex("tree"), to3(t, 1.12), true)
+	_build_everyday()
 
 
 ## Dust motes drifting through the morning light.
@@ -495,9 +496,9 @@ const PROPS := {
 	"grocery": ["prop_grocery", Vector2(96, 166), 1.5, true],
 	"car_wash": ["prop_car_wash", Vector2(1098, 330), 0.8, false],
 	"loto": ["prop_loto", Vector2(30, 182), 0.56, false],
-	"tank_1": ["prop_fuel_tank", Vector2(30, 262), 0.44, false],
-	"tank_2": ["prop_fuel_tank", Vector2(30, 312), 0.44, false],
-	"tank_3": ["prop_fuel_tank", Vector2(30, 362), 0.44, false],
+	"tank_1": ["gas_tank", Vector2(30, 262), 0.7, false, 0.6],  # round 8: the station's industrial tank, smaller
+	"tank_2": ["gas_tank", Vector2(30, 330), 0.7, false, 0.6],
+	"tank_3": ["gas_tank", Vector2(30, 398), 0.7, false, 0.6],
 	"thermos": ["prop_thermos", Vector2(70, 188), 0.38, false],
 	"mom_lunch": ["prop_cooler", Vector2(52, 198), 0.24, false],
 	"permit": ["prop_lamp", Vector2(430, 118), 0.88, false],
@@ -508,31 +509,90 @@ const PROPS := {
 	"radio": ["prop_boombox", Vector2(170, 186), 0.42, false],
 	"jukebox": ["prop_jukebox", Vector2(262, 180), 0.6, false],
 }
+## Round 8: the new upgrades, Papa's Garage perks and the CAMION branch on the lot: id -> [sprite, world
+## spot, mode]. "stand": upright on the ground (its height from the sprite); "facade": flat on the store
+## front at that height in metres (a number); "roof": standing on the store's roof.
+const LOT_PROPS := {
+	# Papa's Garage perks
+	"lucky": ["prop_horseshoe", Vector2(216, 166), 1.6],
+	"morning_rush": ["prop_rooster", Vector2(150, 120), "roof"],
+	"jackpot": ["prop_slots", Vector2(1150, 252), "stand"],
+	"nest_egg": ["prop_clothesline", Vector2(80, -40), "stand"],
+	"contract": ["prop_contract", Vector2(60, 166), 0.95],
+	"premium": ["prop_super_sign", Vector2(660, 116), "stand"],
+	"truck_friend": ["fuel_truck", Vector2(290, 14), "stand"],
+	"big_cards": ["prop_card_table", Vector2(430, 636), "stand"],
+	"reroll": ["prop_dice", Vector2(530, 646), "stand"],
+	"slot": ["prop_display_case", Vector2(160, 166), 0.62],
+	"head_start": ["prop_drone_dock", Vector2(1100, 520), "stand"],
+	# the upgrades with two parents
+	"drive_thru": ["prop_drive_thru", Vector2(-70, 200), "stand"],
+	"hockey": ["prop_hockey_net", Vector2(720, 640), "stand"],
+	"loyalty": ["prop_loyalty", Vector2(232, 166), 0.92],
+	"night_neons": ["prop_night_neon", Vector2(118, 166), 1.26],
+	"drone_hangar": ["prop_drone_hangar", Vector2(930, -30), "stand"],
+	"chip_truck": ["prop_chip_truck", Vector2(1102, 412), "stand"],
+	"price_board": ["prop_price_board", Vector2(560, 116), "stand"],
+	"forward_contract": ["prop_contract_board", Vector2(-12, 470), "stand"],
+	# the CAMION branch
+	"tank_gauge": ["prop_tank_gauge", Vector2(104, 300), "stand"],
+	"bulk": ["prop_drums", Vector2(-60, 380), "stand"],
+	"used_tanker": ["prop_old_tanker", Vector2(610, 20), "stand"],
+}
+## The lot's everyday life, always there (round 8).
+const EVERYDAY := [
+	["prop_ice", Vector2(-44, 140)], ["prop_propane", Vector2(-60, 290)], ["prop_special", Vector2(104, 206)],
+	["prop_news_boxes", Vector2(236, 206)], ["prop_air", Vector2(1046, 186)], ["prop_phone_booth", Vector2(1140, 150)],
+	["prop_picnic", Vector2(980, 642)], ["prop_moose_sign", Vector2(1070, 34)], ["prop_cow_a", Vector2(180, -140)],
+	["prop_cow_b", Vector2(262, -168)], ["prop_cow_a", Vector2(840, -150)], ["prop_steeple", Vector2(1130, -210)],
+]
 var _props := {}  # node id -> {sprite, t}
+var _tube: Sprite3D
+
+
+func _build_everyday() -> void:
+	for e in EVERYDAY:
+		_stand(e[0], e[1])
+
+
+## An upright sprite standing on the ground at a world spot (billboarded around the vertical).
+func _stand(id: String, at: Vector2) -> Sprite3D:
+	var tex := game.tex(id)
+	var h := tex.get_height() * PX * 0.5 if tex else 0.5
+	return _upright(tex, to3(at, h), true)
+
+
+func _make_prop(id: String) -> Sprite3D:
+	if PROPS.has(id):
+		var spec: Array = PROPS[id]
+		var spr := _upright(game.tex(spec[0]), to3(spec[1], spec[2]) + (Vector3(0, 0, 0.03) if spec[3] else Vector3.ZERO), not spec[3])
+		if spec.size() > 4:
+			spr.pixel_size = PX * spec[4]  # drawn smaller than its sprite
+		return spr
+	var lp: Array = LOT_PROPS[id]
+	if lp[2] is String and lp[2] == "stand":
+		return _stand(lp[0], lp[1])
+	if lp[2] is String and lp[2] == "roof":
+		var tex := game.tex(lp[0])
+		return _upright(tex, to3(lp[1], STORE_H + 0.08 + tex.get_height() * PX * 0.5), true)
+	return _upright(game.tex(lp[0]), to3(lp[1], lp[2]) + Vector3(0, 0, 0.03), false)
 
 
 func _sync_props(dt: float) -> void:
-	var owned: Dictionary = game.owned
-	for b in GodData.BRANCHES:
-		var level: int = owned.get(b.id, 0)
-		for i in b.nodes.size():
-			var id: String = b.nodes[i].id
-			if not PROPS.has(id):
-				continue
-			var have: bool = i < level
-			if have and not _props.has(id):
-				var spec: Array = PROPS[id]
-				var spr := _upright(game.tex(spec[0]), to3(spec[1], spec[2]) + (Vector3(0, 0, 0.03) if spec[3] else Vector3.ZERO), not spec[3])
-				_props[id] = {"sprite": spr, "t": 0.0}
-				if id == "permit":  # two lamps
-					var second := _upright(game.tex(spec[0]), to3(Vector2(720, 118), spec[2]), true)
-					_props["permit_2"] = {"sprite": second, "t": 0.0}
-			elif not have and _props.has(id):
-				_props[id].sprite.queue_free()
-				_props.erase(id)
-				if id == "permit" and _props.has("permit_2"):
-					_props["permit_2"].sprite.queue_free()
-					_props.erase("permit_2")
+	for id in PROPS.keys() + LOT_PROPS.keys():
+		var have: bool = game.owns_upgrade(id)
+		if have and not _props.has(id):
+			_props[id] = {"sprite": _make_prop(id), "t": 0.0}
+			if id == "permit":  # two lamps
+				var second := _upright(game.tex(PROPS.permit[0]), to3(Vector2(720, 118), PROPS.permit[2]), true)
+				_props["permit_2"] = {"sprite": second, "t": 0.0}
+		elif not have and _props.has(id):
+			_props[id].sprite.queue_free()
+			_props.erase(id)
+			if id == "permit" and _props.has("permit_2"):
+				_props["permit_2"].sprite.queue_free()
+				_props.erase("permit_2")
+	_sync_tube_man()
 	for id in _props:  # pop: rise out of the ground with an elastic wobble
 		var p: Dictionary = _props[id]
 		p.t += dt
@@ -575,3 +635,28 @@ func _sync_store() -> void:
 		var bob := 0.04 if sin(t * 1.3 + r.bob) > 0.85 else 0.0
 		var hop := 0.12 * absf(sin(r.cheer * 12.0)) if r.cheer > 0.0 else 0.0
 		regular_sprites[i].position.y = 0.52 + bob + hop
+
+
+## Bonhomme gonflable (round 8): dances by the road while you own him; arms up while he holds a car.
+func _sync_tube_man() -> void:
+	var tier := int(game.perks.get("tube_man", 0)) if game.perks.get("tube_man", 0) > 0 else int(game.mods.get("tube_man", 0))
+	if tier <= 0:
+		if _tube:
+			_tube.queue_free()
+			_tube = null
+		return
+	var strip := game.anim_tex("tube_man")
+	if not _tube:
+		_tube = _upright(strip, to3(GodPump.TUBE_AT, strip.get_height() * PX * 0.5 if strip else 1.5), true)
+	var holding := false
+	for car in game.cars:
+		if car.phase == ProtoCar.Phase.GRABBED and car.grab_t > ProtoCar.GRAB_UP * 0.6 and car.grab_t < ProtoCar.GRAB_UP + ProtoCar.GRAB_HOLD:
+			holding = true
+	if holding:
+		_tube.texture = game.tex("tube_man_grab")
+		_tube.hframes = 1
+		_tube.frame = 0
+	else:
+		_tube.texture = strip
+		_tube.hframes = 8
+		_tube.frame = int(game._t * 10.0) % 8

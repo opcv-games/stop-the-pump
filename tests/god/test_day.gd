@@ -265,3 +265,48 @@ func test_the_tank_alarm_speaks_when_gas_runs_low() -> void:
 	game.tank = GodPump.LOW_GAS - 1.0
 	game.step(0.1)
 	assert_true(game._alarm_said)
+
+
+# --- Round 8: Bonhomme gonflable --------------------------------------------------------------
+
+func _road_car_near_the_tube_man() -> ProtoCar:
+	var car := game.spawn_road_car()
+	car.customer = false
+	car.wants_in = false
+	car.road_dir = 1.0
+	car.position = Vector2(GodPump.TUBE_AT.x - 40.0, GodPump.ROAD_Y + 12.0)
+	return car
+
+
+func test_the_tube_man_siphons_a_passing_car_into_the_tank() -> void:
+	_open({"tube_man": 1})
+	var car := _road_car_near_the_tube_man()
+	var tank_before := game.tank
+	game._tube_cd = 0.0
+	game.step(0.05)
+	assert_eq(car.phase, ProtoCar.Phase.GRABBED, "grabbed off the road")
+	for i in 60:
+		game.step(0.05)
+	assert_gt(game.tank, tank_before, "its gas went into the tank")
+	assert_gt(game.day_report().tube_gas, 0.0)
+	assert_true(car.phase in [ProtoCar.Phase.ROAD, ProtoCar.Phase.GONE], "tier 1 puts it back on the road")
+	assert_false(car.customer, "not on the lot")
+
+
+func test_tier_2_drops_the_emptied_car_on_the_lot_as_a_customer() -> void:
+	_open({"tube_man": 2})
+	var car := _road_car_near_the_tube_man()
+	game._tube_cd = 0.0
+	for i in 60:
+		game.step(0.05)
+	assert_true(car.customer)
+	assert_true(car.accepts_fuel(), "it's on the lot, waiting for gas")
+	assert_eq(car.amount, 0.0)
+
+
+func test_no_tube_man_no_grabs() -> void:
+	_open()
+	var car := _road_car_near_the_tube_man()
+	game._tube_cd = 0.0
+	game.step(0.05)
+	assert_eq(car.phase, ProtoCar.Phase.ROAD)

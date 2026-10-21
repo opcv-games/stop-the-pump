@@ -7,7 +7,7 @@ extends Node2D
 ## Patterns are learnable on purpose: spotting them is how you fill several cars in one sweep.
 ## Serves: Mastery (moving targets, juggling) and Comedy (the car's reaction).
 
-enum Phase { ROAD, ENTERING, WANDER, CELEBRATE, LEAVING, GONE }
+enum Phase { ROAD, ENTERING, WANDER, CELEBRATE, LEAVING, GONE, GRABBED }
 
 const SIZE := Vector2(58, 30)
 const ROAD_SPEED := 230.0
@@ -58,6 +58,17 @@ var victim: ProtoCar
 var stolen := 0.0
 var bump_cool := 0.0
 var angry := false
+# The tube man's grab (round 8): up into his arms, held while he siphons it, then put down.
+const GRAB_UP := 0.7
+const GRAB_HOLD := 1.0
+const GRAB_DOWN := 0.6
+const GRAB_HIGH := 110.0
+var grab_t := 0.0
+var grab_lift := 0.0
+var _grab_from := Vector2.ZERO
+var _grab_to := Vector2.ZERO
+var _grab_to_lot := false
+var _siphoned := false
 var _route: Array[Vector2] = []
 var _fill_wobble := 0.0
 var _t := 0.0
@@ -202,7 +213,48 @@ func step(dt: float, game: GodPump) -> void:
 		Phase.LEAVING:
 			if _drive_route(dt, 190.0):
 				phase = Phase.GONE
+		Phase.GRABBED:
+			_step_grab(dt, game)
 	queue_redraw()
+
+
+## The tube man has it (round 8): lifted off the road into his arms, held while he siphons it, then
+## set down further along the road (tier 1) or on the lot (tier 2, where it becomes a customer).
+func grab(game: GodPump, to_lot: bool) -> void:
+	phase = Phase.GRABBED
+	grab_t = 0.0
+	_grab_from = position
+	_grab_to_lot = to_lot and game.lot_has_room()
+	_grab_to = game.random_lot_point() if _grab_to_lot else Vector2(position.x + road_dir * 80.0, position.y)
+	_siphoned = false
+	wants_in = false
+
+
+func _step_grab(dt: float, game: GodPump) -> void:
+	grab_t += dt
+	var hold: Vector2 = game.TUBE_AT + Vector2(0, 4)
+	if grab_t < GRAB_UP:
+		var k := grab_t / GRAB_UP
+		position = _grab_from.lerp(hold, k * k * (3.0 - 2.0 * k))
+		grab_lift = sin(k * PI * 0.5) * GRAB_HIGH
+	elif grab_t < GRAB_UP + GRAB_HOLD:
+		position = hold
+		grab_lift = GRAB_HIGH + sin(_t * 9.0) * 6.0
+		if not _siphoned:
+			_siphoned = true
+			game.tube_siphon(self)
+	elif grab_t < GRAB_UP + GRAB_HOLD + GRAB_DOWN:
+		var k := (grab_t - GRAB_UP - GRAB_HOLD) / GRAB_DOWN
+		position = hold.lerp(_grab_to, k)
+		grab_lift = GRAB_HIGH * (1.0 - k * k)
+	else:
+		grab_lift = 0.0
+		position = _grab_to
+		if _grab_to_lot:
+			game.tube_drop(self)
+		else:
+			phase = Phase.ROAD
+			heading = 0.0 if road_dir > 0.0 else PI
 
 
 func _move_pattern(dt: float, game: GodPump) -> void:
@@ -258,6 +310,9 @@ func anim_offsets() -> Dictionary:
 	var squash := Vector2.ONE * (1.0 + 0.16 * fill())  # swells as it fills, like a piggy bank
 	if _fill_wobble > 0.0:
 		squash += Vector2(1, -1) * sin(_t * 32.0) * 0.05 * _fill_wobble
+	if phase == Phase.GRABBED:
+		lift = grab_lift
+		spin = sin(grab_t * 6.0) * 0.4  # dangling
 	if phase == Phase.CELEBRATE:
 		var k := anim_t / CELEBRATE_SECONDS
 		match tier:

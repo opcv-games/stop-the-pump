@@ -18,7 +18,7 @@ const FX_OPS := {
 	# round 8: the CAMION branch and the upgrades with two parents
 	"tank_alarm": "max", "bulk_discount": "add", "partial_rise_mult": "mul", "freeze_every": "max",
 	"coffee_sale": "add", "hockey_every": "max", "loyalty_every": "max", "night_tip_mult": "mul",
-	"drone_bonus": "add",
+	"drone_bonus": "add", "tube_man": "add",
 }
 
 ## The defaults a day runs on before anything is bought.
@@ -31,7 +31,7 @@ const BASE := {
 	"refund_every": 0, "upgrade_discount": 0.0, "jackpot_chance": 0.0, "first_delivery_discount": 0.0,
 	"cards_offered": 3, "rerolls": 0, "bling_slots": 1, "price_rise_mult": 1.0, "sale_mult": 1.0,
 	"tank_alarm": 0, "bulk_discount": 0.0, "partial_rise_mult": 1.0, "freeze_every": 0, "coffee_sale": 0.0,
-	"hockey_every": 0, "loyalty_every": 0, "night_tip_mult": 1.0, "drone_bonus": 0.0,
+	"hockey_every": 0, "loyalty_every": 0, "night_tip_mult": 1.0, "drone_bonus": 0.0, "tube_man": 0,
 }
 
 # --- The night shop (cash, always available) ----------------------------------------------------
@@ -168,6 +168,7 @@ const PERKS := [
 	{"id": "head_start", "name": "Longueur d'avance", "helps": "start each run with a drone nozzle", "price": 2000, "tiers": 1, "fx": {"drones": 1}},
 	{"id": "contract", "name": "Contrat du fournisseur", "helps": "gas prices rise 20% slower", "price": 350, "tiers": 3, "fx": {"price_rise_mult": 0.8}},
 	{"id": "premium", "name": "Super sans plomb", "helps": "premium gas: every sale pays 10% more", "price": 350, "tiers": 3, "fx": {"sale_mult": 1.1}},
+	{"id": "tube_man", "name": "Bonhomme gonflable", "helps": "grabs cars off the road and siphons their gas into your tank; tier 2 drops them on your lot", "price": 600, "tiers": 2, "fx": {"tube_man": 1}},
 	{"id": "nest_egg", "name": "Bas de laine", "helps": "start each run with $40 more", "price": 200, "tiers": 3, "fx": {"start_cash": 40.0}},
 ]
 

@@ -1,0 +1,190 @@
+{
+ "frames": {
+  "tube_man_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 46,
+    "h": 78
+   },
+   "duration": 100
+  },
+  "tube_man_1": {
+   "frame": {
+    "x": 46,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 46,
+    "h": 78
+   },
+   "duration": 100
+  },
+  "tube_man_2": {
+   "frame": {
+    "x": 92,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 46,
+    "h": 78
+   },
+   "duration": 100
+  },
+  "tube_man_3": {
+   "frame": {
+    "x": 138,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 46,
+    "h": 78
+   },
+   "duration": 100
+  },
+  "tube_man_4": {
+   "frame": {
+    "x": 184,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 46,
+    "h": 78
+   },
+   "duration": 100
+  },
+  "tube_man_5": {
+   "frame": {
+    "x": 230,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 46,
+    "h": 78
+   },
+   "duration": 100
+  },
+  "tube_man_6": {
+   "frame": {
+    "x": 276,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 46,
+    "h": 78
+   },
+   "duration": 100
+  },
+  "tube_man_7": {
+   "frame": {
+    "x": 322,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 78
+   },
+   "sourceSize": {
+    "w": 46,
+    "h": 78
+   },
+   "duration": 100
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "tube_man.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 368,
+   "h": 78
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "tube_man",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}

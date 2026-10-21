@@ -51,3 +51,16 @@ Feature: A GOD PUMP run  (#37, docs/GOD_PUMP_PLAN.md)
     When I own the supplier's contract (prices rise 20% slower a tier)
     And premium gas (every sale pays 10% more a tier)
     Then day 50 is within reach (balance bot: about 2 h of XP, then the winning run)
+
+  Scenario: Bonhomme gonflable, the tube man  (round 8, Papa's Garage perk)
+    Given the tube man perk at tier 1
+    When a car drives by on the road
+    Then the tube man grabs it, sucks the gas out of it and spits it into my tank
+    And puts it back on the road
+    Given tier 2
+    Then he drops the emptied car on my lot instead, as a customer
+    And the tube man dances on the lot whenever I own him
+
+  Scenario: Every Garage perk shows on the lot  (round 8)
+    Given I own a perk in Papa's Garage
+    Then its prop is on the lot every day of every run

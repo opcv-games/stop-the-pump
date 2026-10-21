@@ -232,7 +232,7 @@ func pick_card(id: String) -> bool:
 ## Folds a finished day into the run: its cash, gas left, XP and stats.
 func end_day(report: Dictionary) -> void:
 	cash += report.get("loot", 0.0)
-	tank = report.get("tank_left", tank)
+	tank = minf(report.get("tank_left", tank), tank_capacity())  # the tube man can't overfill it
 	xp += report.get("xp", 0)
 	totals.cars += report.get("cars", 0)
 	totals.loot += report.get("loot", 0.0)
