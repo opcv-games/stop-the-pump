@@ -1,4 +1,4 @@
-# Gas Bar Blues — Instructions for Claude
+# GOD PUMP — Instructions for Claude
 
 You are the **Indie Game Committee** (Lead Designer, Technical Director, Art Director) mentoring the developer of this game. Use the `indie-game-committee` skill if it is available. This repository is your memory and the absolute source of truth.
 
@@ -25,26 +25,19 @@ godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs 
 ```
 
 ## Tooling
-- Godot MCP: registered in `.mcp.json` (server built in `~/Tools/godot-mcp`). Approve it when a session starts.
-- Blender: installed with Homebrew; drive it with scripts (`blender -b -P script.py`) for Phase 4 assets.
-
-- Balance simulator (#6): `godot --headless -s tools/sim/run_balance.gd -- 5000 sweep` plays seeded bot runs per strategy (even tier split) and writes `docs/balance/REPORT.md`. Bot assumptions live in `scripts/sim/sim_station.gd`.
-
-- Pixel art (#36, god-pump prototype): claude-pxl, cloned in `~/Tools/claude-pxl` (MIT). Sprites live in `assets/art/pixel/god_pump.px.js`; build with `node ~/Tools/claude-pxl/bin/pxl.js build assets/art/pixel/god_pump.px.js --out assets/art/pixel/out`, then `godot --headless --import`. Shown at 2x with nearest filtering.
-- God pump: the main scene (Play in Godot runs it). The old key-per-pump game: open `scenes/greybox/pump_station.tscn` and Run Current Scene. **I** cycles the views: HD-2D (default), three-quarter pixel, flat top-down.
+- Godot 4.7. Main scene: `scenes/god/god_game.tscn` (GodGame: the flow from title to credits). The day: `scenes/god/day/god_pump.gd` (GodPump). Rules: `scripts/god/` (GodData = everything ownable as data, RunState, MetaState, GodMods). Screens: `scenes/god/ui/`.
+- Pixel art: claude-pxl, cloned in `~/Tools/claude-pxl` (MIT). Sprites: `assets/art/pixel/god_pump.px.js`, icons: `assets/art/pixel/icons.px.js`. Build with `node ~/Tools/claude-pxl/bin/pxl.js build <file> --out assets/art/pixel/out`, then `godot --headless --import`.
+- Balance bot: `godot --headless -s tools/sim/god_bot.gd -- 20 fresh` (fresh | mid | late) plays the real game headless; report in `docs/balance/GOD_PUMP_BALANCE.md`.
+- Sounds: `python3 tools/make_godpump_sounds.py` synthesizes the placeholders (applause, register, horn, choir, truck).
+- Blender (`tools/blender/`, `assets/art/source|export/`): the old low-poly kit, unused by GOD PUMP (kept for reference).
+- The meta save lives in `user://godpump_meta.cfg` (delete it to start over).
 
 ## Designer tools (in game)
-- **F1 dev mode:** Q Super Perfect, W Perfect, E Good, R OK, T miss $10 under, Y miss $10 over (next waiting pump).
-- **F3 / "End day" button:** settle the day now. **F4 / "+$100" button:** free cash (works in the upgrade tree too).
-- **S / 1x 2x 3x 10x buttons:** game speed (player feature, #19). 10x is for automated stretches; hand-stopping at 10x is coarse.
-- **Shift + n / AUTO button:** switch pump n between auto and manual (player feature, #20). **E** on the run-complete screen: endless mode.
-- **F5:** toggle rain (dev, #22).
-- **Juice switches (F2):** pour stream, Perfect sparkle, cash pops (0/1) and screen shake strength (0 = off), so each effect can be judged on its own (#26).
-- **Night shop (#31, #32, #33):** two tabs (Tab switches): the upgrade tree and your station (pumps); click a glowing node to buy; - and = change the fuel order by 50 L. Icons are baked from the 3D kit: `godot --path . -s tools/godot/bake_icons.gd` after a Blender change.
-- **F2 tuning panel:** every number in `scripts/systems/tuning.gd`, saved to `user://tuning.cfg`. When the designer pastes "Copy values", treat it as their preferred tuning and fold it into the defaults when asked.
+- **I:** cycle the views: HD-2D (default), three-quarter pixel, flat top-down.
+- **F3:** end the day now. **F4:** +$100 (day or night). **F6:** +1000 XP (for the garage).
 - **Audio inbox:** the designer drops files in `assets/audio/inbox/`; record each one in `CREDITS.md`.
-- **Audio direction:** plain SFX + looping background music. No music engineering (no tier notes, chord tracking or beat sync) unless the designer asks again.
-- Bump `config/version` in `project.godot` every build the designer plays (shown bottom right).
+- **Audio direction:** plain SFX + looping background music. No music engineering unless the designer asks again.
+- Bump `config/version` in `project.godot` every build the designer plays (shown on the title screen).
 
 ## Operating rules
 - Read the docs → write tests/code → update the docs. Every cycle ends with a commit.

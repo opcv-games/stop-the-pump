@@ -1,7 +1,7 @@
 extends GutTest
 ## Spec: features/god_day.feature (#37): what shapes a GOD PUMP day.
 
-const SCENE := preload("res://scenes/prototype/god_pump.tscn")
+const SCENE := preload("res://scenes/god/day/god_pump.tscn")
 
 var game: GodPump
 

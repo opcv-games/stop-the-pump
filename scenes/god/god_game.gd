@@ -7,7 +7,7 @@ extends Node
 ##   → bankrupt: RUN_OVER → GARAGE → new run   ·   day 50: REPORT → ENDING → RUN_OVER → GARAGE
 ## Designer keys: F3 ends the day, F4 gives $100 (night), F6 gives 1000 XP (garage).
 
-const DAY_SCENE := preload("res://scenes/prototype/god_pump.tscn")
+const DAY_SCENE := preload("res://scenes/god/day/god_pump.tscn")
 
 @export var meta_path := MetaState.DEFAULT_PATH
 @export var sound_on := true
@@ -41,6 +41,8 @@ func _ready() -> void:
 	day.set_station_name(meta.station_name)
 	ui = CanvasLayer.new()
 	ui.layer = 20
+	process_mode = Node.PROCESS_MODE_ALWAYS  # the pause menu keeps working
+	day.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(ui)
 	title = TitleScreen.new()
 	cinematic = Cinematic.new()
@@ -81,6 +83,8 @@ func _hide_all() -> void:
 func _hud(on: bool) -> void:
 	if day and day._overlay:
 		day._overlay.visible = on
+	if sound_on:  # in a day the nozzle is the cursor; menus need the mouse
+		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if on else Input.MOUSE_MODE_VISIBLE
 
 
 func show_title() -> void:
@@ -203,8 +207,45 @@ func _show_run_over() -> void:
 	run_over.show_run(run, meta)
 
 
+var _pause: Control
+
+
+## ESC pauses a day: resume, or back to the title (the run is abandoned, its XP still banked).
+func toggle_pause() -> void:
+	if not _pause:
+		_pause = Control.new()
+		_pause.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_pause.process_mode = Node.PROCESS_MODE_ALWAYS
+		_pause.draw.connect(func() -> void:
+			GodUI.dim(_pause, _pause.size, 0.7)
+			GodUI.text(_pause, Vector2(576, 250), "PAUSE", 56, GodUI.GOLD, true, 8))
+		var resume := GodUI.button("RESUME  (ESC)", Vector2(300, 48))
+		resume.position = Vector2(426, 300)
+		resume.pressed.connect(toggle_pause)
+		_pause.add_child(resume)
+		var quit := GodUI.button("BACK TO THE TITLE", Vector2(300, 48))
+		quit.position = Vector2(426, 360)
+		quit.pressed.connect(func() -> void:
+			toggle_pause()
+			if run and not run.over:
+				run.finish()
+			day.round_over = true
+			show_title())
+		_pause.add_child(quit)
+		ui.add_child(_pause)
+		_pause.visible = false
+	_pause.visible = not _pause.visible
+	get_tree().paused = _pause.visible
+	if sound_on:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if _pause.visible else Input.MOUSE_MODE_HIDDEN
+	_pause.queue_redraw()
+
+
 func _unhandled_input(e: InputEvent) -> void:
 	if not (e is InputEventKey and e.pressed and not e.echo):
+		return
+	if e.physical_keycode == KEY_ESCAPE and (state == "day" or (_pause and _pause.visible)):
+		toggle_pause()
 		return
 	match e.physical_keycode:
 		KEY_F3:

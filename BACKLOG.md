@@ -5,7 +5,8 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] **GOD PUMP overnight batch** (docs/GOD_PUMP_PLAN.md, #37): HD-2D polish, grades and day report, the run with the fuel-truck bill and cards, the night tree, car types, drones and auto-aim, Papa's Garage, title, intro and ending, sound, balance, retire the old game
+- [x] **GOD PUMP overnight batch** (docs/GOD_PUMP_PLAN.md, #37, v0.40.0, awaiting playtest): HD-2D polish, grades and day report, the run with the fuel-truck bill and cards, the night tree, car types, drones and auto-aim, Papa's Garage, title, intro and ending, sound, balance bot, old game retired. Morning report: docs/MORNING_REPORT.md
+- [ ] Playtest v0.40: a full run from the title; the fuel-truck tension; card variety; car types; the garage; the intro and ending
 - [x] `[innovation]` **God-pump prototype: a giant nozzle pours from the sky onto cars driving around the lot** (#36, kept: this is the game now)
 - [x] `[art]` **Scene view for the god pump: isometric tried, three-quarter top-down kept; dépanneur, neon, regulars, vintage pump, tip jar** (#36, v0.32.0, kept)
 - [ ] `[art]` **HD-2D try: pixel art in a lit 3D scene (shadows, bloom, tilt-shift)** (#36, v0.33.0, awaiting playtest)
@@ -43,6 +44,10 @@
   - Given a bot with fixed reaction time, When it plays 100 rounds, Then the run produces a report of income, rent paid and failures.
 
 ## Next (likely, not committed)
+- [ ] Car types as challenge, not punishment: the bot does worse once the pickup, bazou and racer unlock (docs/balance/GOD_PUMP_BALANCE.md)
+- [ ] Real sounds to replace the synthesized placeholders (applause, register, horn, choir, truck)
+- [ ] Settings screen (volume, fullscreen), and pause (ESC) during a day
+- [ ] Station looks change with upgrades (the 3D props from the old kit: tanks, billboard, jukebox...)
 - [ ] More cars per short day (a day serves only 2–4 cars): cars queue and pull in at once, or smaller orders. Then shrink Dad's 400 L tank so the fuel order matters again (docs/balance/REPORT.md)
 - [ ] `[juice]` Combo gauge catches fire at high combos
 - [ ] Upgrade shop with downsides

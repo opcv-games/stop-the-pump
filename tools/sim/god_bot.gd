@@ -89,7 +89,7 @@ func play_run(seed: int) -> Dictionary:
 	var meta := _meta()
 	var run := RunState.new(meta)
 	run.rng.seed = seed
-	var day: GodPump = load("res://scenes/prototype/god_pump.tscn").instantiate()
+	var day: GodPump = load("res://scenes/god/day/god_pump.tscn").instantiate()
 	day.sound_on = false
 	day.view = "flat"
 	day.managed = true

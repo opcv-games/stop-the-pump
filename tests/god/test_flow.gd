@@ -84,3 +84,10 @@ func test_buying_in_the_night_shop_changes_tomorrow() -> void:
 	assert_true(g.night.tree.press("hours:0"))
 	g.open_next_day()
 	assert_almost_eq(g.day.round_seconds, (14.0 - 7.0) * GodData.HOUR_SECONDS, 0.01)
+
+
+func test_escape_pauses_a_day_and_can_go_back_to_the_title() -> void:
+	g.toggle_pause()
+	assert_true(get_tree().paused)
+	g.toggle_pause()
+	assert_false(get_tree().paused)
