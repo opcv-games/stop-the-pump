@@ -18,7 +18,7 @@ const FX_OPS := {
 	# round 8: the CAMION branch and the upgrades with two parents
 	"tank_alarm": "max", "bulk_discount": "add", "partial_rise_mult": "mul", "freeze_every": "max",
 	"coffee_sale": "add", "hockey_every": "max", "loyalty_every": "max", "night_tip_mult": "mul",
-	"drone_bonus": "add", "tube_man": "add",
+	"drone_bonus": "add", "tube_man": "add", "clamp_thief": "max", "clamp_wait": "max",
 }
 
 ## The defaults a day runs on before anything is bought.
@@ -32,6 +32,7 @@ const BASE := {
 	"cards_offered": 3, "rerolls": 0, "bling_slots": 1, "price_rise_mult": 1.0, "sale_mult": 1.0,
 	"tank_alarm": 0, "bulk_discount": 0.0, "partial_rise_mult": 1.0, "freeze_every": 0, "coffee_sale": 0.0,
 	"hockey_every": 0, "loyalty_every": 0, "night_tip_mult": 1.0, "drone_bonus": 0.0, "tube_man": 0,
+	"clamp_thief": 0, "clamp_wait": 0,
 }
 
 # --- The night shop (cash, always available) ----------------------------------------------------
@@ -94,6 +95,8 @@ const LINKS := [
 	{"id": "drone_hangar", "name": "Hangar à drones", "helps": "a drone fill earns $2 more", "price": 300.0, "needs": ["drone_1", "car_wash"], "fx": {"drone_bonus": 2.0}},
 	{"id": "chip_truck", "name": "Cantine à patates", "helps": "a chip truck on the lot: cars wait 20% longer, every applause +$2", "price": 260.0, "needs": ["grocery", "bench"], "fx": {"patience_mult": 1.2, "applause_bonus": 2.0}},
 	{"id": "price_board", "name": "Prix affiché", "helps": "a big price sign by the road: every sale pays 5% more", "price": 280.0, "needs": ["billboard", "tank_1"], "fx": {"sale_mult": 1.05}},
+	{"id": "clamp_1", "name": "Sabot de Denver", "helps": "thieves get a wheel clamp: they can't flee, and what they stole goes back in your tank", "price": 260.0, "needs": ["bulk", "aim_1"], "fx": {"clamp_thief": 1}},
+	{"id": "clamp_2", "name": "Sabot de Denver II", "helps": "a customer about to give up gets clamped instead: it stops, and waits a while longer", "price": 420.0, "needs": ["clamp_1", "used_tanker"], "fx": {"clamp_wait": 1}},
 	{"id": "forward_contract", "name": "Contrat à terme", "helps": "every fourth delivery comes without a price rise", "price": 480.0, "needs": ["tank_2", "billboard"], "fx": {"freeze_every": 4}},
 ]
 

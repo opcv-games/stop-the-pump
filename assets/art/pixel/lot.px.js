@@ -195,3 +195,7 @@ sprite("prop_rival", { w: 64, h: 42, outline: "k" },
   rect(12, 0, 40, 9, "a"), text(32, 2, "CHEZ GAETAN", "G", { align: "c" }),
   rect(45, 26, 18, 12, "w"), text(54, 29, "2.19", "e", { align: "c" }), rect(53, 38, 2, 4, "I"),
   rect(11, 30, 6, 12, "e"), rect(12, 31, 4, 3, "w"))
+
+// --- Round 9: the wheel clamps' sign: towing, 24 hours ---------------------------------------------
+sprite("prop_tow_sign", { w: 22, h: 34, outline: "k" },
+  rect(10, 14, 2, 20, "I"), rect(0, 0, 22, 15, "E"), rect(1, 1, 20, 13, "F"), text(11, 2, "SABOT", "f", { align: "c" }), text(11, 8, "24H", "a", { align: "c" }))

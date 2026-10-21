@@ -367,6 +367,7 @@ stackSlices("papa", { len: 28, cab: [6, 19], hatch: true, rack: true, rod: true,
 sprite("badge_thief", { w: 14, h: 10, outline: "k" }, rect(0, 2, 14, 5, "{"), rect(2, 3, 3, 3, "w"), rect(9, 3, 3, 3, "w"), px(3, 4, "k"), px(10, 4, "k"))
 sprite("badge_electric", { w: 10, h: 14, outline: "k" }, poly([6, 0, 1, 8, 5, 8, 3, 13, 9, 5, 5, 5], "y"))
 sprite("badge_sweeper", { w: 12, h: 14, outline: "k" }, rect(5, 0, 2, 9, "n"), poly([1, 9, 11, 9, 12, 13, 0, 13], "<"))
+sprite("badge_clamp", { w: 14, h: 12, outline: "k" }, circ(6, 6, 5, "t"), circ(6, 6, 2, "M"), rect(2, 2, 10, 3, "<"), rect(9, 5, 5, 4, "<"), px(11, 6, "k"))   // round 9: a wheel clamp
 sprite("badge_clumsy", { w: 14, h: 10, outline: "k" }, circ(3, 5, 2, "y"), circ(10, 3, 2, "y"), px(7, 8, "y"))
 
 // Drone nozzle (#37): a little quadcopter carrying a mini red nozzle. Two frames: rotors spinning.

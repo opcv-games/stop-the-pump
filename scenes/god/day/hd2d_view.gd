@@ -537,6 +537,7 @@ const LOT_PROPS := {
 	"chip_truck": ["prop_chip_truck", Vector2(1102, 412), "stand"],
 	"price_board": ["prop_price_board", Vector2(560, 116), "stand"],
 	"forward_contract": ["prop_contract_board", Vector2(-12, 470), "stand"],
+	"clamp_1": ["prop_tow_sign", Vector2(800, 120), "stand"],
 	# the CAMION branch
 	"tank_gauge": ["prop_tank_gauge", Vector2(104, 300), "stand"],
 	"bulk": ["prop_drums", Vector2(-60, 380), "stand"],

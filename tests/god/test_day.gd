@@ -380,3 +380,46 @@ func test_the_postcards_come_with_the_mail_carrier() -> void:
 		assert_eq(Visitors.beat_for(d).get("postcard", 0), d)
 		assert_eq(Visitors.beat_for(d).who, "facteur")
 	assert_true(Visitors.beat_for(3).is_empty(), "not every day")
+
+
+
+# --- Round 9: Sabot de Denver --------------------------------------------------------------------
+
+func test_a_clamped_thief_gives_the_gas_back() -> void:
+	_open({"clamp_thief": 1})
+	var victim := _parked("sedan", Vector2(500, 380))
+	victim.amount = 15.0
+	var thief := _parked("thief", Vector2(560, 380))
+	thief.moving = true
+	var tank_before := game.tank
+	for i in 200:
+		game.step(0.05)
+		if thief.clamped:
+			break
+	assert_true(thief.clamped, "it tried to flee and got clamped")
+	assert_gt(game.tank, tank_before, "what it stole went back in the tank")
+	assert_eq(game.day_report().stolen, 0.0)
+
+
+func test_without_clamps_the_thief_flees() -> void:
+	_open()
+	var victim := _parked("sedan", Vector2(500, 380))
+	victim.amount = 15.0
+	var thief := _parked("thief", Vector2(560, 380))
+	thief.moving = true
+	for i in 200:
+		game.step(0.05)
+	assert_false(thief.clamped)
+	assert_ne(thief.phase, ProtoCar.Phase.WANDER, "gone with the gas")
+
+
+func test_an_impatient_customer_gets_clamped_instead_of_leaving() -> void:
+	_open({"clamp_wait": 1})
+	game.reset_day_stats()
+	var car := _parked()
+	car.patience = 2.0
+	for i in 25:
+		game.step(0.1)
+	assert_true(car.clamped)
+	assert_true(car.accepts_fuel(), "still on the lot")
+	assert_eq(game.day_stats.tiers[ScoreTiers.UNSERVED], 0)

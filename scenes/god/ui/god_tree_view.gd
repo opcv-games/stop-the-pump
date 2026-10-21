@@ -25,7 +25,7 @@ const CELLS := {
 const LINK_CELLS := {
 	"drive_thru": Vector2i(3, -1), "hockey": Vector2i(1, -2), "night_neons": Vector2i(2, -3),
 	"loyalty": Vector2i(2, 1), "drone_hangar": Vector2i(-5, -2), "chip_truck": Vector2i(-1, -2),
-	"price_board": Vector2i(1, 2), "forward_contract": Vector2i(1, 3),
+	"price_board": Vector2i(1, 2), "forward_contract": Vector2i(1, 3), "clamp_1": Vector2i(-3, 1), "clamp_2": Vector2i(-4, 2),
 }
 const FILL := {"hours": Color(0.2, 0.24, 0.42), "marketing": Color(0.42, 0.22, 0.38), "attractions": Color(0.2, 0.38, 0.36),
 	"nozzle": Color(0.5, 0.14, 0.11), "tank": Color(0.35, 0.3, 0.12), "service": Color(0.2, 0.36, 0.22), "vibe": Color(0.47, 0.33, 0.13),
@@ -277,6 +277,8 @@ func _draw_tooltip(key: String) -> void:
 	var p := _pos(cell) + Vector2(NODE * 0.7, -bs.y * 0.5)
 	if p.x + bs.x > size.x - 8:
 		p.x = _pos(cell).x - NODE * 0.7 - bs.x
+	if p.x < 260:  # no room on the left (the GAS TANK panel): open to the right, clamped on screen
+		p.x = minf(_pos(cell).x + NODE * 0.7, size.x - bs.x - 8)
 	p.y = clampf(p.y, 8, size.y - bs.y - 8)
 	draw_style_box(GodUI.panel_box(GodUI.GOLD.darkened(0.2)), Rect2(p, bs))
 	for i in lines.size():

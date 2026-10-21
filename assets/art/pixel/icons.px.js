@@ -115,3 +115,7 @@ I("price_board", rect(3, 0, 10, 11, "M"), rect(4, 1, 8, 4, "k"), text(8, 1, "1",
 I("forward_contract", ...paper("K"), rect(8, 8, 7, 6, "y"), ring(11, 7, 2, "M"), rect(10, 10, 2, 2, "k"))
 I("tube_man", curve([7, 15, 8, 11, 6, 8, 8, 5], "o", { width: 3 }), circ(8, 4, 2, "o"), px(7, 4, "k"), px(9, 4, "k"),
   curve([7, 8, 3, 5, 1, 1], "r", { width: 2 }), curve([8, 7, 12, 6, 15, 2], "r", { width: 2 }), rect(5, 14, 6, 2, "M"))
+
+// --- Round 9: the wheel clamps (Sabot de Denver) -------------------------------------------------
+I("clamp_1", circ(7, 9, 6, "k"), circ(7, 9, 3, "m"), rect(2, 3, 11, 3, "y"), rect(10, 6, 5, 5, "y"), px(12, 8, "k"))
+I("clamp_2", circ(7, 9, 6, "k"), circ(7, 9, 3, "m"), rect(2, 3, 11, 3, "y"), rect(10, 6, 5, 5, "y"), px(12, 8, "k"), text(13, 0, "2", "r"))

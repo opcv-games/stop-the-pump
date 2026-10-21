@@ -29,3 +29,5 @@ Feature: The night shop's tree  (round 8, docs/ROUND_8_PLAN.md)
       | Hangar à drones    | a drone fill earns $2 more                                                 |
       | Cantine à patates  | cars wait 20% longer and every applause earns $2 more                      |
       | Prix affiché       | every sale pays 5% more                                                    |
+      | Sabot de Denver    | a thief gets clamped: it can't flee and what it stole goes back in my tank |
+      | Sabot de Denver II | a customer about to give up gets clamped: it stops and waits a while longer |

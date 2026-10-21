@@ -55,6 +55,9 @@ var by_drone := false  # filled by a drone
 ## Round 9: a visitor (Visitors) comes to chat, not to fill up: it parks by the store and waits.
 var visitor := false
 var parked := false
+## Round 9: a wheel clamp (Sabot de Denver): the car can't drive off; clamp_t counts to the tow truck.
+var clamped := false
+var clamp_t := 0.0
 # Role state.
 var role_t := 0.0
 var victim: ProtoCar
@@ -206,7 +209,9 @@ func step(dt: float, game: GodPump) -> void:
 				phase = Phase.WANDER
 				start_pattern(game)
 		Phase.WANDER:
-			if visitor:
+			if clamped:
+				pass  # it isn't going anywhere
+			elif visitor:
 				if not parked:
 					_steer(game.VISITOR_SPOT, dt, 120.0)
 					if position.distance_to(game.VISITOR_SPOT) < 14.0:

@@ -556,6 +556,9 @@ func _react(car: ProtoCar) -> void:
 	car.angry = true
 	var top := scr(car.position) + Vector2(0, -60)
 	if car.role == "thief":
+		if int(mods.get("clamp_thief", 0)) > 0:
+			_clamp_thief(car)
+			return
 		_floaters.append({"text": "SAUVE-TOI!", "pos": top, "life": 1.6, "color": Color(1, 0.6, 0.3), "size": 22})
 	else:
 		fines += 10.0
@@ -582,6 +585,20 @@ func spawn_road_car() -> ProtoCar:
 	car.patience = 24.0 * mods.patience_mult
 	cars_spawned += 1
 	return car
+
+
+## Sabot de Denver: the thief is clamped where it stands, and everything it stole goes back in the tank.
+func _clamp_thief(car: ProtoCar) -> void:
+	if car.clamped:
+		return
+	car.clamped = true
+	car.angry = true
+	car.moving = false
+	tank += car.stolen
+	stolen = maxf(stolen - car.stolen, 0.0)
+	_floaters.append({"text": "SABOT! +$%d DE GAZ" % int(car.stolen), "pos": scr(car.position) + Vector2(0, -60), "life": 1.6, "color": Color(1, 0.85, 0.2), "size": 22})
+	car.stolen = 0.0
+	_play("horn")
 
 
 ## Today's visitor: drives in, parks by the store, the lines play one by one, then it drives off.
@@ -1137,6 +1154,12 @@ func _step_patience(dt: float) -> void:
 			if car.fill() >= ProtoCar.LEAVE_AT:
 				_settle(car)
 				continue
+			if int(mods.get("clamp_wait", 0)) > 0 and not car.clamped:  # Sabot de Denver II: not so fast
+				car.clamped = true
+				car.waited = 0.0
+				car.patience *= 0.6
+				_floaters.append({"text": "SABOT!", "pos": scr(car.position) + Vector2(0, -60), "life": 1.2, "color": Color(1, 0.85, 0.2), "size": 22})
+				continue
 			_count(car, ScoreTiers.UNSERVED)
 			var partial: float = minf(car.amount, car.target) * car.pay_share * mods.get("sale_mult", 1.0)
 			round_earned += partial
@@ -1167,6 +1190,11 @@ func _step_roles(dt: float) -> void:
 				if car.role_t > 10.0:
 					car.leave(self)
 			"thief":  # siphons gas from a customer, then flees with it
+				if car.clamped:  # clamped: waits for the tow truck
+					car.clamp_t += dt
+					if car.clamp_t > 3.5:
+						car.leave(self)
+					continue
 				if not car.victim or not is_instance_valid(car.victim) or not car.victim.accepts_fuel():
 					car.victim = nearest_customer(car.position, 2000.0, car)
 				if car.victim:
@@ -1182,7 +1210,10 @@ func _step_roles(dt: float) -> void:
 						car.stolen += take
 						stolen += take
 				if car.role_t > 7.0 or car.stolen > 12.0:
-					car.leave(self)
+					if int(mods.get("clamp_thief", 0)) > 0:
+						_clamp_thief(car)
+					else:
+						car.leave(self)
 			"clumsy":  # bumps into cars, who spill some of their gas
 				car.bump_cool = maxf(car.bump_cool - dt, 0.0)
 				if car.bump_cool <= 0.0:
@@ -1418,6 +1449,12 @@ func _draw_drones(o: Node2D) -> void:
 ## Troublemakers wear a badge (a mask, a lightning bolt, a broom, dizzy stars); Dad wears his name.
 func _draw_badges(o: Node2D) -> void:
 	for car in cars:
+		if car.clamped and car.phase == ProtoCar.Phase.WANDER:  # the yellow boot on its wheel
+			var clamp: Texture2D = tex("badge_clamp")
+			if clamp:
+				o.draw_set_transform(car_top(car) + Vector2(22, 18), 0.0, Vector2(2, 2))
+				o.draw_texture(clamp, -clamp.get_size() * 0.5)
+				o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		if not car.accepts_fuel() or (car.role == "" and car.type_id != "papa"):
 			continue
 		var top := car_top(car) + Vector2(0, (-96.0 if car.customer else -22.0) + sin(_t * 4.0 + car.position.x) * 3.0)
