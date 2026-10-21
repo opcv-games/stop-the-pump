@@ -19,7 +19,7 @@ const EXIT := Vector2(900, 180)
 const CASH_AT := Vector2(70, 26)
 const NOZZLE_RAISE := Vector2(-20, -96)  # the nozzle hovers up-left of where its stream lands
 const CAR_COLORS := [Color(0.45, 0.55, 0.7), Color(0.7, 0.42, 0.36), Color(0.5, 0.62, 0.45),
-	Color(0.72, 0.66, 0.48), Color(0.55, 0.48, 0.66), Color(0.8, 0.8, 0.78)]
+	Color(0.72, 0.66, 0.48), Color(0.55, 0.48, 0.66), Color(0.8, 0.8, 0.78), Color(0.82, 0.42, 0.17)]
 const COINS := {ScoreTiers.SUPER_PERFECT: 12, ScoreTiers.PERFECT: 8, ScoreTiers.GOOD: 5, ScoreTiers.OK: 3, ScoreTiers.MISS: 1}
 const TIER_COLORS := {
 	ScoreTiers.SUPER_PERFECT: Color(1.0, 0.85, 0.3), ScoreTiers.PERFECT: Color(0.35, 0.9, 0.45),
@@ -28,11 +28,11 @@ const TIER_COLORS := {
 const GAS := Color(0.98, 0.76, 0.18)
 ## Pixel art from claude-pxl (assets/art/pixel/god_pump.px.js), shown at 2x with nearest filtering.
 const PIXEL := "res://assets/art/pixel/out/sprites/%s.png"
-const CAR_SPRITES := ["car", "car_red", "car_green", "car_cream", "car_purple", "car_white"]
+const CAR_SPRITES := ["car", "car_red", "car_green", "car_cream", "car_purple", "car_white", "car_orange"]
 const NOZZLE_TIP := Vector2(90, 66)  # the spout's tip in the nozzle sprite, at 2x
 ## Isometric try (#36): the world is drawn into a half-resolution viewport and doubled on screen.
 const ISO_VIEWPORT := Vector2(576, 324)
-const STACKS := ["blue", "red", "green", "cream", "purple", "white"]
+const STACKS := ["blue", "red", "green", "cream", "purple", "white", "orange"]
 
 @export var flow_rate := 4.0
 ## A safeguard: the round's gas is what really ends it.
@@ -99,7 +99,7 @@ func _ready() -> void:
 	tank = tank_size
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # crisp pixels; cars and the overlay inherit it
 	for id in CAR_SPRITES + ["nozzle", "bill", "coin_0", "coin_1", "coin_2", "coin_3", "puddle_s", "puddle_m",
-			"puddle_l", "sparkle", "asphalt", "road", "dirt"]:
+			"puddle_l", "sparkle", "asphalt", "road", "dirt", "neon_gazbar", "neon_gazbar_off"]:
 		var path := PIXEL % id
 		if ResourceLoader.exists(path):
 			_tex[id] = load(path)

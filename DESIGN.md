@@ -135,6 +135,9 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | Ten pumps may be annoying, not fun | The core hook could become chaos | Treat pump count as a ladder; playtest each step |
 | Upgrade balance | Synergy is hard to get right | Few clear upgrades in the slice; bot players in headless Godot test the numbers (not the fun) |
 
+## 10b. Naming risk (2026-10-20)
+"Gaz Bar Blues" is also the title of a 2003 Québec film and a stage show (the source of some art references). Before any public release, check the title and pick a distinct name if needed. Logged, not acted on.
+
 ## 11. Decision Log
 | Date | Decision | Why | Evidence (playtest / issue) |
 |---|---|---|---|
@@ -195,3 +198,5 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-20 | God pump scoring: a car leaves once 80% full; the tip grows toward 100% (topped off with no spill pays most); overflow spills as wasted gas; a round ends when its gas runs out (the clock is a safeguard); cars move in readable patterns (loop, shuttle, park-and-go) | "Aiming is much better"; exact-stop tiers fight continuous juggling; unclear what a Perfect achieved | God-pump playtest 1 (#36) |
 | 2026-10-20 | The god pump is the game (pour from the sky onto cars on the lot); the key-per-pump game is retired once its systems move over | "God Pump is 1000% the right direction"; aiming, juggling and the cash drop tested well | God-pump playtests 1–3 (#36) |
 | 2026-10-20 | Art direction: pixel art drawn as code (claude-pxl), styled after late-80s small-town Québec: plaid flannel, denim, browns and beiges, an aluminium dépanneur storefront, red curbs, boxy sedans with square headlights | "The pixel-art style is working"; designer's reference photo | #36 |
+\n| 2026-10-20 | Art references added: red neon (a GAZ BAR sign), a faded-orange 70s hatchback at an old pump with a mechanical counter, the dépanneur interior (counter, chip racks, shelves of oil and mugs, regulars on chairs). In game: a flickering red GAZ BAR neon on the store roof, the orange hatchback | Designer's reference photos | #36 |
+| 2026-10-20 | The god pump is the main scene Godot runs; the key-per-pump game stays in scenes/greybox until its systems move over | Designer couldn't find the new version when pressing Play | #36 |

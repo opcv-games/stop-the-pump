@@ -105,6 +105,30 @@ func _draw_store() -> void:
 	# Flat roof with a lip.
 	draw_colored_polygon(PackedVector2Array([_p(r.position.x, y0, STORE_H), _p(x1, y0, STORE_H), _p(x1, y1, STORE_H), _p(r.position.x, y1, STORE_H)]), ROOF)
 	draw_polyline(PackedVector2Array([_p(r.position.x, y1, STORE_H), _p(x1, y1, STORE_H), _p(x1, y0, STORE_H)]), Color(0.45, 0.43, 0.44), 1.0)
+	_draw_neon()
+
+
+## The red GAZ BAR neon on the roof (designer's references): a soft glow, a red pool of light on the
+## asphalt, and now and then the tired tube flickers.
+func _draw_neon() -> void:
+	var t := game._t
+	var phase := fmod(t, 7.0)
+	var lit := not ((phase > 3.1 and phase < 3.22) or (phase > 3.34 and phase < 3.42))
+	var at := _p(STORE.end.x - 10, STORE.get_center().y, STORE_H) - Vector2(15, 34)
+	var centre := at + Vector2(15, 13)
+	if lit:
+		var pool := _p(STORE.end.x + 70, STORE.get_center().y)
+		draw_set_transform(pool, 0.0, Vector2(1.0, 0.5))
+		for i in 5:
+			draw_circle(Vector2.ZERO, 60.0 - i * 10.0, Color(1.0, 0.25, 0.2, 0.035))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		for i in 6:
+			draw_circle(centre, 30.0 - i * 4.0, Color(1.0, 0.3, 0.22, 0.05))
+	draw_line(at + Vector2(8, 26), at + Vector2(8, 34), Color(0.2, 0.2, 0.22), 1.0)  # the sign's posts
+	draw_line(at + Vector2(22, 26), at + Vector2(22, 34), Color(0.2, 0.2, 0.22), 1.0)
+	var tex: Texture2D = game.tex("neon_gazbar" if lit else "neon_gazbar_off")
+	if tex:
+		draw_texture(tex, at)
 
 
 ## A sprite-stacked car with its shadow; celebrations lift, spin and squash the whole stack.

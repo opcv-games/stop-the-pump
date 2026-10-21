@@ -37,6 +37,7 @@ const BODIES = {
   cream: ["#cdbb8a", "#a39066", "#e8dcb4", "#8a7853"],
   purple: ["#8a74a8", "#634f80", "#b2a0cc", "#52406b"],
   white: ["#d8d6d0", "#a8a59e", "#f2f0ea", "#8c8a84"],
+  orange: ["#d06a2c", "#a04c1c", "#ec9a5e", "#8a3e16"],   // the faded-orange 70s hatchback from the reference
 }
 for (const [name, [b, B, L, R]] of Object.entries(BODIES))
   sprite("car_" + name, { base: "car", swap: { b, B, L, R } })
@@ -123,3 +124,14 @@ for (const [name, body] of Object.entries(STACK_BODIES))
   SLICES.forEach((_, i) => body
     ? sprite(`stack_${name}_${i}`, { base: `_stack_${i}`, swap: { b: body[0], B: body[1], L: body[2], R: body[3] } })
     : sprite(`stack_${name}_${i}`, { base: `_stack_${i}` }))
+
+// --- Neon (#36): the red GAZ BAR sign from the references, on a dark board -----------------------
+pal({ N: "#ff4a3a", Q: "#ffb0a0", j: "#141016", J: "#2a1e22" })
+sprite("neon_gazbar", { w: 30, h: 26, outline: "J" },
+  rect(0, 0, 30, 26, "j"),
+  ring(15, 13, 0, "j"),
+  text(15, 3, "GAZ", "N", { scale: 2, align: "c", gap: 1 }),
+  text(15, 14, "BAR", "N", { scale: 2, align: "c", gap: 1 }),
+  rect(1, 1, 28, 1, "N"), rect(1, 24, 28, 1, "N"), rect(1, 1, 1, 24, "N"), rect(28, 1, 1, 24, "N"))
+// The same sign switched off, for the neon's flicker.
+sprite("neon_gazbar_off", { base: "neon_gazbar", swap: { N: "#5a2a26" } })
