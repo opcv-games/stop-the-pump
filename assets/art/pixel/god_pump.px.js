@@ -362,3 +362,31 @@ function droneSprite(name, blur) {
 }
 droneSprite("drone_0", false)
 droneSprite("drone_1", true)
+
+// =============================================================================================
+// Upgrade props for the HD-2D station (#37): every night-shop upgrade shows on the lot.
+// Upright sprites that stand in the 3D scene; they pop in the morning after you buy them.
+// =============================================================================================
+pal({ "*": "#d9d2c0", "+": "#3a8ac8", "=": "#c8e4f4", ",": "#7a7a7a" })
+sprite("prop_traffic_light", { w: 10, h: 40, outline: "k" }, rect(4, 12, 2, 28, "M"), rect(1, 0, 8, 14, "K"), circ(5, 3, 2, "r"), circ(5, 7, 2, "y"), circ(5, 11, 2, "g"))
+sprite("prop_sandwich", { w: 18, h: 20, outline: "k" }, poly([2, 19, 6, 0, 12, 0, 16, 19], "n"), rect(5, 3, 8, 10, "w"), text(9, 4, "GAZ", "r", { align: "c" }), text(9, 9, "!", "r", { align: "c" }))
+sprite("prop_antenna", { w: 12, h: 30, outline: "k" }, rect(5, 0, 2, 30, "m"), hline(1, 6, 10, "m"), hline(2, 12, 8, "m"), hline(3, 18, 6, "m"), px(6, 0, "r"))
+sprite("prop_billboard", { w: 64, h: 40, outline: "k" }, rect(6, 22, 3, 18, "n"), rect(55, 22, 3, 18, "n"), rect(0, 0, 64, 24, "w"), rect(2, 2, 60, 20, "e"),
+  text(32, 5, "GOD PUMP", "y", { align: "c", scale: 1 }), text(32, 13, "EXIT ->", "w", { align: "c" }))
+sprite("prop_grocery", { w: 30, h: 22, outline: "k" }, rect(0, 4, 30, 18, "W"), rect(0, 0, 30, 6, "g"), (c) => { for (let x = 0; x < 30; x += 6) c.rect(x, 0, 3, 6, "w") },
+  text(15, 9, "EPICERIE", "G", { align: "c" }), rect(4, 15, 6, 7, "r"), rect(12, 15, 6, 7, "y"), rect(20, 15, 6, 7, "o"))
+sprite("prop_car_wash", { w: 50, h: 40, outline: "k" }, rect(0, 10, 50, 30, "*"), rect(0, 6, 50, 6, "+"), rect(10, 16, 30, 24, "K"), (c) => { for (let x = 12; x < 40; x += 4) c.rect(x, 17, 2, 20, "+") },
+  text(25, 0, "LAVE-AUTO", "+", { align: "c" }), circ(6, 20, 2, "="), circ(44, 24, 3, "="), circ(46, 14, 2, "="))
+sprite("prop_loto", { w: 16, h: 28, outline: "k" }, rect(0, 4, 16, 24, "r"), rect(2, 6, 12, 8, "y"), text(8, 7, "LOTO", "r", { align: "c" }), rect(3, 17, 10, 3, "K"), rect(6, 22, 4, 3, "W"))
+sprite("prop_fuel_tank", { w: 40, h: 22, outline: "k" }, rect(4, 2, 32, 14, "w"), ellipse(4, 9, 3, 7, "W"), ellipse(36, 9, 3, 7, "w"), rect(6, 16, 3, 6, ","), rect(31, 16, 3, 6, ","), hline(6, 4, 28, "r"))
+sprite("prop_lamp", { w: 10, h: 44, outline: "k" }, rect(4, 6, 2, 38, "M"), rect(0, 0, 10, 6, "K"), rect(2, 4, 6, 2, "y"))
+sprite("prop_cousin", { w: 18, h: 30, outline: "k" }, rect(5, 22, 3, 8, "R"), rect(10, 22, 3, 8, "R"), rect(3, 10, 12, 13, "+"), rect(1, 11, 3, 9, "+"), rect(14, 11, 3, 9, "+"),
+  circ(9, 6, 4, "s"), rect(5, 1, 8, 3, "k"), px(7, 6, "k"), px(11, 6, "k"), rect(6, 13, 6, 2, "w"), text(9, 16, "R", "w", { align: "c" }))
+sprite("prop_thermos", { w: 8, h: 16, outline: "k" }, rect(1, 2, 6, 14, "r"), rect(1, 0, 6, 3, "M"), rect(2, 7, 4, 4, "w"))
+sprite("prop_coffee", { w: 16, h: 26, outline: "k" }, rect(0, 0, 16, 26, "K"), rect(2, 2, 12, 6, "N"), text(8, 3, "CAFE", "y", { align: "c" }), rect(5, 14, 6, 6, "w"), rect(6, 15, 4, 2, "N"))
+sprite("prop_tip_sign", { w: 22, h: 14, outline: "k" }, rect(0, 0, 22, 14, "w"), text(11, 2, "TIPS", "g", { align: "c" }), text(11, 8, "MERCI", "r", { align: "c" }))
+sprite("prop_bucket", { w: 12, h: 14, outline: "k" }, poly([1, 4, 11, 4, 10, 13, 2, 13], "+"), rect(5, 0, 2, 8, "n"), rect(2, 0, 8, 2, "K"))
+sprite("prop_boombox", { w: 20, h: 12, outline: "k" }, rect(0, 2, 20, 10, "M"), circ(5, 7, 3, "K"), circ(15, 7, 3, "K"), rect(8, 4, 4, 2, "c"), rect(6, 0, 8, 2, "m"))
+sprite("prop_cooler", { w: 18, h: 12, outline: "k" }, rect(0, 2, 18, 10, "+"), rect(0, 0, 18, 3, "w"), rect(7, 5, 4, 2, "w"))
+sprite("prop_jukebox", { w: 18, h: 30, outline: "k" }, rect(0, 8, 18, 22, "p"), circ(9, 8, 8, "p"), rect(3, 8, 12, 10, "y"), rect(3, 20, 12, 6, "P"), circ(9, 5, 3, "o"))
+sprite("prop_tank_gauge", { w: 14, h: 18, outline: "k" }, rect(0, 0, 14, 18, "w"), circ(7, 7, 5, "W"), line(7, 7, 10, 4, "r"), text(7, 12, "TK", "K", { align: "c" }))

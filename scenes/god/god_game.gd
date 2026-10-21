@@ -148,6 +148,7 @@ func start_day() -> void:
 	state = "day"
 	_hide_all()
 	_hud(true)
+	day.owned = run.owned.duplicate()  # upgrades bought last night pop in this morning
 	day.start_day(run.mods(), run.tank, run.day, meta.unlocked_cars())
 	if run.day >= GodData.FINAL_DAY:
 		var dad := day.park_customer(30.0, Vector2(GodPump.ENTRANCE.x + 60, GodPump.LOT.position.y + 70))

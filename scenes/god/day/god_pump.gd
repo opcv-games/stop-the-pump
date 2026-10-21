@@ -66,6 +66,8 @@ var managed := false
 var mods := GodData.BASE.duplicate()
 ## Car types that can show up today (unlocked in the meta).
 var car_pool: Array = ["sedan"]
+## The night-shop upgrades owned (GodGame sets it at opening): the station shows them as props.
+var owned := {}
 var day_num := 1
 ## Drone nozzles: each {pos, car, state, goal}.
 var drones: Array[Dictionary] = []
@@ -177,7 +179,9 @@ func _ready() -> void:
 			"nozzle_idle", "nozzle_squeeze", "pump_hud", "tip_jar", "gauge_face", "bench", "clock_face",
 			"sign_ouvert", "sign_ferme", "storefront", "dirt2", "grass_a", "grass_b", "grass_c", "oil_stain", "crack",
 			"hatch", "concrete", "tree", "tire_pile", "dumpster", "regular_0_clap", "regular_1_clap", "regular_2_clap",
-			"regular_3_clap", "drone_0", "drone_1", "badge_thief", "badge_electric", "badge_sweeper", "badge_clumsy", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
+			"regular_3_clap", "drone_0", "drone_1", "prop_traffic_light", "prop_sandwich", "prop_antenna", "prop_billboard",
+			"prop_grocery", "prop_car_wash", "prop_loto", "prop_fuel_tank", "prop_lamp", "prop_cousin", "prop_thermos",
+			"prop_coffee", "prop_tip_sign", "prop_bucket", "prop_boombox", "prop_cooler", "prop_jukebox", "badge_thief", "badge_electric", "badge_sweeper", "badge_clumsy", "regular_0", "regular_1", "regular_2", "regular_3", "regular_0_cheer",
 			"regular_1_cheer", "regular_2_cheer", "regular_3_cheer"]:
 		var path := PIXEL % id
 		if ResourceLoader.exists(path):

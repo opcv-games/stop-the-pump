@@ -404,6 +404,7 @@ func _process(_dt: float) -> void:
 	_sync_cars()
 	_sync_puddles()
 	_sync_store()
+	_sync_props(_dt)
 
 
 func _slice_mat(stack: String, i: int) -> StandardMaterial3D:
@@ -482,6 +483,62 @@ func _sync_puddles() -> void:
 		var k: float = 1.4 * clampf(p.r / (tex.get_width() * 0.9), 1.0, 1.8)
 		(mi.mesh as PlaneMesh).size = tex.get_size() * PX * k
 		mi.position = to3(p.pos, 0.012)
+
+
+## Every night-shop upgrade shows on the station (#37): node id -> [sprite, world spot, height, flat on
+## the facade?]. They pop in the morning after you buy them (GodGame hands the day `owned` at opening).
+const PROPS := {
+	"flyers": ["prop_sandwich", Vector2(338, 168), 0.4, false],
+	"radio_ad": ["prop_antenna", Vector2(60, 132), STORE_H + 0.6, false],
+	"billboard": ["prop_billboard", Vector2(760, 22), 0.8, false],  # across the road, facing the lot
+	"traffic_light": ["prop_traffic_light", Vector2(250, 118), 0.8, false],
+	"grocery": ["prop_grocery", Vector2(96, 166), 1.5, true],
+	"car_wash": ["prop_car_wash", Vector2(1098, 330), 0.8, false],
+	"loto": ["prop_loto", Vector2(30, 182), 0.56, false],
+	"tank_1": ["prop_fuel_tank", Vector2(30, 262), 0.44, false],
+	"tank_2": ["prop_fuel_tank", Vector2(30, 312), 0.44, false],
+	"tank_3": ["prop_fuel_tank", Vector2(30, 362), 0.44, false],
+	"thermos": ["prop_thermos", Vector2(70, 188), 0.38, false],
+	"mom_lunch": ["prop_cooler", Vector2(52, 198), 0.24, false],
+	"permit": ["prop_lamp", Vector2(430, 118), 0.88, false],
+	"cousin": ["prop_cousin", Vector2(218, 178), 0.6, false],
+	"tip_sign": ["prop_tip_sign", Vector2(188, 166), 1.36, true],
+	"squeegee": ["prop_bucket", Vector2(248, 186), 0.28, false],
+	"coffee": ["prop_coffee", Vector2(4, 186), 0.52, false],
+	"radio": ["prop_boombox", Vector2(170, 186), 0.42, false],
+	"jukebox": ["prop_jukebox", Vector2(262, 180), 0.6, false],
+}
+var _props := {}  # node id -> {sprite, t}
+
+
+func _sync_props(dt: float) -> void:
+	var owned: Dictionary = game.owned
+	for b in GodData.BRANCHES:
+		var level: int = owned.get(b.id, 0)
+		for i in b.nodes.size():
+			var id: String = b.nodes[i].id
+			if not PROPS.has(id):
+				continue
+			var have: bool = i < level
+			if have and not _props.has(id):
+				var spec: Array = PROPS[id]
+				var spr := _upright(game.tex(spec[0]), to3(spec[1], spec[2]) + (Vector3(0, 0, 0.03) if spec[3] else Vector3.ZERO), not spec[3])
+				_props[id] = {"sprite": spr, "t": 0.0}
+				if id == "permit":  # two lamps
+					var second := _upright(game.tex(spec[0]), to3(Vector2(720, 118), spec[2]), true)
+					_props["permit_2"] = {"sprite": second, "t": 0.0}
+			elif not have and _props.has(id):
+				_props[id].sprite.queue_free()
+				_props.erase(id)
+				if id == "permit" and _props.has("permit_2"):
+					_props["permit_2"].sprite.queue_free()
+					_props.erase("permit_2")
+	for id in _props:  # pop: rise out of the ground with an elastic wobble
+		var p: Dictionary = _props[id]
+		p.t += dt
+		var k: float = clampf(p.t / 0.9, 0.0, 1.0)
+		var s := 1.0 + 0.3 * exp(-5.0 * k) * sin(k * PI * 4.0) if k < 1.0 else 1.0
+		(p.sprite as Sprite3D).scale = Vector3(s, minf(k * 2.0, 1.0) * s, s)
 
 
 func _sync_store() -> void:

@@ -91,3 +91,16 @@ func test_escape_pauses_a_day_and_can_go_back_to_the_title() -> void:
 	assert_true(get_tree().paused)
 	g.toggle_pause()
 	assert_false(get_tree().paused)
+
+
+func test_upgrades_bought_last_night_show_on_the_station_this_morning() -> void:
+	g.day.view = "hd"
+	g.day.set_view("hd")
+	g.day.end_round()
+	g._after_report()
+	g.run.cash = 1000.0
+	g.night.tree.press("attractions:0")  # traffic light
+	assert_false(g.day._hd_view._props.has("traffic_light"), "not until the morning")
+	g.open_next_day()
+	g.day._hd_view._sync_props(0.1)
+	assert_true(g.day._hd_view._props.has("traffic_light"))
