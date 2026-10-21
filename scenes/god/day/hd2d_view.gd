@@ -11,7 +11,7 @@ extends Node3D
 
 const K := 0.02  # metres per world pixel
 const PX := 0.04  # metres per sprite pixel (sprites were drawn for 2x)
-const CAR_SLICE_GAP := 0.026
+const CAR_SLICE_GAP := 0.034  # round 8: a little taller, so the cars read as solid
 const STORE := Rect2(16, 100, 262, 66)  # matches IsoView: between the road and the lot
 const STORE_H := 1.76
 const BENCH := Vector2(60, 186)
@@ -425,12 +425,14 @@ func _slice_mat(stack: String, i: int) -> StandardMaterial3D:
 	return _slice_mats[key]
 
 
-## A car as its 8 claude-pxl slices, doubled to close the gaps: 16 flat quads stacked upward.
+## A car as its 8 claude-pxl slices, doubled to close the gaps: 16 flat quads stacked upward. Each car
+## type keeps its own length (the Cadillac is longer than the bazou).
 func _make_car(car: ProtoCar) -> Node3D:
 	var root := Node3D.new()
 	add_child(root)
 	var q := PlaneMesh.new()
-	q.size = Vector2(30, 16) * PX
+	var base: Texture2D = game.tex("stack_%s_0" % car.stack)
+	q.size = (base.get_size() if base else Vector2(30, 16)) * PX
 	for i in 16:
 		var mi := MeshInstance3D.new()
 		mi.mesh = q

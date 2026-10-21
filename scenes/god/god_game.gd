@@ -166,7 +166,7 @@ func start_day() -> void:
 	if run.day >= GodData.FINAL_DAY:
 		var dad := day.park_customer(30.0, Vector2(GodPump.ENTRANCE.x + 60, GodPump.LOT.position.y + 70))
 		dad.set_type("papa", day.rng)
-		dad.stack = "orange"
+		dad.stack = "papa"  # the orange hatchback, a fishing rod on the roof
 		dad.patience = 9999.0
 
 

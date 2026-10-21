@@ -96,32 +96,73 @@ sprite("asphalt", { w: 32, h: 32 }, rect(0, 0, 32, 32, "a"), (c) => specks(c, 32
 sprite("road", { w: 32, h: 32 }, rect(0, 0, 32, 32, "A"), (c) => specks(c, 32, 32, "ai", 40, 3), rect(4, 15, 16, 2, "d"))
 sprite("dirt", { w: 32, h: 32 }, rect(0, 0, 32, 32, "x"), (c) => specks(c, 32, 32, "Xz", 90, 11))
 
-// --- Isometric try: sprite-stacked cars (#36) ---------------------------------------------------
-// A boxy late-80s sedan (square headlights, chrome bumpers, long hood and trunk) as 8 top-down
-// slices, bottom to top. The game stacks them a pixel apart, turned to the car's heading and seen
-// through the isometric camera, so one drawing gives every angle.
-const SLICES = [
-  // 0: tyres and the dark underbody
-  [rect(3, 0, 6, 16, "t"), rect(20, 0, 6, 16, "t"), rect(1, 2, 28, 12, "B")],
-  // 1: tyres and the lower body
-  [rect(3, 0, 6, 16, "t"), rect(20, 0, 6, 16, "t"), rect(0, 1, 30, 14, "B")],
-  // 2: body sides, chrome bumpers, square lights
-  [rect(0, 1, 30, 14, "b"), rect(0, 1, 1, 14, "M"), rect(29, 1, 1, 14, "M"),
-    rect(28, 2, 2, 3, "y"), rect(28, 11, 2, 3, "y"), rect(0, 2, 1, 3, "r"), rect(0, 11, 1, 3, "r")],
-  // 3: body with a chrome trim line
-  [rect(0, 1, 30, 14, "b"), hline(1, 1, 28, "M"), hline(1, 14, 28, "M")],
-  // 4: hood and trunk tops, lit
-  [rect(0, 1, 30, 14, "L"), rect(1, 2, 28, 12, "b")],
-  // 5-6: the cabin's glass all round, with pillars at the corners
-  [rect(9, 2, 13, 12, "w"), rect(9, 2, 1, 1, "b"), rect(21, 2, 1, 1, "b"), rect(9, 13, 1, 1, "b"), rect(21, 13, 1, 1, "b"), rect(14, 2, 1, 12, "b")],
-  [rect(9, 2, 13, 12, "W"), rect(14, 2, 1, 12, "b"), rect(10, 3, 11, 10, "w")],
-  // 7: the roof
-  [rect(10, 3, 11, 10, "R"), rect(11, 4, 9, 8, "b")],
-]
-SLICES.forEach((ops, i) => sprite(`_stack_${i}`, { w: 30, h: 16 }, ...ops))
+pal({ q: "#efe6cf" })  // cream: plates, chrome glints (the same cream the round-4 palette uses)
+// --- Sprite-stacked cars (#36, redrawn in round 8) ---------------------------------------------
+// Every car is 8 top-down slices, bottom to top, front facing +x. carSlices() draws them from a spec:
+// len (pixels), cab [x0, x1] (the greenhouse), body keys {b, B, Lt, R} (mid, dark, light, roof), and
+// optional features: bed (pickup), tall (vans and trucks), low (no roof: the racer), fins + ornament
+// (the Cadillac), stripes + wing (the racer), patch (the bazou's odd door and rust), tint + scoop
+// (the thief), rack + rod (Dad's hatchback, a fishing rod on the roof), hatch (a short rear).
+// Every car gets: tyres with hubcaps, chrome bumpers, headlights, a grille, taillights, a Québec
+// plate, door seams and handles, a chrome trim line, glass with a reflection, a lit roof corner.
+function carSlices(spec) {
+  const L = spec.len, [c0, c1] = spec.cab, { b, B, Lt, R } = spec.keys
+  const wa = 3, wb = L - 10, mid = Math.round((c0 + c1) / 2)
+  const tyres = [rect(wa, 0, 6, 16, "t"), rect(wb, 0, 6, 16, "t")]
+  const hubs = spec.patch ? [px(wa + 2, 0, "M"), px(wa + 2, 15, "M"), px(wb + 2, 0, "M")]   // the bazou lost a hubcap
+    : [px(wa + 2, 0, "M"), px(wa + 3, 0, "M"), px(wa + 2, 15, "M"), px(wa + 3, 15, "M"), px(wb + 2, 0, "M"), px(wb + 3, 0, "M"), px(wb + 2, 15, "M"), px(wb + 3, 15, "M")]
+  const seams = (k) => [c0 + 1, mid, c1].flatMap((x) => [px(x, 1, k), px(x, 14, k)])
+  const glass = spec.tint ? ["}", "{"] : ["w", "W"]
+  const sl = []
+  // 0: the tyres and the dark underbody
+  sl.push([...tyres, rect(1, 2, L - 2, 12, B), px(1, 4, "M")])
+  // 1: the tyres' outer faces with hubcaps, the lower body
+  sl.push([...tyres, ...hubs, rect(0, 1, L, 14, B)])
+  // 2: the body's sides, chrome bumpers, headlights and grille in front, taillights and the plate behind
+  sl.push([rect(0, 1, L, 14, b), rect(0, 1, 1, 14, "M"), rect(L - 1, 1, 1, 14, "M"), px(L - 1, 1, "q"), px(0, 1, "q"),
+    rect(L - 2, 2, 2, 3, "y"), rect(L - 2, 11, 2, 3, "y"), rect(L - 1, 5, 1, 6, "t"),
+    rect(0, 2, 1, 3, "r"), rect(0, 11, 1, 3, "r"), rect(0, 6, 1, 4, "q"), px(0, 7, "B"), ...seams(B),
+    ...(spec.patch ? [rect(c0 + 1, 1, mid - c0 - 1, 1, "o"), rect(c0 + 1, 14, mid - c0 - 1, 1, "o")] : [])])
+  // 3: the body with its chrome trim, door handles
+  sl.push([rect(0, 1, L, 14, b), hline(2, 1, L - 4, "M"), hline(2, 14, L - 4, "M"), ...seams(B), px(c0 + 3, 1, "q"), px(mid + 3, 1, "q"), px(c0 + 3, 14, "q"), px(mid + 3, 14, "q"),
+    ...(spec.patch ? [rect(c0 + 1, 1, mid - c0 - 1, 1, "o"), rect(c0 + 1, 14, mid - c0 - 1, 1, "o"), px(5, 1, "S"), px(L - 6, 14, "S"), px(9, 14, "S")] : [])])
+  if (spec.tall) {
+    // vans and trucks: three more body slices with side windows, then the roof
+    sl.push([rect(0, 1, L, 14, b), rect(L - 5, 2, 4, 12, glass[0]), rect(3, 1, L - 10, 1, glass[0]), rect(3, 14, L - 10, 1, glass[0])],
+      [rect(0, 1, L, 14, b), rect(L - 5, 2, 4, 12, glass[1]), px(L - 4, 3, "w")],
+      [rect(0, 1, L, 14, b), hline(1, 1, L - 2, Lt), hline(1, 14, L - 2, B)],
+      [rect(0, 1, L, 14, R), rect(1, 2, L - 2, 12, Lt), rect(2, 3, Math.floor(L / 3), 4, "q")])
+  } else {
+    // 4: the hood and trunk lids, lit: a crease down the hood, the trunk's seam, features
+    const top = [rect(0, 1, L, 14, Lt), rect(1, 2, L - 2, 12, b), hline(c1 + 1, 7, L - c1 - 3, Lt), hline(c1 + 1, 8, L - c1 - 3, Lt), vline(Math.max(c0 - 2, 2), 3, 10, B)]
+    if (spec.bed) top.push(rect(2, 3, c0 - 3, 10, "{"), hline(2, 7, c0 - 3, "}"))                       // the open bed
+    if (spec.fins) top.push(rect(0, 1, 6, 2, Lt), rect(0, 13, 6, 2, Lt), px(0, 2, "r"), px(0, 13, "r"))  // tail fins
+    if (spec.ornament) top.push(px(L - 2, 7, "q"), px(L - 2, 8, "q"))                                   // the hood ornament
+    if (spec.stripes) top.push(hline(0, 6, L, "q"), hline(0, 9, L, "q"))                                // racing stripes
+    if (spec.scoop) top.push(rect(c1 + 3, 6, 5, 4, "t"), hline(c1 + 3, 6, 5, B))                         // a hood scoop
+    if (spec.patch) top.push(px(4, 3, "S"), px(5, 4, "S"), px(L - 5, 11, "S"), px(c1 + 4, 4, "o"))       // rust
+    sl.push(top)
+    // 5-6: the greenhouse: glass all round, the pillars, a streak of reflected sky
+    const bedWalls = spec.bed ? [rect(1, 1, c0 - 1, 1, b), rect(1, 14, c0 - 1, 1, b), rect(1, 1, 1, 14, b)] : []
+    const pillars = [rect(c0, 2, 1, 1, b), rect(c1 - 1, 2, 1, 1, b), rect(c0, 13, 1, 1, b), rect(c1 - 1, 13, 1, 1, b), rect(mid, 2, 1, 12, b)]
+    const hatch = spec.hatch ? [rect(1, 3, c0 - 1, 10, glass[1])] : []
+    sl.push([rect(c0, 2, c1 - c0, 12, glass[0]), ...pillars, line(c0 + 2, 3, c0 + 5, 12, glass[1]), ...bedWalls, ...hatch,
+      ...(spec.fins ? [px(1, 1, Lt), px(1, 14, Lt)] : [])])
+    sl.push([rect(c0, 2, c1 - c0, 12, glass[1]), rect(mid, 2, 1, 12, b), rect(c0 + 1, 3, c1 - c0 - 2, 10, glass[0]), px(c1 - 3, 4, "q"), ...bedWalls])
+    // 7: the roof, its lit corner, the antenna; or nothing (a convertible racer) and its wing
+    const roof = spec.low ? [] : [rect(c0 + 1, 3, c1 - c0 - 2, 10, R), rect(c0 + 2, 4, c1 - c0 - 4, 8, b), rect(c0 + 2, 4, Math.floor((c1 - c0) / 2), 2, Lt), px(c0 + 1, 3, "M")]
+    if (spec.wing) roof.push(rect(0, 1, 3, 14, "t"), hline(0, 1, 3, "q"))                               // the racer's rear wing
+    if (spec.rack) roof.push(hline(c0 + 1, 4, c1 - c0 - 2, "t"), hline(c0 + 1, 11, c1 - c0 - 2, "t"))   // a roof rack
+    if (spec.rod) roof.push(line(1, 3, L - 1, 12, "q"), px(c0 + 3, 6, "M"), px(c0 + 3, 7, "t"))          // ...and the fishing rod on it
+    sl.push(roof)
+  }
+  return sl
+}
+const SEDAN = carSlices({ len: 30, cab: [9, 22], keys: { b: "b", B: "B", Lt: "L", R: "R" } })
+SEDAN.forEach((ops, i) => sprite(`_stack_${i}`, { w: 30, h: 16 }, ...ops))
 const STACK_BODIES = { blue: null, ...BODIES }
 for (const [name, body] of Object.entries(STACK_BODIES))
-  SLICES.forEach((_, i) => body
+  SEDAN.forEach((_, i) => body
     ? sprite(`stack_${name}_${i}`, { base: `_stack_${i}`, swap: { b: body[0], B: body[1], L: body[2], R: body[3] } })
     : sprite(`stack_${name}_${i}`, { base: `_stack_${i}` }))
 
@@ -296,7 +337,7 @@ sprite("dumpster", { w: 34, h: 24, outline: "k" },
   rect(4, 22, 4, 2, "K"), rect(26, 22, 4, 2, "K"), text(17, 13, "DECHETS", "q", { align: "c" }))
 // The rundown car: the sedan stack, rusted brown, a wheel missing.
 const RUST = { b: "#7a4a2a", B: "#5a341c", L: "#9a6a44", R: "#4a2a16", w: "#556066", W: "#3c464c", y: "#665544", M: "#6a5a4a" }
-SLICES.forEach((_, i) => sprite(`stack_rust_${i}`, { base: `_stack_${i}`, swap: RUST }, ...(i <= 1 ? [rect(20, 0, 6, 3, "_")] : [])))
+SEDAN.forEach((_, i) => sprite(`stack_rust_${i}`, { base: `_stack_${i}`, swap: RUST }, ...(i <= 1 ? [rect(20, 0, 6, 3, "_")] : [])))
 
 // =============================================================================================
 // GOD PUMP car types (#37): one sprite stack per type, from a generic shape description, plus a badge
@@ -304,48 +345,23 @@ SLICES.forEach((_, i) => sprite(`stack_rust_${i}`, { base: `_stack_${i}`, swap: 
 // =============================================================================================
 pal({ "<": "#e8c33a", ">": "#a8861a", "{": "#222226", "}": "#3a3a42", "[": "#8ab8a0", "]": "#3d7a5a", "|": "#d0d0c8" })
 
-// spec: len (pixels), cab [x0, x1] (the cabin, front is +x), body keys {b, B, L, R}, flags: bed (open
-// cargo bed behind the cabin), tall (a box: van, truck), low (a sports car: no roof slice).
-function stackSlices(name, spec) {
-  const L = spec.len, W = 16, [c0, c1] = spec.cab
-  const { b, B, Lt, R } = spec.keys
-  const wheelA = 3, wheelB = L - 10
-  const slices = [
-    [rect(wheelA, 0, 6, 16, "t"), rect(wheelB, 0, 6, 16, "t"), rect(1, 2, L - 2, 12, B)],
-    [rect(wheelA, 0, 6, 16, "t"), rect(wheelB, 0, 6, 16, "t"), rect(0, 1, L, 14, B)],
-    [rect(0, 1, L, 14, b), rect(0, 1, 1, 14, "M"), rect(L - 1, 1, 1, 14, "M"),
-      rect(L - 2, 2, 2, 3, "y"), rect(L - 2, 11, 2, 3, "y"), rect(0, 2, 1, 3, "r"), rect(0, 11, 1, 3, "r")],
-    [rect(0, 1, L, 14, b), hline(1, 1, L - 2, "M"), hline(1, 14, L - 2, "M")],
-  ]
-  const full = (k) => [rect(0, 1, L, 14, k)]
-  if (spec.tall) {
-    slices.push(full(b), [rect(0, 1, L, 14, b), rect(L - 5, 2, 4, 12, "w"), rect(3, 1, L - 10, 1, "w"), rect(3, 14, L - 10, 1, "w")],
-      [rect(0, 1, L, 14, b), rect(L - 5, 2, 4, 12, "W")], [rect(0, 1, L, 14, R), rect(1, 2, L - 2, 12, Lt)])
-  } else {
-    const top = [rect(0, 1, L, 14, Lt), rect(1, 2, L - 2, 12, b)]
-    if (spec.bed) top.push(rect(2, 3, c0 - 3, 10, "{"))       // the open bed, seen from above
-    slices.push(top)
-    const glass = (k) => [rect(c0, 2, c1 - c0, 12, k), rect(c0, 2, 1, 1, b), rect(c1 - 1, 2, 1, 1, b), rect(c0, 13, 1, 1, b), rect(c1 - 1, 13, 1, 1, b)]
-    const bedWalls = spec.bed ? [rect(1, 1, c0 - 1, 1, b), rect(1, 14, c0 - 1, 1, b), rect(1, 1, 1, 14, b)] : []
-    slices.push([...glass("w"), ...bedWalls], [...glass("W"), rect(c0 + 1, 3, c1 - c0 - 2, 10, "w"), ...bedWalls])
-    slices.push(spec.low ? [rect(c0 + 1, 3, c1 - c0 - 2, 10, R)] : [rect(c0 + 1, 3, c1 - c0 - 2, 10, R), rect(c0 + 2, 4, c1 - c0 - 4, 8, b)])
-  }
-  slices.forEach((ops, i) => sprite(`stack_${name}_${i}`, { w: L, h: W }, ...ops, ...(spec.extra ? spec.extra(i) : [])))
-}
 const K4 = (b, B, Lt, R) => ({ b, B, Lt, R })
+function stackSlices(name, spec) {
+  carSlices(spec).forEach((ops, i) => sprite(`stack_${name}_${i}`, { w: spec.len, h: 16 }, ...ops, ...(spec.extra ? spec.extra(i) : [])))
+}
 stackSlices("pickup", { len: 36, cab: [17, 26], bed: true, keys: K4("#3e6a8a", "#28465c", "#6a94b4", "#1e3446") })
-stackSlices("cadillac", { len: 38, cab: [15, 27], keys: K4("#e8e4da", "#b8b2a4", "#fbf8f0", "#9a2a2a") })
-stackSlices("bazou", { len: 28, cab: [9, 20], keys: K4("#8a5a3a", "#5e3a22", "#a87a54", "#4a2a16"),
-  extra: (i) => i === 3 ? [px(6, 1, "{"), px(14, 14, "{"), px(21, 2, "o")] : [] })
-stackSlices("racer", { len: 30, cab: [12, 20], low: true, keys: K4("#d0302a", "#8a1a16", "#f06050", "#2a2a2a"),
-  extra: (i) => i === 4 ? [rect(1, 7, 28, 2, "w")] : [] })
+stackSlices("cadillac", { len: 38, cab: [15, 27], fins: true, ornament: true, keys: K4("#e8e4da", "#b8b2a4", "#fbf8f0", "#9a2a2a") })
+stackSlices("bazou", { len: 28, cab: [9, 20], patch: true, keys: K4("#8a5a3a", "#5e3a22", "#a87a54", "#4a2a16") })
+stackSlices("racer", { len: 30, cab: [12, 20], low: true, stripes: true, wing: true, keys: K4("#d0302a", "#8a1a16", "#f06050", "#2a2a2a") })
 stackSlices("sweeper", { len: 32, cab: [22, 30], tall: true, keys: K4("<", ">", "#f2dc6a", "#6a5a1a"),
   extra: (i) => i <= 1 ? [circ(4, 2, 2, "M"), circ(4, 13, 2, "M")] : (i === 7 ? [rect(10, 6, 6, 4, "o")] : []) })
-stackSlices("thief", { len: 30, cab: [10, 21], keys: K4("{", "#121214", "}", "#0a0a0c") })
+stackSlices("thief", { len: 30, cab: [10, 21], tint: true, scoop: true, keys: K4("{", "#121214", "}", "#0a0a0c") })
 stackSlices("clumsy", { len: 32, cab: [22, 30], tall: true, keys: K4("#8a8a6a", "#5a5a44", "#aaa88a", "#4a4a38"),
   extra: (i) => i === 3 || i === 4 ? [px(8, 1, "K"), px(9, 1, "K"), px(20, 14, "K"), px(21, 14, "K")] : [] })
 stackSlices("electric", { len: 24, cab: [8, 18], keys: K4("[", "]", "#b4dcc4", "#2a5a40"),
   extra: (i) => i === 7 ? [text(13, 6, "E", "y", { align: "c" })] : [] })
+// Dad's car (the ending): the faded orange 70s hatchback from the reference, a fishing rod on the roof rack.
+stackSlices("papa", { len: 28, cab: [6, 19], hatch: true, rack: true, rod: true, keys: K4("#d06a2c", "#a04c1c", "#ec9a5e", "#8a3e16") })
 
 // Badges floating over the troublemakers.
 sprite("badge_thief", { w: 14, h: 10, outline: "k" }, rect(0, 2, 14, 5, "{"), rect(2, 3, 3, 3, "w"), rect(9, 3, 3, 3, "w"), px(3, 4, "k"), px(10, 4, "k"))

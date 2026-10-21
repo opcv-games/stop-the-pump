@@ -131,7 +131,7 @@ const CAR_TYPES := {
 	"clumsy": {"name": "Le Maladroit", "customer": true, "orders": [15.0, 20.0, 25.0], "role": "clumsy", "unlock": 900, "weight": 1.5},
 	"electric": {"name": "L'Électrique", "customer": false, "role": "electric", "unlock": 1200, "weight": 1.5},
 	# Day 50 only: Dad, in the old orange hatchback (never drawn from the pool).
-	"papa": {"name": "Papa", "customer": true, "orders": [30.0], "tip": 5.0, "unlock": 1000000000, "weight": 0.0, "stack": "orange"},
+	"papa": {"name": "Papa", "customer": true, "orders": [30.0], "tip": 5.0, "unlock": 1000000000, "weight": 0.0, "stack": "papa"},
 }
 const CAR_ORDER := ["sedan", "pickup", "cadillac", "bazou", "racer", "sweeper", "thief", "clumsy", "electric"]
 
