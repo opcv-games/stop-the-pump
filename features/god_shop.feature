@@ -21,7 +21,7 @@ Feature: The night shop's tree  (round 8, docs/ROUND_8_PLAN.md)
       | Jauge d'alarme     | the tank tells me how long it lasts to the hour, and warns me in the day   |
       | Achat en vrac      | a delivery costs 10% less when the tank is under 25%                       |
       | Citerne usagée     | a partial delivery (one I can't fully afford) raises the price half as much |
-      | Contrat à terme    | every third delivery comes without a price rise                            |
+      | Contrat à terme    | every fourth delivery comes without a price rise                           |
       | Fenêtre au volant  | a car that waited over 3 s buys a coffee: +$1                              |
       | Soirée du hockey   | every 7th day is hockey night: 3 more cars waiting and more cars pull in   |
       | Carte fidélité     | every 5th car is a regular who tips double                                 |

@@ -94,7 +94,7 @@ const LINKS := [
 	{"id": "drone_hangar", "name": "Hangar à drones", "helps": "a drone fill earns $2 more", "price": 300.0, "needs": ["drone_1", "car_wash"], "fx": {"drone_bonus": 2.0}},
 	{"id": "chip_truck", "name": "Cantine à patates", "helps": "a chip truck on the lot: cars wait 20% longer, every applause +$2", "price": 260.0, "needs": ["grocery", "bench"], "fx": {"patience_mult": 1.2, "applause_bonus": 2.0}},
 	{"id": "price_board", "name": "Prix affiché", "helps": "a big price sign by the road: every sale pays 5% more", "price": 280.0, "needs": ["billboard", "tank_1"], "fx": {"sale_mult": 1.05}},
-	{"id": "forward_contract", "name": "Contrat à terme", "helps": "every third delivery comes without a price rise", "price": 380.0, "needs": ["tank_2", "billboard"], "fx": {"freeze_every": 3}},
+	{"id": "forward_contract", "name": "Contrat à terme", "helps": "every fourth delivery comes without a price rise", "price": 480.0, "needs": ["tank_2", "billboard"], "fx": {"freeze_every": 4}},
 ]
 
 # --- Fuel-truck cards: choose 1 of 3 per delivery (luck raises the rarity) ----------------------
@@ -166,8 +166,8 @@ const PERKS := [
 	{"id": "jackpot", "name": "Jackpot", "helps": "3% of fills tip ×4", "price": 700, "tiers": 2, "fx": {"jackpot_chance": 0.03}},
 	{"id": "slot", "name": "Place pour bling", "helps": "one more bling slot", "price": 500, "tiers": 2, "fx": {"bling_slots": 1}},
 	{"id": "head_start", "name": "Longueur d'avance", "helps": "start each run with a drone nozzle", "price": 2000, "tiers": 1, "fx": {"drones": 1}},
-	{"id": "contract", "name": "Contrat du fournisseur", "helps": "gas prices rise 20% slower", "price": 350, "tiers": 3, "fx": {"price_rise_mult": 0.8}},
-	{"id": "premium", "name": "Super sans plomb", "helps": "premium gas: every sale pays 10% more", "price": 350, "tiers": 3, "fx": {"sale_mult": 1.1}},
+	{"id": "contract", "name": "Contrat du fournisseur", "helps": "gas prices rise 20% slower", "price": 450, "tiers": 3, "fx": {"price_rise_mult": 0.8}},
+	{"id": "premium", "name": "Super sans plomb", "helps": "premium gas: every sale pays 10% more", "price": 450, "tiers": 3, "fx": {"sale_mult": 1.1}},
 	{"id": "tube_man", "name": "Bonhomme gonflable", "helps": "grabs cars off the road and siphons their gas into your tank; tier 2 drops them on your lot", "price": 600, "tiers": 2, "fx": {"tube_man": 1}},
 	{"id": "nest_egg", "name": "Bas de laine", "helps": "start each run with $40 more", "price": 200, "tiers": 3, "fx": {"start_cash": 40.0}},
 ]

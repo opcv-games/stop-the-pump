@@ -237,7 +237,7 @@ func _best_card(run: RunState) -> String:
 
 ## What a player buys in Papa's Garage, in order, whenever the XP is there.
 const GARAGE_ORDER := [["perk", "contract"], ["perk", "premium"], ["perk", "contract"], ["perk", "premium"],
-	["perk", "contract"], ["perk", "premium"], ["perk", "nest_egg"], ["bling", "receipt"], ["perk", "truck_friend"],
+	["perk", "contract"], ["perk", "premium"], ["perk", "tube_man"], ["perk", "nest_egg"], ["bling", "receipt"], ["perk", "truck_friend"],
 	["bling", "hula"], ["perk", "slot"], ["perk", "lucky"], ["perk", "morning_rush"], ["nozzle", "laser"],
 	["bling", "rabbit"], ["perk", "slot"], ["bling", "coupons"], ["perk", "jackpot"], ["perk", "reroll"],
 	["perk", "big_cards"], ["perk", "head_start"], ["nozzle", "doree"]]

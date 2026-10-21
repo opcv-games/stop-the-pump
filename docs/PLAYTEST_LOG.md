@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-21 — Round 8 design session  (#37)
+Hypothesis: A deeper tree, a living lot and a newspaper that tells the story make the loop worth many more runs.
+Variable: round 8 (docs/ROUND_8_PLAN.md)
+Sessions: design session with the designer (no playtest yet)
+Observed: "The gameplay is tight. The tension between refuelling now to get an upgrade and refuelling later to buy more gas at a lower price is crazy good." Asked for: the GAS TANK as an industrial tank and a truck animation; many more upgrades, some needing two; a tube man perk (grab, siphon, spit, drop); perks as lot props; bling worn on the nozzle; animated regulars going in and out; a built-out lot; reports and lore in a newspaper and on the menu ("rumours about the kid, that his dad ain't dead, he's getting good at this, wonder if he's single"); Misses split into Overfilled and Unserved; better art (people, cars, night UI).
+Biggest weakness: not playtested yet.
+Decision: BUILT in v0.43.0; awaiting the designer's playtest.
+
 ## 2026-10-21 — GOD PUMP v0.40: the overnight build  (#37)
 Hypothesis: The full GOD PUMP loop (days, fuel truck and cards, night tree, car types, Papa's Garage, intro and ending) makes a game worth replaying.
 Variable: v0.40.0 (the whole overnight batch)

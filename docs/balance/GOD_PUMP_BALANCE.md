@@ -31,7 +31,23 @@ Tried along the way (price rise per delivery, fresh save):
 - **32–40%:** median day 27–29.
 - **Perk tiers at 200 XP:** half the bot players won in their second run (1.5 h).
 
-## Results
+## Round 8 retune (2026-10-21)
+Round 8 added three things that change the numbers:
+- **A deeper tree:** the CAMION branch and 8 upgrades with two parents.
+- **The tube man perk.**
+- **No XP for unserved cars:** cars that leave without their fill no longer count, which lowered XP to about 1,175 an hour.
+
+The new upgrades made every run stronger, so two prices went up:
+- **Contrat à terme:** every **fourth** delivery comes without a price rise (was every third), and it costs $480 (was $380). At every third it cut the price wall by a third, and a fresh save reached day 50 in 1 run of 60.
+- **Contrat du fournisseur** and **Super sans plomb:** **450 XP a tier** (was 350). At 350, the campaign's median first win came at 2.6 h.
+
+    fresh (80 runs):  days survived median 34, mean 35.0, min 27, max 48; reached day 50: 0
+                      mean per run: XP 694, play time 35.5 min -> 1174 XP per hour of play
+    campaign: 12 players from a fresh save (Garage order: contract and premium gas first, then the tube man)
+    first day 50: 12 of 12 players; median 2.8 h (earliest 1.5 h, latest 3.8 h)
+    (full log: docs/balance/campaign.txt)
+
+## Results before round 8
     fresh (80 runs):  days survived median 34, mean 34.9, min 27, max 47; reached day 50: 0
                       mean per run: XP 871, play time 35.8 min -> 1462 XP per hour of play
     mid (20 runs):    median 33, max 43; reached day 50: 0

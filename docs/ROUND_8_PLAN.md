@@ -1,5 +1,9 @@
 # GOD PUMP: round 8 build plan (2026-10-21)
 
+> **Status: built in v0.43.0 (2026-10-21), awaiting playtest.** Two changes from the plan:
+> - **Fenêtre au volant** needs Café + Thermos: the tree's layout can't put three links on one branch side by side.
+> - **Contrat à terme** freezes every 4th delivery (not every 3rd), so a fresh save still can't reach day 50.
+>
 > Agreed in a design session with the designer (playtest 7 follow-up). Contract for one long build
 > round of about 75 minutes. Work top to bottom; each step: spec → test → code → commit, tests green.
 > Republish the artifact at the end (`sh tools/web/pack_artifact.sh`, same URL).

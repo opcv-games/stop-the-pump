@@ -270,14 +270,14 @@ func test_the_used_tanker_halves_a_partial_deliverys_rise() -> void:
 	assert_almost_eq(r.price, p * (1.0 + GodData.PRICE_RISE * 0.5), 0.0001)
 
 
-func test_the_forward_contract_freezes_every_third_delivery() -> void:
+func test_the_forward_contract_freezes_every_fourth_delivery() -> void:
 	var r := _run()
 	r.links = ["forward_contract"]
 	r.cash = 100000.0
 	var prices := []
-	for i in 3:
+	for i in 4:
 		r.tank = 0.0
 		assert_true(r.call_truck())
 		prices.append(r.price)
-	assert_gt(prices[1], prices[0])
-	assert_eq(prices[2], prices[1], "the third delivery comes at the old price")
+	assert_gt(prices[2], prices[1])
+	assert_eq(prices[3], prices[2], "the fourth delivery comes at the old price")
