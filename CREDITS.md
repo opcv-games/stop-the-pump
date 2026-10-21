@@ -9,3 +9,5 @@ Third-party assets used in Gas Bar Blues, with their source and licence. Every f
 
 ## Tools
 - Pixel art for the god-pump prototype is drawn as code with [claude-pxl](https://github.com/augusto-scarvalho/claude-pxl) (MIT licence).
+- GOD PUMP placeholder sounds (applause, register, horn, choir, fuel truck) are synthesized by `tools/make_godpump_sounds.py` (no samples).
+- GOD PUMP icons and all pixel art: drawn as code with claude-pxl (`assets/art/pixel/*.px.js`).

@@ -144,7 +144,7 @@ func _draw() -> void:
 	if s.get("credits", false):
 		var lines := ["A game by Olivier", "Built with the Indie Game Committee (Claude)", "Music: \"Roadside At Two\"  ·  Pixel art drawn with claude-pxl"]
 		for i in lines.size():
-			GodUI.text(self, Vector2(576, 300 + i * 30), lines[i], 18, Color(GodUI.CREAM, a * 0.9), true, 4)
+			GodUI.text(self, Vector2(576, 372 + i * 30), lines[i], 18, Color(GodUI.CREAM, a * 0.9), true, 4)
 	GodUI.text(self, Vector2(1130 - GodUI.font().get_string_size("ESC skip", HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x, 34),
 		"ENTER" if on_last() else "ESC skip", 13, Color(1, 1, 1, 0.4))
 
@@ -174,10 +174,10 @@ func _draw_heaven(s: Dictionary) -> void:
 				draw_circle(Vector2(cx + side * j * 60.0, y + sin(i + j) * 10.0), 70.0 - j * 8.0, Color(1, 0.97, 0.92, 0.85))
 	if s.get("nozzle", false) and _nozzle:
 		var drop := clampf(_t / 2.2, 0.0, 1.0)
-		var pos := Vector2(576, lerpf(-120.0, 250.0, 1.0 - pow(1.0 - drop, 3.0)))
+		var pos := Vector2(576, lerpf(-120.0, 300.0, 1.0 - pow(1.0 - drop, 3.0)))
 		for i in 6:
 			draw_circle(pos, 120.0 - i * 16.0, Color(1, 0.9, 0.5, 0.06))
-		draw_set_transform(pos, -0.3, Vector2(5, 5))
+		draw_set_transform(pos, -0.3, Vector2(3.4, 3.4))
 		draw_texture(_nozzle, -_nozzle.get_size() * 0.5, Color(1.0, 0.85, 0.35))
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -193,7 +193,7 @@ func _draw_title() -> void:
 	var title := "GOD PUMP"
 	var fs := 130
 	var w := f.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	draw_set_transform(Vector2(576, 240) + shake, 0.0, Vector2(scale, scale))
+	draw_set_transform(Vector2(576, 210) + shake, 0.0, Vector2(scale, scale))
 	draw_string_outline(f, Vector2(-w * 0.5, 40), title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 16, Color(0.4, 0.2, 0.03))
 	draw_string(f, Vector2(-w * 0.5, 40), title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1.0, 0.84, 0.3))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

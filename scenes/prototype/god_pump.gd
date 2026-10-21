@@ -198,7 +198,8 @@ func _ready() -> void:
 	ProtoCar.gauge_tex = _tex.get("gauge_face")
 	if sound_on:
 		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN  # the nozzle is the cursor
-		for id in ["sfx_super_perfect", "sfx_perfect", "sfx_good", "sfx_ok", "sfx_miss", "pop", "counter_1", "counter_2", "counter_3"]:
+		for id in ["sfx_super_perfect", "sfx_perfect", "sfx_good", "sfx_ok", "sfx_miss", "pop", "counter_1", "counter_2", "counter_3",
+				"applause", "cash", "horn", "truck"]:
 			var p := AudioStreamPlayer.new()
 			p.stream = load("res://assets/audio/placeholder/%s.wav" % id)
 			add_child(p)
@@ -481,6 +482,7 @@ func _react(car: ProtoCar) -> void:
 		fines += 10.0
 		cash -= 10.0
 		_floaters.append({"text": "JE SUIS ÉLECTRIQUE! -$10", "pos": top, "life": 1.8, "color": Color(0.5, 1, 0.6), "size": 20})
+		_play("horn")
 	car.leave(self)
 
 
@@ -568,10 +570,11 @@ func _tip_mult(car: ProtoCar) -> float:
 		m *= mods.first_car_tip_mult
 	if int(mods.get("bobblehead", 0)) > 0:
 		m *= 1.0 + 0.05 * combo.multiplier
-	if mods.golden_chance > 0.0 and rng.randf() < mods.golden_chance:
+	var luck: float = 1.0 + mods.luck / 100.0  # luck raises every proc's odds
+	if mods.golden_chance > 0.0 and rng.randf() < mods.golden_chance * luck:
 		m *= 3.0
 		_floaters.append({"text": "DORÉ!", "pos": scr(car.position) + Vector2(0, -130), "life": 1.4, "color": Color(1, 0.85, 0.2), "size": 24})
-	if mods.jackpot_chance > 0.0 and rng.randf() < mods.jackpot_chance:
+	if mods.jackpot_chance > 0.0 and rng.randf() < mods.jackpot_chance * luck:
 		m *= 4.0
 		_floaters.append({"text": "JACKPOT!", "pos": scr(car.position) + Vector2(0, -130), "life": 1.6, "color": Color(1, 0.5, 0.9), "size": 26})
 	return m
@@ -605,7 +608,7 @@ func _settle(car: ProtoCar) -> void:
 	if t in [ScoreTiers.SUPER_PERFECT, ScoreTiers.PERFECT]:
 		car.tip += mods.perfect_bonus + mods.applause_bonus
 		applause += 1
-	if mods.loto_chance > 0.0 and rng.randf() < mods.loto_chance:
+	if mods.loto_chance > 0.0 and rng.randf() < mods.loto_chance * (1.0 + mods.luck / 100.0):
 		car.tip += 20.0
 		_floaters.append({"text": "LOTO! +$20", "pos": scr(car.position) + Vector2(0, -110), "life": 1.6, "color": Color(1, 0.9, 0.3), "size": 22})
 	var sale: float = minf(car.amount, car.target) * car.pay_share + mods.per_car_bonus
@@ -623,6 +626,8 @@ func _settle(car: ProtoCar) -> void:
 		neon_tier = t
 		say(QUIPS[t])
 	# The regulars: everyone throws their arms up for a top-off and applauds a Perfect.
+	if t in [ScoreTiers.SUPER_PERFECT, ScoreTiers.PERFECT]:
+		_play("applause")
 	for r in regulars:
 		if t == ScoreTiers.SUPER_PERFECT:
 			r.cheer = 1.3
@@ -902,6 +907,8 @@ func _step_money(dt: float) -> void:
 						jar_shown += m.value
 					else:
 						bills_shown += m.value
+						if _sfx.has("cash") and not _sfx.cash.playing:
+							_play("cash")  # the register
 					money.erase(m)
 					_play("counter_%d" % (rng.randi() % 3 + 1))
 	if money.is_empty():
@@ -928,6 +935,7 @@ func _step_patience(dt: float) -> void:
 			if partial > 0.0:
 				drop_cash(car.position, partial, 0.0)
 			_floaters.append({"text": "TROP LONG!", "pos": scr(car.position) + Vector2(0, -60), "life": 1.4, "color": Color(1, 0.4, 0.3), "size": 20})
+			_play("horn")
 			combo.register(ScoreTiers.MISS)
 			car.leave(self)
 
