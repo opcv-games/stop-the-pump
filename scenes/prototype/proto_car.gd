@@ -252,26 +252,27 @@ func _draw() -> void:
 
 ## Order and fill meter above the roof: an 80% notch (it can leave from there), green once past it,
 ## gold when full. Never rotated.
+## Drawn on every car by the god pump (#36): a dial gauge from empty to full.
+static var gauge_tex: Texture2D
+
+
+## The order and a dial gauge above the roof (designer's ask: a fuel gauge, not a bar). The needle
+## sweeps from E to F; the gauge's green ticks mark 80% and up, where the car can leave.
 func draw_meter_at(ci: CanvasItem, at: Vector2) -> void:
 	var font := ThemeDB.fallback_font
+	var f := fill()
 	var text := "$%.0f" % target
-	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x + 14
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x + 12
 	var tag := StyleBoxFlat.new()
 	tag.bg_color = Color(0.1, 0.09, 0.08, 0.92)
 	tag.set_corner_radius_all(8)
-	ci.draw_style_box(tag, Rect2(at - Vector2(w * 0.5, 12), Vector2(w, 22)))
-	ci.draw_string(font, at + Vector2(-w * 0.5 + 7, 5), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
-	var bar := Rect2(at + Vector2(-30, 13), Vector2(60, 8))
-	ci.draw_rect(bar, Color(0.1, 0.09, 0.08, 0.9))
-	var f := fill()
-	var col := Color(0.95, 0.55, 0.15)
-	if f >= 0.995:
-		col = Color(1.0, 0.85, 0.25)
-	elif f >= LEAVE_AT:
-		col = Color(0.4, 0.9, 0.45)
-	ci.draw_rect(Rect2(bar.position, Vector2(bar.size.x * f, bar.size.y)), col)
-	ci.draw_rect(Rect2(bar.position + Vector2(bar.size.x * LEAVE_AT - 1, -2), Vector2(2, bar.size.y + 4)), Color.WHITE)
-	if amount > 0.0:
-		var pct := "%d%%" % int(f * 100.0)  # beside the meter, clear of the car
-		ci.draw_string_outline(font, at + Vector2(34, 22), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, Color(0, 0, 0, 0.8))
-		ci.draw_string(font, at + Vector2(34, 22), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(col, 0.95))
+	ci.draw_style_box(tag, Rect2(at + Vector2(-w * 0.5, -30), Vector2(w, 20)))
+	ci.draw_string(font, at + Vector2(-w * 0.5 + 6, -15), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color.WHITE)
+	var centre := at + Vector2(0, 18)
+	if gauge_tex:
+		var size := gauge_tex.get_size() * 2.0
+		ci.draw_texture_rect(gauge_tex, Rect2(centre - Vector2(size.x * 0.5, size.y - 2), size), false)
+	var a := PI * (1.0 - f)
+	var col := Color(0.15, 0.1, 0.1) if f < LEAVE_AT else (Color(0.1, 0.55, 0.2) if f < 0.995 else Color(0.85, 0.6, 0.05))
+	ci.draw_line(centre, centre + Vector2(cos(a), -sin(a)) * 19.0, col, 2.0, true)
+	ci.draw_circle(centre, 2.5, Color(0.1, 0.1, 0.1))

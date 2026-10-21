@@ -211,3 +211,54 @@ func test_i_switches_views() -> void:
 	key.pressed = true
 	game._unhandled_input(key)
 	assert_ne(game.iso, before)
+
+
+# --- Requests after the isometric try (#36) -----------------------------------------------------
+
+func test_spilled_gas_stays_for_the_whole_round_and_goes_with_it() -> void:
+	game.aim(Vector2(200, 560))
+	game.set_pouring(true)
+	game.step(1.0)
+	game.set_pouring(false)
+	for i in 30:
+		game.step(1.0)
+	assert_gt(game.puddles.size(), 0, "still there 30 s later")
+	game.end_round()
+	game.next_round()
+	assert_eq(game.puddles.size(), 0)
+
+
+func test_tips_go_to_the_jar_and_sales_pile_up_as_bills() -> void:
+	var car := _car(10.0)
+	_pour_on(car, 2.5)
+	game.set_pouring(false)
+	assert_almost_eq(game.tip_jar, game.tip_for(1.0, 0.0), 0.01)
+	assert_almost_eq(game.round_sales, 10.0, 0.01)
+
+
+func test_the_clock_runs_from_7_to_13_and_the_sign_flips() -> void:
+	assert_almost_eq(game.hour_now(), 7.0, 0.01)
+	assert_true(game.is_open())
+	game.round_t = game.round_seconds * 0.5
+	assert_almost_eq(game.hour_now(), 10.0, 0.01)
+	game.end_round()
+	assert_false(game.is_open())
+
+
+func test_good_or_better_flashes_the_neon_ok_does_not() -> void:
+	var car := _car(10.0)
+	car.amount = 8.5
+	game._settle(car)
+	assert_almost_eq(game.neon_flash, 0.0, 0.001, "OK: no flash")
+	var car2 := _car(10.0, Vector2(700, 400))
+	car2.amount = 10.0
+	game._settle(car2)
+	assert_gt(game.neon_flash, 0.0)
+
+
+func test_the_regulars_hang_out_and_react() -> void:
+	assert_eq(game.regulars.size(), 4)
+	var car := _car(10.0)
+	car.amount = 10.0
+	game._settle(car)
+	assert_ne(game.quip_text, "", "someone has something to say about a top-off")

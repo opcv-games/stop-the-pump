@@ -2,6 +2,13 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-20 — God pump, round 4: isometric try and neon  (#36)
+Hypothesis: An isometric pixel view with the dépanneur, neon and stacked sedans makes the gaz bar feel like a place.
+Variable: top-down → isometric; new references (neon, orange hatchback, dépanneur interior)
+Sessions: 1 (self: 1, others: 0)
+Observed (requests): the camera wanted is a high-angle, three-quarter top-down view, not isometric. Give cars a cartoon fuel funnel and a fuel gauge instead of a bar. Put the music back on. The nozzle looks weird: make it a real nozzle (reference photo) with a hand that squeezes the handle to pour. Animate the gas pump itself, showing the gas level (reference: a vintage pump with a clock-face dial). Tips go to a tip jar; don't count sales during the round, show the bills piling up next to the jar. Add the regulars by the dépanneur: make the gaz bar alive. The neon flashes joyfully on Super, Perfect or Good, like a pinball machine. Spilled gas stays for the whole round. A clock with an Ouvert/Fermé sign: opens at 7 h, closes at 13 h, the round length unchanged.
+Decision: all in one pass (v0.32).
+
 ## 2026-10-20 — God pump, round 3: cash drop, $75 gas, pixel art  (#36)
 Hypothesis: Cash that drops and flies to the counter, a shorter gas tank and pixel art make the god pump feel finished enough to commit to.
 Variable: coins on result → bills (sale) and coins (tip) dropped on the lot; $150 → $75 of gas; greybox → claude-pxl pixel art

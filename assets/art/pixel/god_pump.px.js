@@ -135,3 +135,97 @@ sprite("neon_gazbar", { w: 30, h: 26, outline: "J" },
   rect(1, 1, 28, 1, "N"), rect(1, 24, 28, 1, "N"), rect(1, 1, 1, 24, "N"), rect(28, 1, 1, 24, "N"))
 // The same sign switched off, for the neon's flicker.
 sprite("neon_gazbar_off", { base: "neon_gazbar", swap: { N: "#5a2a26" } })
+
+// =============================================================================================
+// Round 4 (#36): the real nozzle, the vintage pump, the tip jar, funnels and gauges, the regulars.
+// =============================================================================================
+pal({
+  q: "#efe6cf", Q: "#cdbf9c",            // cream (dials, signs)
+  T: "#8fa3ad", U: "#c9d8de", Y: "#e8f2f4",   // jar glass: edge, glass, glint
+  F: "#2f8a3e", Z: "#5a3a22", I: "#7a5232", l: "#a87a4e",   // sign green; wood dark, mid, light
+})
+
+// --- The nozzle, after the reference photo: red molded body and hump, a steel spout with a spring
+// collar, a black trigger guard and lever. The hand grips the handle; squeezing pulls the lever in.
+function nozzle(name, squeeze) {
+  sprite(name, { w: 58, h: 46, outline: "k" },
+    capsule(0, 45, 2.5, 9, 36, 2.5, "kKm"),                    // hose into the handle
+    capsule(9, 36, 5, 22, 16, 4.5, "Eef"),                     // red handle
+    capsule(20, 15, 6, 34, 13, 6, "Eef"),                      // red head
+    circ(27, 9, 5, "e"), circ(26, 8, 3, "f"),                  // the hump
+    capsule(36, 13, 2.5, 54, 36, 1.5, "kKmM"),                 // steel spout
+    (c) => { for (let i = 0; i < 4; i++) c.line(37 + i * 2, 10 + i * 2, 35 + i * 2, 14 + i * 2, "M") },   // spring collar
+    capsule(13, 36, 1.2, 33, 33, 1.2, "k"), capsule(33, 33, 1.2, 35, 20, 1.2, "k"),   // trigger guard
+    squeeze ? capsule(33, 21, 1.5, 24, 24, 1.5, "kK") : capsule(33, 21, 1.5, 27, 31, 1.5, "kK"),   // lever
+    circ(15, 24, 6, "s"), circ(13, 22, 3, "n"),                // palm round the handle
+    ...(squeeze
+      ? [circ(21, 22, 2.5, "s"), circ(24, 24, 2.5, "s"), circ(27, 25, 2.5, "S")]   // fingers squeezing the lever
+      : [circ(21, 26, 2.5, "s"), circ(24, 29, 2.5, "s"), circ(27, 31, 2.5, "S")]),  // fingers resting
+    circ(19, 16, 2.5, "n"))                                    // thumb over the top
+}
+nozzle("nozzle_idle", false)
+nozzle("nozzle_squeeze", true)
+
+// --- The vintage pump (reference: a red pump with a white globe and a clock-face dial). The game
+// draws the dial's needle at (17, 41): it shows the round's gas.
+sprite("pump_hud", { w: 34, h: 78, outline: "k" },
+  circ(17, 10, 9, "q"), circ(14, 7, 4, "w"), text(17, 8, "GAZ", "e", { align: "c" }),   // white globe
+  rect(9, 19, 16, 3, "K"),                                    // cap
+  rect(3, 22, 28, 52, "e"), rect(3, 22, 3, 52, "f"), rect(28, 22, 3, 52, "E"),   // red body
+  rect(7, 30, 20, 22, "E"), rect(8, 31, 18, 20, "q"),         // dial frame and face
+  (c) => { for (let i = 0; i <= 8; i++) { const a = Math.PI * (1 - i / 8); c.px(Math.round(17 + Math.cos(a) * 7), Math.round(41 - Math.sin(a) * 7), "k") } },
+  text(17, 45, "E   F", "K", { align: "c" }),
+  rect(31, 44, 3, 4, "m"),                                    // hose outlet on the side
+  rect(5, 58, 24, 3, "E"), text(17, 63, "1985", "q", { align: "c" }),
+  rect(1, 74, 32, 4, "K"))
+
+// --- Tip jar: a glass jar with a red TIPS label and a tin lid. Coins inside are drawn by the game.
+sprite("tip_jar", { w: 24, h: 28 },
+  rect(5, 0, 14, 3, "m"), rect(5, 0, 14, 1, "M"),             // lid
+  rect(3, 3, 18, 25, "T"), rect(4, 4, 16, 23, "U"),           // glass
+  rect(5, 5, 2, 18, "Y"),                                     // glint
+  rect(4, 13, 16, 7, "e"), text(12, 14, "TIPS", "q", { align: "c" }))
+
+// --- On each car: a cartoon funnel in the roof, and a dial gauge (empty to full; the needle is the game's).
+sprite("funnel", { w: 14, h: 11, outline: "k" },
+  ellipse(7, 3, 6, 3, "h"), ellipse(7, 3, 4, 2, "G"),        // wide yellow mouth
+  poly([2, 4, 12, 4, 9, 8, 5, 8], "e"), rect(5, 8, 4, 3, "E"))
+sprite("gauge_face", { w: 26, h: 15, outline: "k" },
+  circ(13, 14, 12, "q"), rect(0, 14, 26, 1, "q"),
+  (c) => { for (let i = 0; i <= 10; i++) { const a = Math.PI * (1 - i / 10); c.px(Math.round(13 + Math.cos(a) * 10), Math.round(14 - Math.sin(a) * 10), i >= 8 ? "F" : "k") } },
+  text(4, 9, "E", "r"), text(20, 9, "F", "F"))
+
+// --- The regulars, seated, after the reference photos. Two poses: hanging out, and cheering.
+function regular(name, o) {
+  for (const cheer of [false, true]) {
+    sprite(name + (cheer ? "_cheer" : ""), { w: 18, h: 26, outline: "k" },
+      rect(4, 19, 4, 6, o.pants), rect(10, 19, 4, 6, o.pants), rect(3, 24, 5, 2, "K"), rect(10, 24, 5, 2, "K"),   // legs, shoes
+      rect(3, 16, 12, 4, o.pants),                             // lap
+      rect(3, 8, 12, 9, o.shirt), ...(o.check ? [(c) => { for (let y = 8; y < 17; y += 2) for (let x = 3 + (y % 4 ? 1 : 0); x < 15; x += 2) c.px(x, y, o.check) }] : []),
+      ...(cheer ? [rect(0, 1, 3, 9, o.shirt), rect(15, 1, 3, 9, o.shirt), circ(1, 1, 1, "s"), circ(16, 1, 1, "s")]   // arms up
+            : [rect(1, 9, 3, 8, o.shirt), rect(14, 9, 3, 8, o.shirt), circ(2, 17, 1, "s"), circ(15, 17, 1, "s")]),
+      circ(9, 4, 4, "s"), rect(5, 0, 8, 3, o.hair),            // head and hair
+      px(7, 4, "k"), px(11, 4, "k"),                           // eyes
+      o.moustache ? rect(7, 6, 5, 1, o.hair) : px(9, 6, "S"),
+      ...(o.glasses ? [ring(7, 4, 1, "K"), ring(11, 4, 1, "K")] : []),
+      ...(o.beer && !cheer ? [rect(15, 12, 2, 5, "Z"), px(15, 11, "q")] : []),
+      ...(o.beer && cheer ? [rect(16, 0, 2, 4, "Z")] : []))
+  }
+}
+regular("regular_0", { shirt: "r", check: "E", pants: "R", hair: "Z", moustache: true })            // plaid, moustache, jeans
+regular("regular_1", { shirt: "I", pants: "l", hair: "P", glasses: true })                         // brown jacket, glasses
+regular("regular_2", { shirt: "P", pants: "Q", hair: "p" })                                         // grey cardigan, beige pants
+regular("regular_3", { shirt: "j", pants: "R", hair: "k", beer: true })                             // leather jacket, a beer
+
+sprite("bench", { w: 80, h: 12, outline: "k" },
+  rect(0, 0, 80, 3, "l"), rect(0, 3, 80, 1, "I"), rect(0, 5, 80, 3, "I"),
+  rect(4, 8, 3, 4, "Z"), rect(73, 8, 3, 4, "Z"), rect(38, 8, 3, 4, "Z"))
+
+sprite("clock_face", { w: 13, h: 13, outline: "k" }, circ(6, 6, 6, "q"),
+  px(6, 1, "k"), px(11, 6, "k"), px(6, 11, "k"), px(1, 6, "k"))
+sprite("sign_ouvert", { w: 28, h: 9, outline: "k" }, rect(0, 0, 28, 9, "q"), text(14, 2, "OUVERT", "F", { align: "c" }))
+sprite("sign_ferme", { w: 28, h: 9, outline: "k" }, rect(0, 0, 28, 9, "q"), text(14, 2, "FERME", "r", { align: "c" }), px(19, 0, "r"), px(20, 1, "r"))
+
+// Neon variants for the pinball flash: only GAZ lit, only BAR lit.
+sprite("neon_gaz", { base: "neon_gazbar", swap: {} }, rect(2, 14, 26, 10, "j"), text(15, 14, "BAR", "#5a2a26", { scale: 2, align: "c", gap: 1 }))
+sprite("neon_bar", { base: "neon_gazbar", swap: {} }, rect(2, 2, 26, 11, "j"), text(15, 3, "GAZ", "#5a2a26", { scale: 2, align: "c", gap: 1 }))
