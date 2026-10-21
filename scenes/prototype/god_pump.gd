@@ -26,6 +26,10 @@ const TIER_COLORS := {
 	ScoreTiers.GOOD: Color(0.6, 0.8, 1.0), ScoreTiers.OK: Color(0.95, 0.85, 0.4), ScoreTiers.MISS: Color(0.95, 0.35, 0.3),
 }
 const GAS := Color(0.98, 0.76, 0.18)
+## Pixel art from claude-pxl (assets/art/pixel/god_pump.px.js), shown at 2x with nearest filtering.
+const PIXEL := "res://assets/art/pixel/out/sprites/%s.png"
+const CAR_SPRITES := ["car", "car_red", "car_green", "car_cream", "car_purple", "car_white"]
+const NOZZLE_TIP := Vector2(90, 66)  # the spout's tip in the nozzle sprite, at 2x
 
 @export var flow_rate := 4.0
 ## A safeguard: the round's gas is what really ends it.
@@ -77,11 +81,18 @@ var _t := 0.0
 var _overlay: Node2D
 var _sfx := {}
 var _glug: AudioStreamPlayer
+var _tex := {}
 
 
 func _ready() -> void:
 	rng.randomize()
 	tank = tank_size
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # crisp pixels; cars and the overlay inherit it
+	for id in CAR_SPRITES + ["nozzle", "bill", "coin_0", "coin_1", "coin_2", "coin_3", "puddle_s", "puddle_m",
+			"puddle_l", "sparkle", "asphalt", "road", "dirt"]:
+		var path := PIXEL % id
+		if ResourceLoader.exists(path):
+			_tex[id] = load(path)
 	add_child(combo)
 	_overlay = Node2D.new()
 	_overlay.z_index = 10
@@ -224,7 +235,9 @@ func _new_car(at: Vector2) -> ProtoCar:
 	var car := ProtoCar.new()
 	car.position = at
 	car.tiers = tiers
-	car.color = CAR_COLORS[rng.randi() % CAR_COLORS.size()]
+	var look := rng.randi() % CAR_COLORS.size()
+	car.color = CAR_COLORS[look]
+	car.sprite = _tex.get(CAR_SPRITES[look % CAR_SPRITES.size()])
 	add_child(car)
 	move_child(car, _overlay.get_index())  # cars draw under the stream and HUD
 	cars.append(car)
@@ -336,6 +349,11 @@ func _burst(car: ProtoCar, t: String) -> void:
 		var a := rng.randf() * TAU
 		_bits.append({"pos": car.position, "vel": Vector2.from_angle(a) * rng.randf_range(80, 260),
 			"life": rng.randf_range(0.4, 0.8), "color": col, "size": rng.randf_range(2.5, 5.0)})
+	if t == ScoreTiers.SUPER_PERFECT or t == ScoreTiers.PERFECT:
+		for i in (10 if t == ScoreTiers.SUPER_PERFECT else 5):
+			_bits.append({"pos": car.position + Vector2(rng.randf_range(-30, 30), rng.randf_range(-30, 10)),
+				"vel": Vector2(rng.randf_range(-40, 40), rng.randf_range(-160, -60)), "life": rng.randf_range(0.6, 1.0),
+				"color": Color.WHITE, "size": 0.0, "sparkle": true})
 	if t == ScoreTiers.MISS:  # overflow: gas sprays out of the tank
 		for i in 18:
 			_bits.append({"pos": car.position, "vel": Vector2(rng.randf_range(-120, 120), rng.randf_range(-260, -80)),
@@ -448,7 +466,11 @@ func _play(id: String) -> void:
 ## The table: dark ground, the road along the top, the lot, the gold puddles.
 func _draw() -> void:
 	draw_rect(Rect2(-20, -20, WIDTH + 40, HEIGHT + 40), Color(0.16, 0.13, 0.10))
+	if _tex.has("dirt"):
+		_tile("dirt", Rect2(-20, -20, WIDTH + 40, HEIGHT + 40))
 	draw_rect(Rect2(-20, ROAD_Y - 34, WIDTH + 40, 68), Color(0.12, 0.12, 0.13))
+	if _tex.has("road"):
+		_tile("road", Rect2(-20, ROAD_Y - 32, WIDTH + 40, 64))
 	var x := -20.0 + fmod(-_t * 40.0, 60.0)
 	while x < WIDTH:
 		draw_rect(Rect2(x, ROAD_Y - 2, 30, 4), Color(0.85, 0.8, 0.5, 0.6))
@@ -457,6 +479,8 @@ func _draw() -> void:
 	lot.bg_color = Color(0.21, 0.20, 0.20)
 	lot.set_corner_radius_all(14)
 	draw_style_box(lot, LOT)
+	if _tex.has("asphalt"):
+		_tile("asphalt", LOT.grow(-6))
 	draw_rect(Rect2(ENTRANCE.x - 40, ROAD_Y + 30, 80, LOT.position.y - ROAD_Y - 20), Color(0.21, 0.20, 0.20))
 	draw_rect(Rect2(EXIT.x - 40, ROAD_Y + 30, 80, LOT.position.y - ROAD_Y - 20), Color(0.21, 0.20, 0.20))
 	for i in 9:
@@ -464,11 +488,26 @@ func _draw() -> void:
 		draw_rect(Rect2(lx, LOT.end.y - 70, 3, 60), Color(1, 1, 1, 0.12))
 	for p in puddles:
 		var a := clampf(p.life / 3.0, 0.0, 1.0)
+		var size_id := "puddle_s" if p.r < 13.0 else ("puddle_m" if p.r < 28.0 else "puddle_l")
+		if _tex.has(size_id):
+			var tex: Texture2D = _tex[size_id]
+			var k: float = 2.0 * clampf(p.r / (tex.get_width() * 0.9), 0.6, 1.6)
+			draw_set_transform(p.pos, 0.0, Vector2(k, k))
+			draw_texture(tex, -tex.get_size() * 0.5, Color(1, 1, 1, a))
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			continue
 		draw_set_transform(p.pos, 0.0, Vector2(1.0, 0.62))
 		draw_circle(Vector2.ZERO, p.r, Color(GAS.darkened(0.25), 0.75 * a))
 		draw_circle(Vector2(-p.r * 0.15, -p.r * 0.2), p.r * 0.7, Color(GAS, 0.8 * a))
 		draw_circle(Vector2(-p.r * 0.35, -p.r * 0.35), p.r * 0.22, Color(1, 1, 0.85, 0.7 * a))
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## Tiles a 32 px texture over `r` at 2x.
+func _tile(id: String, r: Rect2) -> void:
+	draw_set_transform(r.position, 0.0, Vector2(2, 2))
+	draw_texture_rect(_tex[id], Rect2(Vector2.ZERO, r.size * 0.5), true)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## Above the cars: the stream, the god nozzle, coins in flight, bursts, words and the HUD.
@@ -489,6 +528,11 @@ func _draw_overlay() -> void:
 		o.draw_circle(_aim, 7.0 + sin(_t * 25.0) * 1.5, Color(GAS, 0.6))
 	_draw_nozzle(o, tip)
 	for b in _bits:
+		if b.get("sparkle", false) and _tex.has("sparkle"):
+			o.draw_set_transform(b.pos, _t * 3.0, Vector2(2, 2))
+			o.draw_texture(_tex["sparkle"], Vector2(-3.5, -3.5), Color(1, 1, 1, clampf(b.life * 2.0, 0.0, 1.0)))
+			o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			continue
 		o.draw_circle(b.pos, b.size, Color(b.color, clampf(b.life * 2.0, 0.0, 1.0)))
 	for m in money:
 		_draw_money(o, m)
@@ -506,6 +550,11 @@ func draw_shadow_ring(o: Node2D) -> void:
 
 ## A giant hand holding a pump nozzle, hovering above where the stream lands.
 func _draw_nozzle(o: Node2D, tip: Vector2) -> void:
+	if _tex.has("nozzle"):
+		o.draw_set_transform(tip - NOZZLE_TIP, 0.0, Vector2(2, 2))
+		o.draw_texture(_tex["nozzle"], Vector2.ZERO)
+		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	var hand := tip + Vector2(-58, -30)
 	o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	o.draw_line(hand + Vector2(20, 10), tip + Vector2(-6, -6), Color(0.15, 0.15, 0.17), 12.0, true)  # spout
@@ -521,7 +570,17 @@ func _draw_money(o: Node2D, m: Dictionary) -> void:
 		return
 	var lift := Vector2(0, -m.z)
 	o.draw_circle(m.pos + Vector2(0, 3), 5.0 if m.kind == "coin" else 7.0, Color(0, 0, 0, 0.25))
-	if m.kind == "bill":
+	if m.kind == "bill" and _tex.has("bill"):
+		o.draw_set_transform(m.pos + lift, m.rot, Vector2(2.0, 2.0 * (0.7 + 0.3 * sin(m.rot * 2.0))))  # flutters
+		o.draw_texture(_tex["bill"], -_tex["bill"].get_size() * 0.5)
+		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	elif m.kind == "coin" and _tex.has("coin_0"):
+		var frame := int(fposmod(m.rot, TAU) / TAU * 4.0) % 4  # spinning
+		var tex: Texture2D = _tex["coin_%d" % frame]
+		o.draw_set_transform(m.pos + lift, 0.0, Vector2(2, 2))
+		o.draw_texture(tex, -tex.get_size() * 0.5)
+		o.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	elif m.kind == "bill":
 		o.draw_set_transform(m.pos + lift, m.rot, Vector2(1.0, 0.75 + 0.25 * sin(m.rot * 2.0)))  # flutters
 		o.draw_rect(Rect2(-10, -5, 20, 10), Color(0.36, 0.62, 0.36))
 		o.draw_rect(Rect2(-8, -3, 16, 6), Color(0.52, 0.78, 0.5), false, 1.0)

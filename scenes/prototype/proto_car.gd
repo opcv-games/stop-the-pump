@@ -31,6 +31,8 @@ var heading := 0.0
 var moving := true
 var pattern := "loop"
 var color := Color(0.45, 0.55, 0.7)
+## Pixel-art body from claude-pxl (assets/art/pixel), drawn at 2x. Null = the greybox shapes.
+var sprite: Texture2D
 var tiers: ScoreTiers
 var anim_t := 0.0
 var _route: Array[Vector2] = []
@@ -213,6 +215,13 @@ func _draw() -> void:
 	draw_set_transform(Vector2(0, 6), heading, squash * (1.0 - lift / 240.0))
 	draw_rect(Rect2(-SIZE * 0.5, SIZE), Color(0, 0, 0, 0.28))
 	draw_set_transform(Vector2(0, -lift), heading + spin, squash)
+	if sprite:
+		draw_set_transform(Vector2(0, -lift), heading + spin, squash * 2.0)
+		draw_texture(sprite, -sprite.get_size() * 0.5)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if customer and accepts_fuel():
+			_draw_meter(lift)
+		return
 	var body := StyleBoxFlat.new()
 	body.bg_color = color
 	body.set_corner_radius_all(9)
@@ -252,6 +261,6 @@ func _draw_meter(lift: float) -> void:
 	draw_rect(Rect2(bar.position, Vector2(bar.size.x * f, bar.size.y)), col)
 	draw_rect(Rect2(bar.position + Vector2(bar.size.x * LEAVE_AT - 1, -2), Vector2(2, bar.size.y + 4)), Color.WHITE)
 	if amount > 0.0:
-		var pct := "%d%%" % int(f * 100.0)
-		var pw := font.get_string_size(pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
-		draw_string(font, at + Vector2(-pw * 0.5, 36), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(col, 0.95))
+		var pct := "%d%%" % int(f * 100.0)  # beside the meter, clear of the car
+		draw_string_outline(font, at + Vector2(34, 22), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, Color(0, 0, 0, 0.8))
+		draw_string(font, at + Vector2(34, 22), pct, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(col, 0.95))

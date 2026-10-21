@@ -30,6 +30,9 @@ godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs 
 
 - Balance simulator (#6): `godot --headless -s tools/sim/run_balance.gd -- 5000 sweep` plays seeded bot runs per strategy (even tier split) and writes `docs/balance/REPORT.md`. Bot assumptions live in `scripts/sim/sim_station.gd`.
 
+- Pixel art (#36, god-pump prototype): claude-pxl, cloned in `~/Tools/claude-pxl` (MIT). Sprites live in `assets/art/pixel/god_pump.px.js`; build with `node ~/Tools/claude-pxl/bin/pxl.js build assets/art/pixel/god_pump.px.js --out assets/art/pixel/out`, then `godot --headless --import`. Shown at 2x with nearest filtering.
+- God-pump prototype: `godot --path . res://scenes/prototype/god_pump.tscn` (the main game is unchanged).
+
 ## Designer tools (in game)
 - **F1 dev mode:** Q Super Perfect, W Perfect, E Good, R OK, T miss $10 under, Y miss $10 over (next waiting pump).
 - **F3 / "End day" button:** settle the day now. **F4 / "+$100" button:** free cash (works in the upgrade tree too).
