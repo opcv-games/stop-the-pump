@@ -36,8 +36,11 @@ Feature: A GOD PUMP day  (#37, docs/GOD_PUMP_PLAN.md)
 
   Scenario: Patience
     Given a car left waiting past its patience
-    Then it drives off and counts as a miss
+    Then it drives off and counts as unserved
 
-  Scenario: The day report
+  Scenario: The day report  (playtest 8: Misses split in two)
     When the day ends
     Then the report has loot, gas left, XP, cars, grades, accuracy and best combo
+    And the grades are Super, Perfect, Good, OK, Overfilled and Unserved
+    And a car that left under 80% (patience or closing) is Unserved: it isn't a car fueled,
+      doesn't count against accuracy and earns no XP

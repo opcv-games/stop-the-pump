@@ -21,7 +21,7 @@ var cards: Array = []
 var price_frozen := false
 var next_delivery_extra := 0.0
 var xp := 0
-var totals := {"cars": 0, "loot": 0.0, "supers": 0, "perfects": 0, "goods": 0, "oks": 0, "misses": 0, "best_combo": 1}
+var totals := {"cars": 0, "loot": 0.0, "supers": 0, "perfects": 0, "goods": 0, "oks": 0, "misses": 0, "unserved": 0, "best_combo": 1}
 var over := false
 var won := false
 ## The cards offered at the current delivery (empty when none is pending).
@@ -193,7 +193,8 @@ func end_day(report: Dictionary) -> void:
 	totals.perfects += t.get(ScoreTiers.PERFECT, 0)
 	totals.goods += t.get(ScoreTiers.GOOD, 0)
 	totals.oks += t.get(ScoreTiers.OK, 0)
-	totals.misses += t.get(ScoreTiers.MISS, 0)
+	totals.misses += t.get(ScoreTiers.MISS, 0)  # overfilled
+	totals.unserved += t.get(ScoreTiers.UNSERVED, 0)
 	totals.best_combo = maxi(totals.best_combo, report.get("best_combo", 1))
 	if day >= GodData.FINAL_DAY:
 		won = true

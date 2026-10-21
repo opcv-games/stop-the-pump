@@ -325,9 +325,12 @@ func test_the_day_counts_grades_cars_accuracy_and_xp() -> void:
 	assert_gt(game.day_stats.xp, 4)
 
 
-func test_cars_left_under_80_percent_at_closing_are_misses() -> void:
+func test_cars_left_under_80_percent_at_closing_are_unserved() -> void:
 	game.reset_day_stats()
 	var car := _car(20.0)
 	car.amount = 5.0
 	game.end_round()
-	assert_eq(game.day_stats.tiers[ScoreTiers.MISS], 1)
+	assert_eq(game.day_stats.tiers[ScoreTiers.UNSERVED], 1)
+	assert_eq(game.day_stats.tiers[ScoreTiers.MISS], 0, "Miss now means overfilled only")
+	assert_eq(game.day_stats.cars, 0, "an unserved car isn't a car fueled")
+	assert_eq(game.day_stats.xp, 0)

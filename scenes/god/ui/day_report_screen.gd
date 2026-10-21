@@ -1,7 +1,7 @@
 class_name DayReportScreen
 extends Control
-## End of a day (designer's ask): accuracy, loot, cars fueled, Super / Perfect / Good / OK / Miss,
-## XP, and progress toward the next car type. ENTER or the button goes to the night.
+## End of a day (designer's ask): accuracy, loot, cars fueled, Super / Perfect / Good / OK /
+## Overfilled / Unserved, XP, and progress toward the next car type. ENTER or the button goes on.
 
 signal done
 
@@ -67,9 +67,9 @@ func _draw() -> void:
 		y += 34.0
 	var tiers: Dictionary = report.get("tiers", {})
 	var grades := [[ScoreTiers.SUPER_PERFECT, "SUPER"], [ScoreTiers.PERFECT, "PERFECT"], [ScoreTiers.GOOD, "GOOD"],
-		[ScoreTiers.OK, "OK"], [ScoreTiers.MISS, "MISS"]]
+		[ScoreTiers.OK, "OK"], [ScoreTiers.MISS, "OVERFILLED"], [ScoreTiers.UNSERVED, "UNSERVED"]]
 	for i in grades.size():
-		var x := 340.0 + i * 104.0
+		var x := 331.0 + i * 98.0
 		var col: Color = GodPump.TIER_COLORS[grades[i][0]]
 		GodUI.text(self, Vector2(x, 372), str(tiers.get(grades[i][0], 0)), 30, col, true)
 		GodUI.text(self, Vector2(x, 396), grades[i][1], 13, Color(col, 0.8), true)

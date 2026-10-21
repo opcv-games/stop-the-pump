@@ -24,10 +24,11 @@ const PILE_AT := Vector2(1010, 612)
 const NOZZLE_RAISE := Vector2(-20, -96)  # the nozzle hovers up-left of where its stream lands
 const CAR_COLORS := [Color(0.45, 0.55, 0.7), Color(0.7, 0.42, 0.36), Color(0.5, 0.62, 0.45),
 	Color(0.72, 0.66, 0.48), Color(0.55, 0.48, 0.66), Color(0.8, 0.8, 0.78), Color(0.82, 0.42, 0.17)]
-const COINS := {ScoreTiers.SUPER_PERFECT: 12, ScoreTiers.PERFECT: 8, ScoreTiers.GOOD: 5, ScoreTiers.OK: 3, ScoreTiers.MISS: 1}
+const COINS := {ScoreTiers.SUPER_PERFECT: 12, ScoreTiers.PERFECT: 8, ScoreTiers.GOOD: 5, ScoreTiers.OK: 3, ScoreTiers.MISS: 1, ScoreTiers.UNSERVED: 0}
 const TIER_COLORS := {
 	ScoreTiers.SUPER_PERFECT: Color(1.0, 0.85, 0.3), ScoreTiers.PERFECT: Color(0.35, 0.9, 0.45),
 	ScoreTiers.GOOD: Color(0.6, 0.8, 1.0), ScoreTiers.OK: Color(0.95, 0.85, 0.4), ScoreTiers.MISS: Color(0.95, 0.35, 0.3),
+	ScoreTiers.UNSERVED: Color(0.62, 0.6, 0.58),
 }
 const GAS := Color(0.98, 0.76, 0.18)
 ## Pixel art from claude-pxl (assets/art/pixel/god_pump.px.js), shown at 2x with nearest filtering.
@@ -649,13 +650,15 @@ var day_stats := {}
 
 func reset_day_stats() -> void:
 	day_stats = {"tiers": {ScoreTiers.SUPER_PERFECT: 0, ScoreTiers.PERFECT: 0, ScoreTiers.GOOD: 0,
-		ScoreTiers.OK: 0, ScoreTiers.MISS: 0}, "cars": 0, "accuracy_sum": 0.0, "xp": 0}
+		ScoreTiers.OK: 0, ScoreTiers.MISS: 0, ScoreTiers.UNSERVED: 0}, "cars": 0, "accuracy_sum": 0.0, "xp": 0}
 
 
 func _count(car: ProtoCar, t: String) -> void:
 	if day_stats.is_empty():
 		reset_day_stats()
 	day_stats.tiers[t] += 1
+	if t == ScoreTiers.UNSERVED:
+		return  # left without its fill: not a car fueled, not a pour to judge, no XP
 	day_stats.cars += 1
 	day_stats.accuracy_sum += car.accuracy()
 	day_stats.xp += xp_for(t)
@@ -707,8 +710,8 @@ func end_round() -> void:
 			_settle(car)  # 80% or more: settles as usual
 			continue
 		if car.customer and car.accepts_fuel():
-			_count(car, ScoreTiers.MISS)  # still under 80% at closing: a miss
-			var partial := minf(car.amount, car.target)  # they pay for what they got, no tip
+			_count(car, ScoreTiers.UNSERVED)  # still under 80% at closing
+			var partial: float = minf(car.amount, car.target) * car.pay_share * mods.get("sale_mult", 1.0)  # they pay for what they got, no tip
 			round_earned += partial
 			round_sales += partial
 			cash += partial
@@ -921,7 +924,7 @@ func _step_money(dt: float) -> void:
 		bills_shown = round_sales
 
 
-## A customer left waiting too long drives off: a Miss (they pay for what they got).
+## A customer left waiting too long drives off unserved (they pay for what they got).
 func _step_patience(dt: float) -> void:
 	for car in cars:
 		if not car.customer or car.phase != ProtoCar.Phase.WANDER or car == _stream_car:
@@ -931,7 +934,7 @@ func _step_patience(dt: float) -> void:
 			if car.fill() >= ProtoCar.LEAVE_AT:
 				_settle(car)
 				continue
-			_count(car, ScoreTiers.MISS)
+			_count(car, ScoreTiers.UNSERVED)
 			var partial: float = minf(car.amount, car.target) * car.pay_share * mods.get("sale_mult", 1.0)
 			round_earned += partial
 			round_sales += partial

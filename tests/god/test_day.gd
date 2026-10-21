@@ -154,14 +154,14 @@ func test_the_clumsy_car_makes_others_spill() -> void:
 	assert_gt(game.round_wasted, 0.0)
 
 
-func test_a_car_waiting_too_long_drives_off_as_a_miss() -> void:
+func test_a_car_waiting_too_long_drives_off_unserved() -> void:
 	_open()
 	game.reset_day_stats()
 	var car := _parked()
 	car.patience = 2.0
 	for i in 30:
 		game.step(0.1)
-	assert_eq(game.day_stats.tiers[ScoreTiers.MISS], 1)
+	assert_eq(game.day_stats.tiers[ScoreTiers.UNSERVED], 1)
 	assert_eq(car.phase, ProtoCar.Phase.LEAVING)
 
 

@@ -7,7 +7,9 @@ const SUPER_PERFECT := "Super Perfect"
 const PERFECT := "Perfect"
 const GOOD := "Good"
 const OK := "OK"
-const MISS := "Miss"
+const MISS := "Miss"  # GOD PUMP: overfilled (shown as "Overfilled")
+## GOD PUMP: a customer who left under 80% (out of patience, or still waiting at closing).
+const UNSERVED := "Unserved"
 
 ## Max distance from the target, in dollars, for each tier (over or under).
 ## Super Perfect = the best possible frame: at $4/s and 60 fps the meter moves ~7 cents a frame,

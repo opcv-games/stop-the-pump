@@ -55,7 +55,7 @@ func _draw() -> void:
 		["Days survived", "%d / %d" % [run.day, GodData.FINAL_DAY]],
 		["Cars fueled", str(t.cars)],
 		["Super / Perfect / Good", "%d / %d / %d" % [t.supers, t.perfects, t.goods]],
-		["OK / Miss", "%d / %d" % [t.oks, t.misses]],
+		["OK / Overfilled / Unserved", "%d / %d / %d" % [t.oks, t.misses, t.unserved]],
 		["Best combo", "x%d" % t.best_combo],
 		["Truck deliveries", str(run.deliveries)],
 		["XP earned", "+%d" % run.xp],
