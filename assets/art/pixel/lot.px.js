@@ -187,3 +187,11 @@ cow("prop_cow_b", false)
 sprite("prop_steeple", { w: 26, h: 64, outline: "k" },
   rect(4, 30, 18, 34, "w"), rect(4, 30, 3, 34, "W"), poly([2, 31, 13, 20, 24, 31], "I"), rect(9, 14, 8, 8, "w"), poly([8, 15, 13, 0, 18, 15], "H"),
   poly([10, 15, 13, 3, 13, 15], "J"), vline(13, 0, 3, "Y"), hline(12, 1, 3, "Y"), rect(10, 38, 6, 9, "S"), ring(13, 26, 2, "a"), rect(10, 52, 6, 12, "M"))
+
+// --- The rival across the road (lore): CHEZ GAÉTAN, a sad little kiosk with a higher price ---------
+sprite("prop_rival", { w: 64, h: 42, outline: "k" },
+  rect(4, 8, 56, 4, "f"), rect(4, 8, 56, 1, "e"), rect(8, 12, 2, 30, "I"), rect(54, 12, 2, 30, "I"),   // canopy on two posts
+  rect(20, 18, 24, 24, "W"), rect(20, 18, 24, 2, "q"), rect(24, 24, 7, 8, "c"), rect(34, 22, 7, 20, "M"),   // the kiosk
+  rect(12, 0, 40, 9, "a"), text(32, 2, "CHEZ GAETAN", "G", { align: "c" }),
+  rect(45, 26, 18, 12, "w"), text(54, 29, "2.19", "e", { align: "c" }), rect(53, 38, 2, 4, "I"),
+  rect(11, 30, 6, 12, "e"), rect(12, 31, 4, 3, "w"))

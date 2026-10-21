@@ -546,6 +546,7 @@ const EVERYDAY := [
 	["prop_news_boxes", Vector2(236, 206)], ["prop_air", Vector2(1046, 186)], ["prop_phone_booth", Vector2(1140, 150)],
 	["prop_picnic", Vector2(980, 642)], ["prop_moose_sign", Vector2(1070, 34)], ["prop_cow_a", Vector2(180, -140)],
 	["prop_cow_b", Vector2(262, -168)], ["prop_cow_a", Vector2(840, -150)], ["prop_steeple", Vector2(1130, -210)],
+	["prop_rival", Vector2(470, -40)],  # Chez Gaétan, across the road: always a little dearer
 ]
 var _props := {}  # node id -> {sprite, t}
 var _tube: Sprite3D
