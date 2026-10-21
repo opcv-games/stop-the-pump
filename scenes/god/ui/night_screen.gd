@@ -70,9 +70,11 @@ func _gui_input(e: InputEvent) -> void:
 func _draw() -> void:
 	if not run:
 		return
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0.06, 0.045, 0.035, 0.93))
-	GodUI.text(self, Vector2(576, 40), "THE NIGHT AFTER DAY %d" % run.day, 26, GodUI.GOLD, true)
-	GodUI.text(self, Vector2(576, 70), "Cash: $%.0f" % run.cash, 20, GodUI.CREAM, true)
+	GodUI.wood_wall(self, size, Vector2(690, 330), _t)  # round 8: Dad's office, wood paneling
+	var plate := Rect2(386, 8, 380, 74)
+	GodUI.enamel(self, plate, Color(0.93, 0.89, 0.8), Color(0.62, 0.16, 0.12))
+	GodUI.text(self, Vector2(576, 42), "THE NIGHT AFTER DAY %d" % run.day, 24, Color(0.62, 0.16, 0.12), true)
+	GodUI.text(self, Vector2(576, 68), "Cash: $%.0f" % run.cash, 19, Color(0.14, 0.12, 0.1), true)
 	_draw_tank()
 	if run.tank_warning():  # playtest 7: forgetting the truck shouldn't end a run by surprise
 		var a := 0.75 + 0.25 * sin(_t * 6.0)
@@ -87,7 +89,7 @@ func _draw() -> void:
 	for i in run.cards.size():
 		var c := GodData.card(run.cards[i])
 		var r := Rect2(260 + i * 44, 594, 38, 38)
-		draw_style_box(GodUI.panel_box(GodUI.RARITY[c.rarity], Color(0.1, 0.08, 0.06), 6), r)
+		GodUI.enamel(self, r, Color(0.1, 0.08, 0.06), GodUI.RARITY[c.rarity])
 		var tex := GodUI.icon(c.id)
 		if tex:
 			draw_texture_rect(tex, r.grow(-4), false)
@@ -103,8 +105,8 @@ func _draw() -> void:
 ## gas left, how many days it might last, the price per litre, and what the next delivery costs.
 func _draw_tank() -> void:
 	var r := Rect2(16, 96, 232, 440)
-	draw_style_box(GodUI.panel_box(GodUI.GOLD_DIM), r)
-	GodUI.text(self, Vector2(r.get_center().x, r.position.y + 34), "GAS TANK", 22, GodUI.GOLD, true)
+	GodUI.enamel(self, r, Color(0.12, 0.29, 0.2))  # an old-station green enamel sign
+	GodUI.text(self, Vector2(r.get_center().x, r.position.y + 36), "GAS TANK", 22, Color(0.98, 0.9, 0.6), true)
 	var cap := run.tank_capacity()
 	var tank_at := Vector2(r.position.x + 28, r.position.y + 52)
 	var tex := GodUI.sprite("gas_tank")

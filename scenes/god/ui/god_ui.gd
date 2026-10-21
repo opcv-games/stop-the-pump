@@ -201,5 +201,42 @@ static func card(ci: CanvasItem, r: Rect2, title: String, body: String, icon_tex
 		text(ci, Vector2(r.get_center().x, r.end.y - 18), footer, 16, col.lightened(0.3), true)
 
 
+## An enamel sign (round 8, the night screen's look): a glossy coloured plate with a cream rim and
+## four rivets, like an old gas-station sign.
+static func enamel(ci: CanvasItem, r: Rect2, fill: Color, rim := Color(0.93, 0.89, 0.8)) -> void:
+	var outer := StyleBoxFlat.new()
+	outer.bg_color = rim
+	outer.set_corner_radius_all(12)
+	outer.shadow_color = Color(0, 0, 0, 0.5)
+	outer.shadow_size = 8
+	outer.shadow_offset = Vector2(3, 4)
+	ci.draw_style_box(outer, r)
+	var inner := StyleBoxFlat.new()
+	inner.bg_color = fill
+	inner.set_corner_radius_all(9)
+	ci.draw_style_box(inner, r.grow(-4))
+	ci.draw_rect(Rect2(r.position + Vector2(10, 6), Vector2(r.size.x - 20, 3)), Color(1, 1, 1, 0.12))  # the gloss
+	for c in [Vector2(9, 9), Vector2(r.size.x - 9, 9), Vector2(9, r.size.y - 9), Vector2(r.size.x - 9, r.size.y - 9)]:
+		ci.draw_circle(r.position + c, 3.0, Color(0.55, 0.53, 0.5))
+		ci.draw_circle(r.position + c + Vector2(-0.8, -0.8), 1.2, Color(0.9, 0.9, 0.88))
+
+
+## Dad's office wall at night (round 8): 80s wood paneling, a desk lamp's warm pool around `glow_at`.
+static func wood_wall(ci: CanvasItem, size: Vector2, glow_at: Vector2, t := 0.0) -> void:
+	var wood := sprite("wood_panel")
+	if wood:
+		ci.draw_texture_rect(wood, Rect2(Vector2.ZERO, size), true, Color(0.62, 0.55, 0.5))
+	else:
+		ci.draw_rect(Rect2(Vector2.ZERO, size), Color(0.22, 0.14, 0.09))
+	ci.draw_rect(Rect2(Vector2.ZERO, size), Color(0.05, 0.03, 0.02, 0.35))
+	for i in 12:  # the lamp
+		var k := i / 11.0
+		ci.draw_circle(glow_at, lerpf(560.0, 60.0, k), Color(1.0, 0.72, 0.38, 0.018 + 0.004 * sin(t * 0.7)))
+	for i in 8:  # dark corners
+		var a := 0.05 * (8 - i) / 8.0
+		ci.draw_rect(Rect2(Vector2.ZERO, Vector2(size.x, 10 + i * 9)), Color(0, 0, 0, a))
+		ci.draw_rect(Rect2(Vector2(0, size.y - 10 - i * 9), Vector2(size.x, 10 + i * 9)), Color(0, 0, 0, a))
+
+
 static func dim(ci: CanvasItem, size: Vector2, a := 0.72) -> void:
 	ci.draw_rect(Rect2(Vector2.ZERO, size), Color(0.03, 0.02, 0.015, a))

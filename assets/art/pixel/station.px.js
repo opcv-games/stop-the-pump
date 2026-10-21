@@ -97,3 +97,18 @@ sprite("fuel_truck", { w: 132, h: 50, outline: "k", selout: true },
 sprite("truck_wheel", { w: 13, h: 13, outline: "k" },
   circ(6, 6, 6, "g"), ring(6, 6, 6, "G"), circ(6, 6, 3, "a"), circ(6, 6, 2, "b"), px(5, 5, "c"),
   px(6, 3, "K"), px(9, 6, "K"), px(6, 9, "K"), px(3, 6, "K"))
+
+// --- Round 8, the night screen: Dad's office wall, 80s wood paneling (a seamless tile) ---------------
+pal({ P: "#3a2214", Q: "#523019", R: "#5f3a22", S: "#6e472c" })   // walnut-stained plywood: groove, dark grain, base, light grain
+sprite("wood_panel", { w: 48, h: 64, wrap: true },
+  rect(0, 0, 48, 64, "R"),
+  (c) => {
+    for (let x = 0; x < 48; x++) for (let y = 0; y < 64; y++) {
+      const plank = Math.floor(x / 12), xl = x % 12
+      const warp = fbm(xl * 0.25 + plank * 5.3, y / 22 + plank * 3.1, 3) * 5    // the grain wanders
+      const v = Math.sin((xl + warp) * 1.25 + plank)
+      c.px(x, y, v > 0.82 ? "S" : v < -0.86 ? "Q" : "R")
+    }
+    for (let p = 0; p < 4; p++) { c.vline(p * 12, 0, 64, "P"); c.vline(p * 12 + 1, 0, 64, "Q") }   // the grooves between planks
+    for (let p = 0; p < 4; p++) c.px(p * 12 + 6, (p * 23 + 9) % 64, "P")                           // a nail in each
+  })
