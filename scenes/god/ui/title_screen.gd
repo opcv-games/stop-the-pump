@@ -16,6 +16,8 @@ func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var labels := [["PLAY", "play_pressed"], ["PAPA'S GARAGE", "garage_pressed"], ["THE STORY", "intro_pressed"], ["QUIT", "quit_pressed"]]
+	if OS.has_feature("web"):
+		labels.pop_back()  # a browser tab has nothing to quit to
 	for i in labels.size():
 		var b := GodUI.button(labels[i][0], Vector2(300, 48), 20)
 		b.position = Vector2(426, 330 + i * 60)

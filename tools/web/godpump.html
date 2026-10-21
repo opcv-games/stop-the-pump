@@ -1,0 +1,129 @@
+<title>GOD PUMP</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* One look: the gaz bar at night. The game fills the frame; a start card sits over it until the first click. */
+:root {
+  --night: #120d09;
+  --panel: #1e1610;
+  --gold: #f5b942;
+  --gold-dim: #9c7530;
+  --cream: #eee0c4;
+  --neon: #ff4a3d;
+  --display: "Bungee", "Arial Black", Impact, sans-serif;
+  --body: "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body { background: var(--night); color: var(--cream); font-family: var(--body); overflow: hidden; }
+#canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: var(--night); outline: none; touch-action: none; }
+#card {
+  position: fixed; inset: 0; display: grid; place-items: center;
+  padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: radial-gradient(ellipse at 50% 30%, #3a2410 0%, var(--night) 70%);
+}
+.inner { display: grid; gap: 18px; justify-items: center; text-align: center; max-width: 34rem; }
+.place { font-size: 0.8rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--neon); text-shadow: 0 0 10px rgba(255, 74, 61, 0.7); }
+h1 {
+  margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(3rem, 12vw, 6.5rem); line-height: 0.95;
+  color: var(--gold); text-shadow: 0 4px 0 #6b3f0c, 0 0 40px rgba(245, 185, 66, 0.35); text-wrap: balance;
+}
+.pitch { margin: 0; font-size: 1.05rem; line-height: 1.55; color: var(--cream); text-wrap: balance; }
+#play {
+  font: 400 1.25rem var(--display); letter-spacing: 0.04em; color: var(--night); background: var(--gold);
+  border: 0; border-radius: 6px; padding: 14px 34px; cursor: pointer; box-shadow: 0 4px 0 var(--gold-dim);
+}
+#play:hover { filter: brightness(1.08); }
+#play:focus-visible { outline: 3px solid var(--cream); outline-offset: 3px; }
+#play:disabled { cursor: wait; opacity: 0.85; }
+.bar { width: min(22rem, 80vw); height: 8px; border-radius: 4px; background: var(--panel); overflow: hidden; }
+.bar > div { height: 100%; width: 0%; background: var(--gold); transition: width 0.2s; }
+#status { font-size: 0.85rem; color: var(--gold-dim); min-height: 1.2em; font-variant-numeric: tabular-nums; }
+.keys { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; font-size: 0.85rem; color: var(--cream); opacity: 0.8; }
+kbd { font: 0.75rem var(--body); border: 1px solid var(--gold-dim); border-radius: 4px; padding: 1px 6px; color: var(--gold); }
+.by { font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-dim); }
+@media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Work+Sans:wght@400;600&display=swap">
+
+<canvas id="canvas" tabindex="0">Your browser can't show the game (it needs WebGL 2).</canvas>
+<div id="card">
+  <div class="inner">
+    <div class="place">Saint-Clin-Clin-des-Meuh-Meuh, Québec</div>
+    <h1>GOD PUMP</h1>
+    <p class="pitch">Your late father left you a run-down gaz bar. Pour gas from the sky onto the cars on your lot, top each one off to the cent, and keep the fuel truck paid until day 50.</p>
+    <button id="play" type="button" disabled>Loading…</button>
+    <div class="bar" aria-hidden="true"><div id="fill"></div></div>
+    <div id="status" role="status">Loading the engine (10 MB)…</div>
+    <div class="keys">
+      <span><kbd>Mouse</kbd> aim · hold to pour</span>
+      <span><kbd>Esc</kbd> pause</span>
+      <span><kbd>I</kbd> change view</span>
+    </div>
+    <div class="by">OPCV Games · best with a mouse</div>
+  </div>
+</div>
+
+<script>
+// The engine and the game data are published gzipped (an artifact file is at most 15 MB, and the
+// engine is 40 MB), under .wasm names artifacts serve. Godot fetches index.wasm and index.pck;
+// this hands it the unzipped bytes instead.
+const PACKED = { "index.wasm": "index.gz.wasm", "index.pck": "index.pck.gz.wasm" };
+const realFetch = window.fetch.bind(window);
+window.fetch = async (input, init) => {
+  const url = typeof input === "string" ? input : input.url;
+  const name = url.split("?")[0].split("/").pop();
+  if (!PACKED[name]) return realFetch(input, init);
+  const r = await realFetch(PACKED[name], init);
+  if (!r.ok) return r;
+  const body = r.body.pipeThrough(new DecompressionStream("gzip"));
+  const type = name.endsWith(".wasm") ? "application/wasm" : "application/octet-stream";
+  return new Response(body, { status: 200, headers: { "Content-Type": type } });
+};
+</script>
+<script src="index.js"></script>
+<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":0,"index.wasm":0},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const engine = new Engine(GODOT_CONFIG);
+const play = document.getElementById("play");
+const status = document.getElementById("status");
+const fill = document.getElementById("fill");
+const card = document.getElementById("card");
+
+function fail(msg) {
+  status.textContent = msg;
+  status.style.color = "var(--neon)";
+  play.textContent = "Can't start";
+}
+
+const missing = Engine.getMissingFeatures({ threads: false });
+if (missing.length) {
+  fail("This browser is missing: " + missing.join(", ") + ". Try a recent Chrome, Edge, Firefox or Safari on a computer.");
+} else {
+  // Start downloading right away; the click only starts the game (browsers need a click for sound).
+  const ready = engine.init("index").then(() => {
+    play.disabled = false;
+    play.textContent = "Play";
+    status.textContent = "Ready.";
+    fill.style.width = "40%";
+  }).catch((e) => fail("The engine didn't load: " + e));
+
+  play.addEventListener("click", async () => {
+    play.disabled = true;
+    play.textContent = "Opening the gaz bar…";
+    await ready;
+    try {
+      await engine.startGame({
+        onProgress: (current, total) => {
+          if (total > 0) fill.style.width = (40 + 60 * current / total) + "%";
+          status.textContent = "Loading the game…";
+        },
+      });
+      card.hidden = true;
+      document.getElementById("canvas").focus();
+    } catch (e) {
+      fail("The game didn't start: " + e);
+    }
+  });
+}
+</script>

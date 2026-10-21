@@ -209,7 +209,7 @@ func _ready() -> void:
 			add_child(p)
 			_sfx[id] = p
 		_music = AudioStreamPlayer.new()  # "Roadside At Two", looped
-		_music.stream = load("res://assets/audio/music/roadside_at_two.wav")
+		_music.stream = load("res://assets/audio/music/roadside_at_two.mp3")
 		_music.volume_db = -12.0
 		_music.finished.connect(_music.play)
 		add_child(_music)

@@ -19,3 +19,4 @@ Thumbs.db
 .idea/
 docs/balance/results.csv
 docs/video/*.avi
+build/
