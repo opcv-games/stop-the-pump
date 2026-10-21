@@ -113,6 +113,8 @@ func test_out_of_gas_and_broke_is_bankrupt() -> void:
 	r.tank = 0.0
 	r.cash = 10.0
 	assert_true(r.bankrupt())
+	r.cash = 25.0  # enough for a partial delivery
+	assert_false(r.bankrupt())
 	r.cash = 5000.0
 	assert_false(r.bankrupt())
 
@@ -172,3 +174,35 @@ func test_car_types_unlock_with_cars_filled() -> void:
 	m.total_cars = 95
 	assert_true("cadillac" in m.unlocked_cars())
 	assert_eq(m.next_unlock().id, "bazou")
+
+
+func test_the_truck_sells_what_the_cash_buys() -> void:
+	var r := _run()
+	r.tank = 0.0
+	var full := r.delivery_cost()
+	r.cash = full * 0.25
+	assert_true(r.call_truck())
+	assert_almost_eq(r.cash, 0.0, 0.01)
+	assert_almost_eq(r.tank, r.tank_capacity() * 0.25, 1.0)
+	assert_true(r.offer.is_empty(), "under half a tank: no cards")
+	r.cash = 5.0
+	assert_false(r.call_truck(), "under $20: no truck")
+
+
+func test_a_big_partial_delivery_still_deals_cards() -> void:
+	var r := _run()
+	r.tank = 0.0
+	r.cash = r.delivery_cost() * 0.6
+	assert_true(r.call_truck())
+	assert_eq(r.offer.size(), 3)
+
+
+func test_the_run_knows_when_the_tank_wont_last() -> void:
+	var r := _run()
+	r.tank = r.tank_capacity()
+	assert_false(r.tank_warning())
+	r.tank = 40.0
+	assert_true(r.tank_warning())
+	r.cash = 500.0
+	assert_true(r.purchase_risky(400.0), "leaves less than the truck costs")
+	assert_false(r.purchase_risky(10.0))

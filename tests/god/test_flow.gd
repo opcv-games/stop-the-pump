@@ -104,3 +104,13 @@ func test_upgrades_bought_last_night_show_on_the_station_this_morning() -> void:
 	g.open_next_day()
 	g.day._hd_view._sync_props(0.1)
 	assert_true(g.day._hd_view._props.has("traffic_light"))
+
+
+func test_a_small_partial_delivery_stays_on_the_night() -> void:
+	g.day.end_round()
+	g._after_report()
+	g.run.tank = 0.0
+	g.run.cash = 30.0
+	g.call_truck()
+	assert_eq(g.state, "night")
+	assert_gt(g.run.tank, 0.0)

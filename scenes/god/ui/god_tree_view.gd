@@ -6,6 +6,9 @@ extends Control
 
 signal bought(branch_id: String)
 
+## The node waiting for a second click (buying it would leave too little for the truck).
+var _confirm := ""
+
 const CELLS := {
 	"hours": [Vector2i(0, -1), Vector2i(0, -2), Vector2i(0, -3), Vector2i(0, -4)],
 	"marketing": [Vector2i(-1, -1), Vector2i(-2, -2), Vector2i(-3, -3)],
@@ -65,6 +68,12 @@ func press(key: String) -> bool:
 	var branch := parts[0]
 	if int(parts[1]) != run.owned.get(branch, 0):
 		return false
+	var node := run.next_node(branch)
+	if not node.is_empty() and run.purchase_risky(run.node_price(node)) and _confirm != key:
+		_confirm = key  # the first click warns; a second click buys anyway
+		queue_redraw()
+		return false
+	_confirm = ""
 	if run.buy(branch):
 		_pops[key] = 0.0
 		bought.emit(branch)
@@ -77,6 +86,8 @@ func tooltip(key: String) -> String:
 	for n in nodes():
 		if n.key == key:
 			var price := run.node_price(n.node)
+			if _confirm == key:
+				return "%s\n⚠ You'd be left without enough for the truck.\nClick again to buy anyway." % n.node.name
 			var status := "OWNED" if n.state == 0 else ("$%.0f  %s" % [price, "click to buy" if run.cash >= price else "(not enough cash)"] if n.state == 1 else "$%.0f  buy the one before it first" % price)
 			return "%s\n%s\n%s" % [n.node.name, n.node.helps, status]
 	return ""
@@ -94,6 +105,7 @@ func _gui_input(e: InputEvent) -> void:
 		var k := _key_at(e.position)
 		if k != hover:
 			hover = k
+			_confirm = ""
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if k != "" else Control.CURSOR_ARROW
 	elif e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
 		var k := _key_at(e.position)

@@ -190,9 +190,10 @@ func _show_night() -> void:
 func call_truck() -> void:
 	if run.call_truck():
 		day._play("truck")
-		state = "cards"
-		cards.show_offer(run)
 		night.refresh()
+		if not run.offer.is_empty():  # a small partial delivery deals no cards
+			state = "cards"
+			cards.show_offer(run)
 
 
 func open_next_day() -> void:

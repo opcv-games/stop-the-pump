@@ -6,6 +6,9 @@ extends RefCounted
 ## the tests and the balance bot play it. Serves: Advancement (the build) and tension (when to call
 ## the truck).
 
+## The smallest delivery the truck will make: below this, with a dry tank, the run is over.
+const MIN_DELIVERY := 20.0
+
 var meta: MetaState
 var rng := RandomNumberGenerator.new()
 var day := 1
@@ -80,13 +83,16 @@ func delivery_cost() -> float:
 	return roundf(cost * (1.0 + next_delivery_extra))
 
 
-## The truck fills the tank. False if the cash isn't there. A delivery offers cards to pick from.
+## The truck fills the tank, or, if the cash is short, brings as much gas as the cash buys (at least
+## MIN_DELIVERY). A delivery of half a tank or more offers cards to pick from.
 func call_truck() -> bool:
 	var cost := delivery_cost()
-	if cost <= 0.0 or cash < cost:
+	if cost <= 0.0 or cash < minf(cost, MIN_DELIVERY):
 		return false
-	cash -= cost
-	tank = tank_capacity()
+	var pay := minf(cost, cash)
+	var share := pay / cost
+	cash -= pay
+	tank = tank_capacity() if share >= 0.999 else tank + (tank_capacity() - tank) * share
 	deliveries += 1
 	next_delivery_extra = 0.0
 	if price_frozen:
@@ -95,13 +101,32 @@ func call_truck() -> bool:
 		var rise := GodData.PRICE_RISE * (2.0 if "devil" in cards else 1.0)
 		price *= 1.0 + rise
 	rerolls_left = int(mods().rerolls)
-	offer = draw_cards(int(mods().cards_offered))
+	offer = draw_cards(int(mods().cards_offered)) if share >= 0.5 else []
 	return true
 
 
-## Out of gas and can't afford the truck: the run is over.
+## Out of gas and can't afford even a small delivery: the run is over.
 func bankrupt() -> bool:
-	return tank < 1.0 and cash < delivery_cost()
+	return tank < 1.0 and cash < minf(delivery_cost(), MIN_DELIVERY)
+
+
+## About how much gas a day burns, from this run so far (a cautious guess before the first day).
+func gas_per_day() -> float:
+	return maxf(totals.loot / maxf(day, 1) * 1.1, 90.0)
+
+
+func days_of_gas() -> float:
+	return tank / gas_per_day()
+
+
+## The tank probably won't last tomorrow.
+func tank_warning() -> bool:
+	return days_of_gas() < 1.2 and delivery_cost() > 0.0
+
+
+## Spending `price` now would leave too little to call the truck when the tank needs it.
+func purchase_risky(price: float) -> bool:
+	return tank_warning() and cash - price < delivery_cost()
 
 
 ## `n` different cards, weighted by rarity; luck tilts the odds toward rare and legendary.

@@ -42,8 +42,8 @@ func refresh() -> void:
 	if not run:
 		return
 	var cost := run.delivery_cost()
-	_truck_btn.disabled = cost <= 0.0 or run.cash < cost
-	_truck_btn.text = "CALL THE TRUCK" if cost > 0.0 else "TANK FULL"
+	_truck_btn.disabled = cost <= 0.0 or run.cash < minf(cost, RunState.MIN_DELIVERY)
+	_truck_btn.text = "TANK FULL" if cost <= 0.0 else ("CALL THE TRUCK" if run.cash >= cost else "BUY $%.0f OF GAS" % run.cash)
 	_open_btn.disabled = run.tank < 1.0
 	_open_btn.text = "OPEN  ·  DAY %d  →" % (run.day + 1)
 	queue_redraw()
@@ -74,6 +74,14 @@ func _draw() -> void:
 	GodUI.text(self, Vector2(576, 40), "THE NIGHT AFTER DAY %d" % run.day, 26, GodUI.GOLD, true)
 	GodUI.text(self, Vector2(576, 70), "Cash: $%.0f" % run.cash, 20, GodUI.CREAM, true)
 	_draw_truck()
+	if run.tank_warning():  # playtest 7: forgetting the truck shouldn't end a run by surprise
+		var a := 0.75 + 0.25 * sin(_t * 6.0)
+		var band := Rect2(300, 84, 552, 34)
+		draw_style_box(GodUI.panel_box(Color(GodUI.RED, a), Color(0.25, 0.04, 0.03, 0.95), 8), band)
+		GodUI.text(self, band.get_center() + Vector2(0, 7), "⚠  THE TANK WON'T LAST TOMORROW: CALL THE TRUCK", 17, Color(1, 0.9, 0.8, a), true)
+		_truck_btn.modulate = Color(1, 1, 1).lerp(Color(1.4, 0.7, 0.6), 0.5 + 0.5 * sin(_t * 6.0))
+	else:
+		_truck_btn.modulate = Color.WHITE
 	# The cards picked this run.
 	GodUI.text(self, Vector2(260, 586), "CARDS" if not run.cards.is_empty() else "", 12, Color(GodUI.GOLD, 0.6))
 	for i in run.cards.size():
@@ -102,8 +110,7 @@ func _draw_truck() -> void:
 	var h := gauge.size.y * clampf(run.tank / cap, 0.0, 1.0)
 	draw_rect(Rect2(gauge.position.x, gauge.end.y - h, gauge.size.x, h), GodPump.GAS)
 	draw_rect(gauge, GodUI.GOLD_DIM, false, 1.5)
-	var per_day := maxf(run.totals.loot / maxf(run.day, 1) * 1.1, 90.0)
-	var days := run.tank / per_day
+	var days := run.days_of_gas()
 	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 28), "Gas: $%.0f / $%.0f" % [run.tank, cap], 15, GodUI.CREAM, true)
 	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 50), "≈ %.1f day%s left" % [days, "s" if days >= 2.0 else ""], 15, GodUI.RED if days < 1.5 else GodUI.CREAM, true)
 	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 82), "Price: $%.2f / L" % run.price, 15, GodUI.CREAM, true)

@@ -28,3 +28,12 @@ Feature: A GOD PUMP run  (#37, docs/GOD_PUMP_PLAN.md)
     When I buy a nozzle, a bling and a perk
     Then they apply to every run
     And they are saved
+
+  Scenario: No dead end when I forget the truck  (playtest 7)
+    Given the tank won't last tomorrow
+    Then the night shows a red warning to call the truck
+    And buying an upgrade that leaves too little for the truck asks me to click again
+    When I can't afford a full delivery but have at least $20
+    Then the truck brings as much gas as my cash buys
+    And a partial delivery under half a tank deals no cards
+    And the run is only over when the tank is dry and I have under $20
