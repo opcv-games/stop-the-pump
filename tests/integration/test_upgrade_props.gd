@@ -116,8 +116,9 @@ func test_given_props_when_evicted_then_the_station_is_run_down_again() -> void:
 	assert_null(_world().pumps[0].pump.get_node_or_null("PumpCardReader"))
 
 
-func test_given_station_then_version_is_0_25() -> void:
-	assert_string_contains((station.get_node("VersionLabel") as Label).text, "v0.2")
+func test_given_station_then_the_version_label_matches_the_project() -> void:
+	assert_string_contains((station.get_node("VersionLabel") as Label).text,
+		"v" + str(ProjectSettings.get_setting("application/config/version")))
 
 
 func test_given_no_billboard_then_its_text_is_hidden_too() -> void:
