@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-20 — v0.28–v0.29 Station tab and balance pass  (#33, #34)
+Hypothesis: Pumps on a station tab and a simulator-balanced economy make the run feel fair and readable.
+Variable: per-pump branches → station tab; economy → simulator pass
+Sessions: 1 (self: 1, others: 0)
+Observed: The game "feels extremely tedious now. The days are too long." In Bills, rounds start at 15 s and grow to 45 s at most. The smash animation is what makes Bills fun: the pigs absorb hits until they break, then release coins of different values that fly to your cash.
+Biggest weakness: day length.
+Decision: KEPT the station tab and balance pass. Next (v0.30): 15-second days and an HOURS branch (Dad only opened mornings). Then the "piggy-bank car" juice: the car fills, pops, and coins fly to your cash.
+
 ## 2026-10-19 — v0.27.0 Bills-style tree and nightly fuel order  (#31, #32)
 Hypothesis: One radial tree and a nightly fuel order make the night shop beautiful and add a real cash decision between rounds.
 Variable: branch cards + pumps page → one radial tree; automatic refill → fuel order

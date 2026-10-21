@@ -5,8 +5,10 @@
 > Milestone: **Vertical Slice** (see DESIGN.md §9)
 
 ## Now (committed, top = highest priority)
-- [ ] `[tech]` **Balance pass with the simulator** (#34, v0.29.0, awaiting playtest)
-- [ ] `[standard]` **"Your station" tab in the night shop: build pumps, expand the lot and improve each pump on the station itself** (#33)
+- [ ] `[standard]` **15-second days and an HOURS branch (Dad only opened mornings)** (#35, v0.30.0, awaiting playtest)
+- [ ] `[juice]` **Piggy-bank car: the car swells as it fills, pops on the stop, and coins of different values fly to your cash** (next)
+- [x] `[tech]` **Balance pass with the simulator** (#34, v0.29.0, kept; superseded by #35's numbers)
+- [x] `[standard]` **"Your station" tab in the night shop: build pumps, expand the lot and improve each pump on the station itself** (#33)
 - [x] `[standard]` **Bills-style upgrade tree: one radial tree branching from the station in the centre** (#31, v0.27.0, kept; pumps move to a station tab in #33)
 - [x] `[standard]` **Fuel order between days: choose whether to refill the tank and by how much** (#32, v0.27.0, kept; balance later)
 - [x] `[standard]` **Story intro: you inherit your late father's run-down station in Saint-Clin-Clin-des-Meuh-Meuh, Québec** (#29, v0.26.0, kept; to be improved)
@@ -36,6 +38,7 @@
   - Given a bot with fixed reaction time, When it plays 100 rounds, Then the run produces a report of income, rent paid and failures.
 
 ## Next (likely, not committed)
+- [ ] More cars per short day (a day serves only 2–4 cars): cars queue and pull in at once, or smaller orders. Then shrink Dad's 400 L tank so the fuel order matters again (docs/balance/REPORT.md)
 - [ ] `[juice]` Combo gauge catches fire at high combos
 - [ ] Upgrade shop with downsides
 - [ ] Customer queue and patience timer
