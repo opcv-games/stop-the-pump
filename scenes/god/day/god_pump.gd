@@ -16,6 +16,10 @@ const ROAD_Y := 78.0
 const LOT := Rect2(120, 170, 912, 420)
 const ENTRANCE := Vector2(300, ROAD_Y)
 const EXIT := Vector2(900, 180)
+## Round 9: where a visitor parks to chat (by the store), when it arrives, and how long a line shows.
+const VISITOR_SPOT := Vector2(420, 222)
+const VISITOR_AT := 3.0
+const CHAT_LINE := 3.2
 ## The tube man (Bonhomme gonflable, round 8) dances here, by the road left of the entrance.
 const TUBE_AT := Vector2(1060, 138)
 const TUBE_EVERY := 8.0
@@ -89,6 +93,14 @@ var _saves_left := 0
 ## Round 8: today is hockey night (Soirée du hockey), and the low-gas alarm has spoken (Jauge d'alarme).
 var hockey_night := false
 var _alarm_said := false
+## Round 9, the lore: today's visit (Visitors.beat_for, set by GodGame), the visitor's car, the chat
+## in progress ({i, t}: the line showing and its seconds left) and the visitor's own bubble.
+var visit := {}
+var visitor_car: ProtoCar
+var chat_line := {}
+var _chat := {}
+var _visit_t := 0.0
+var _visit_done := false
 ## The tube man: seconds to his next grab, and what he brought in today.
 var _tube_cd := 3.0
 var tube_gas := 0.0
@@ -453,6 +465,7 @@ func step(dt: float) -> void:
 		_step_roles(dt)
 		_step_drones(dt)
 		_step_tube_man(dt)
+		_step_visit(dt)
 		if int(mods.get("tank_alarm", 0)) > 0 and tank < LOW_GAS and not _alarm_said:
 			_alarm_said = true  # Jauge d'alarme: the regulars notice before you run dry
 			say(QUIPS.low_gas)
@@ -569,6 +582,57 @@ func spawn_road_car() -> ProtoCar:
 	car.patience = 24.0 * mods.patience_mult
 	cars_spawned += 1
 	return car
+
+
+## Today's visitor: drives in, parks by the store, the lines play one by one, then it drives off.
+func _step_visit(dt: float) -> void:
+	if visit.is_empty() or _visit_done:
+		return
+	if not visitor_car:
+		_visit_t += dt
+		if _visit_t >= VISITOR_AT:
+			visitor_car = _new_car(Vector2(-60, ROAD_Y + 12))
+			visitor_car.road_dir = 1.0
+			visitor_car.customer = false
+			visitor_car.wants_in = true
+			visitor_car.visitor = true
+			visitor_car.stack = Visitors.CAST[visit.who].stack
+		return
+	if not visitor_car.parked:
+		return
+	if _chat.is_empty():
+		_chat = {"i": -1, "t": 0.0}
+	_chat.t -= dt
+	if _chat.t > 0.0:
+		return
+	_chat.i += 1
+	var lines: Array = visit.lines
+	if _chat.i >= lines.size():
+		_visit_done = true
+		chat_line = {}
+		visitor_car.leave(self)
+		return
+	var who: String = lines[_chat.i][0]
+	var text := "%s: %s" % [Visitors.speaker_name(who), lines[_chat.i][1]]
+	_chat.t = CHAT_LINE
+	if Visitors.CAST.has(who):
+		chat_line = {"text": text}
+		return
+	chat_line = {}
+	var idx := RegularsCrew.NAMES.find(who)
+	if idx >= 0:
+		var r: Dictionary = regulars[idx]
+		if r.state == "inside":  # they step out to answer
+			r.pos = RegularsCrew.DOOR
+			r.state = "stand"
+			r.t = CHAT_LINE + 1.0
+		quip_who = idx
+		quip_text = text
+		quip_t = CHAT_LINE
+
+
+func chatting() -> bool:
+	return not _chat.is_empty() and not _visit_done
 
 
 ## The tube man (Bonhomme gonflable): every few seconds he grabs a car driving by within his reach.
@@ -798,8 +862,8 @@ func day_accuracy() -> float:
 
 ## One of the regulars says something (a random one, from `pool`).
 func say(pool: Array) -> void:
-	if regulars.is_empty():
-		return
+	if regulars.is_empty() or chatting():
+		return  # a visitor has the floor
 	quip_text = pool[rng.randi() % pool.size()]
 	var out_here := range(regulars.size()).filter(func(i: int) -> bool: return regulars[i].state != "inside")
 	quip_who = out_here[rng.randi() % out_here.size()] if not out_here.is_empty() else 0
@@ -860,6 +924,11 @@ func start_day(m: Dictionary, tank_dollars: float, day_n: int, pool: Array) -> v
 	_cars_today = 0
 	_saves_left = int(mods.overfill_saves)
 	_alarm_said = false
+	visitor_car = null
+	chat_line = {}
+	_chat = {}
+	_visit_t = 0.0
+	_visit_done = false
 	_tube_cd = 3.0
 	tube_gas = 0.0
 	tube_grabs = 0
@@ -1188,7 +1257,7 @@ func _step_fx(dt: float) -> void:
 	crew.step(dt, rng, not round_over)
 	if not round_over and not regulars.is_empty():
 		_next_idle_quip -= dt
-		if _next_idle_quip <= 0.0 and quip_t <= 0.0:
+		if _next_idle_quip <= 0.0 and quip_t <= 0.0 and not chatting():
 			say(QUIPS.idle)
 			regulars[quip_who].cheer = 0.0
 			_next_idle_quip = rng.randf_range(7.0, 11.0)
@@ -1478,25 +1547,38 @@ func _draw_till(o: Node2D, font: Font) -> void:
 	o.draw_string(font, Vector2(JAR_RECT.get_center().x - tw * 0.5, JAR_RECT.position.y - 6), tips, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1.0, 0.85, 0.3))
 
 
-## What the regulars say, in a bubble over the one who said it.
+## What the regulars say, in a bubble over the one who said it; and today's visitor's lines, over its
+## car, with its name tag (round 9).
 func _draw_quip(o: Node2D, font: Font) -> void:
+	if visitor_car and is_instance_valid(visitor_car) and visitor_car.phase != ProtoCar.Phase.GONE:
+		var top := car_top(visitor_car)
+		var tag := Visitors.speaker_name(visit.who).to_upper()
+		var tw := font.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+		o.draw_string_outline(font, top + Vector2(-tw * 0.5, -6), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 5, Color(0, 0, 0, 0.8))
+		o.draw_string(font, top + Vector2(-tw * 0.5, -6), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.6, 0.9, 1.0))
+		if not chat_line.is_empty() and _chat.get("t", 0.0) > 0.0:
+			_bubble(o, font, top + Vector2(0, -14), chat_line.text, minf(_chat.t * 3.0, 1.0))
 	if quip_t <= 0.0 or quip_text == "":
 		return
 	var where: Variant = regular_head(quip_who)
 	if where == null:
 		return
-	var head: Vector2 = where
-	var w := font.get_string_size(quip_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 18
+	_bubble(o, font, where, quip_text, minf(quip_t * 3.0, 1.0))
+
+
+## A speech bubble whose tail points at `head`.
+func _bubble(o: Node2D, font: Font, head: Vector2, text: String, a: float) -> void:
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 18
 	var box := Rect2(head + Vector2(-16, -46), Vector2(w, 26))
 	box.position.x = clampf(box.position.x, 6, WIDTH - w - 6)
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.98, 0.96, 0.9, minf(quip_t * 3.0, 1.0))
+	sb.bg_color = Color(0.98, 0.96, 0.9, a)
 	sb.set_corner_radius_all(10)
 	sb.set_border_width_all(2)
-	sb.border_color = Color(0.1, 0.09, 0.08, minf(quip_t * 3.0, 1.0))
+	sb.border_color = Color(0.1, 0.09, 0.08, a)
 	o.draw_style_box(sb, box)
 	o.draw_colored_polygon(PackedVector2Array([head + Vector2(-4, -21), head + Vector2(8, -21), head + Vector2(0, -10)]), sb.bg_color)
-	o.draw_string(font, box.position + Vector2(9, 18), quip_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.1, 0.09, 0.08, minf(quip_t * 3.0, 1.0)))
+	o.draw_string(font, box.position + Vector2(9, 18), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.1, 0.09, 0.08, a))
 
 
 var _vignette: GradientTexture2D

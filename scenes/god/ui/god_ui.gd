@@ -13,6 +13,10 @@ const RED := Color(0.95, 0.38, 0.3)
 const GREEN := Color(0.45, 0.85, 0.5)
 const RARITY := {"common": Color(0.75, 0.72, 0.66), "rare": Color(0.45, 0.7, 1.0), "legendary": Color(1.0, 0.65, 0.2)}
 const ICON := "res://assets/art/pixel/out/sprites/icon_%s.png"
+## Newsprint (the menu's scrapbook and the run's last front page): paper, ink, red ink.
+const PAPER := Color(0.93, 0.9, 0.82)
+const PAPER_INK := Color(0.14, 0.12, 0.1)
+const RED_INK := Color(0.6, 0.16, 0.12)
 
 
 static func font() -> Font:

@@ -48,9 +48,9 @@ func _draw() -> void:
 	GodUI.dim(self, size, 0.8)
 	var p := Rect2(196, 40, 760, 440)
 	draw_rect(Rect2(p.position + Vector2(8, 10), p.size), Color(0, 0, 0, 0.35))
-	draw_rect(p, NewspaperScreen.PAPER)
-	var ink := NewspaperScreen.INK
-	var red := NewspaperScreen.RED_INK
+	draw_rect(p, GodUI.PAPER)
+	var ink := GodUI.PAPER_INK
+	var red := GodUI.RED_INK
 	var serif := GodUI.serif()
 	var bold := GodUI.serif(true)
 	var ital := GodUI.serif(false, true)
@@ -58,7 +58,7 @@ func _draw() -> void:
 	var R := p.end.x - 20.0
 	var band := Rect2(L, p.position.y + 14, R - L, 22)
 	draw_rect(band, red)
-	GodUI.text_in(self, bold, band.get_center() + Vector2(0, 6), "SPECIAL EDITION", 14, NewspaperScreen.PAPER, true)
+	GodUI.text_in(self, bold, band.get_center() + Vector2(0, 6), "SPECIAL EDITION", 14, GodUI.PAPER, true)
 	GodUI.text_in(self, bold, Vector2(p.get_center().x, p.position.y + 78), "L'ÉCHO DE SAINT-CLIN-CLIN", 34, ink, true)
 	draw_line(Vector2(L, p.position.y + 88), Vector2(R, p.position.y + 88), ink, 2.0)
 	var headline := "DAD IS BACK!" if run.won else "THE GAZ BAR CLOSES AFTER %d DAYS" % run.day

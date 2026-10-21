@@ -22,7 +22,7 @@ var perk_tiers := {}
 var nozzle := "classique"
 var equipped_bling: Array = []
 ## Round 8, for the menu screen: lifetime numbers, the last runs, Dad's postcards (the days they came)
-## and the newspaper's last headlines.
+## and what was last overheard at the gaz bar (round 9: the visitors' lines).
 var lifetime := {}
 var history: Array = []  # {days, won, loot, deliveries, xp}, oldest first, the last 24 runs
 var postcards: Array = []
@@ -98,9 +98,9 @@ func bank_run(run: RunState) -> void:
 		history.pop_front()
 
 
-## The morning paper went out: keep its headline, and a postcard if Dad sent one.
-func clip(headline: String, postcard_day := 0) -> void:
-	clippings.append(headline)
+## Something worth remembering was said at the gaz bar; and a postcard, if Dad sent one.
+func clip(heard: String, postcard_day := 0) -> void:
+	clippings.append(heard)
 	while clippings.size() > 6:
 		clippings.pop_front()
 	if postcard_day > 0 and not postcard_day in postcards:

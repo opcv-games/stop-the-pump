@@ -48,9 +48,6 @@ func test_the_truck_deals_cards_and_opening_starts_day_2() -> void:
 	g.cards.picked.emit(id)
 	assert_eq(g.state, "night")
 	g.open_next_day()
-	assert_eq(g.state, "paper", "the morning paper first")
-	assert_true(g.paper.visible)
-	g.paper.done.emit()
 	assert_eq(g.state, "day")
 	assert_eq(g.run.day, 2)
 
@@ -89,7 +86,6 @@ func test_buying_in_the_night_shop_changes_tomorrow() -> void:
 	g.run.cash = 1000.0
 	assert_true(g.night.tree.press("hours:0"))
 	g.open_next_day()
-	g.paper.done.emit()
 	assert_almost_eq(g.day.round_seconds, (14.0 - 7.0) * GodData.HOUR_SECONDS, 0.01)
 
 
@@ -109,7 +105,6 @@ func test_upgrades_bought_last_night_show_on_the_station_this_morning() -> void:
 	g.night.tree.press("attractions:0")  # traffic light
 	assert_false(g.day._hd_view._props.has("traffic_light"), "not until the morning")
 	g.open_next_day()
-	g.paper.done.emit()
 	g.day._hd_view._sync_props(0.1)
 	assert_true(g.day._hd_view._props.has("traffic_light"))
 
@@ -152,10 +147,9 @@ func test_the_delivery_plays_out_on_its_own() -> void:
 	assert_eq(g.state, "cards")
 
 
-func test_the_morning_paper_is_about_yesterday() -> void:
+func test_a_visitor_comes_on_the_lore_days() -> void:
 	g.day.end_round()
 	g._after_report()
-	g.open_next_day()
-	assert_eq(g.paper.ed.day, 2)
-	assert_false(g.paper.ed.headline.is_empty())
-	assert_eq(g.meta.clippings[-1], g.paper.ed.headline, "kept for the scrapbook")
+	g.open_next_day()  # day 2: Gaétan, from across the road
+	assert_eq(g.day.visit.who, "gaetan")
+	assert_string_contains(g.meta.clippings[-1], "Gaétan", "remembered for the menu's scrapbook")

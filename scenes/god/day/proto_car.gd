@@ -52,6 +52,9 @@ var patience := 24.0
 var drone_target := false  # a drone has claimed it
 var wants_in := false  # on the road: will pull in (customers and troublemakers)
 var by_drone := false  # filled by a drone
+## Round 9: a visitor (Visitors) comes to chat, not to fill up: it parks by the store and waits.
+var visitor := false
+var parked := false
 # Role state.
 var role_t := 0.0
 var victim: ProtoCar
@@ -203,7 +206,13 @@ func step(dt: float, game: GodPump) -> void:
 				phase = Phase.WANDER
 				start_pattern(game)
 		Phase.WANDER:
-			if moving:
+			if visitor:
+				if not parked:
+					_steer(game.VISITOR_SPOT, dt, 120.0)
+					if position.distance_to(game.VISITOR_SPOT) < 14.0:
+						parked = true
+						heading = 0.0
+			elif moving:
 				_move_pattern(dt, game)
 				position += game.separation(self) * dt  # cars nudge apart instead of stacking
 				# Fast cars (the racer) overshoot their turns: the curb keeps everyone on the lot.

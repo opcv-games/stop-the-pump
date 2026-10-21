@@ -121,29 +121,29 @@ func _draw_stats() -> void:
 func _draw_scrapbook() -> void:
 	var r := BOOK
 	draw_rect(Rect2(r.position + Vector2(5, 6), r.size), Color(0, 0, 0, 0.35))
-	draw_rect(r, NewspaperScreen.PAPER)
-	var ink := NewspaperScreen.INK
+	draw_rect(r, GodUI.PAPER)
+	var ink := GodUI.PAPER_INK
 	var serif := GodUI.serif()
 	var days: Array = meta.history.map(func(h: Dictionary) -> int: return h.days)
-	GodChart.bars(self, RUNS_CHART, days, "Days survived, run by run", ink, NewspaperScreen.RED_INK, serif, float(GodData.FINAL_DAY), _hover_run)
+	GodChart.bars(self, RUNS_CHART, days, "Days survived, run by run", ink, GodUI.RED_INK, serif, float(GodData.FINAL_DAY), _hover_run)
 	if _hover_run >= 0 and _hover_run < meta.history.size():
 		var h: Dictionary = meta.history[_hover_run]
 		var tip := "Run %d: day %d%s, $%d" % [meta.runs - meta.history.size() + _hover_run + 1, h.days, " (Dad came home)" if h.won else "", int(h.loot)]
 		var tw := serif.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 12
 		var tr := Rect2(clampf(RUNS_CHART.position.x + (_hover_run + 0.5) * RUNS_CHART.size.x / meta.history.size() - tw * 0.5, r.position.x, r.end.x - tw), RUNS_CHART.position.y - 6, tw, 20)
 		draw_rect(tr, ink)
-		GodUI.text_in(self, serif, tr.position + Vector2(6, 14), tip, 12, NewspaperScreen.PAPER)
+		GodUI.text_in(self, serif, tr.position + Vector2(6, 14), tip, 12, GodUI.PAPER)
 	draw_line(Vector2(r.position.x + 16, r.position.y + 132), Vector2(r.end.x - 16, r.position.y + 132), Color(ink, 0.35), 1.0)
-	var headline: String = meta.clippings[-1] if not meta.clippings.is_empty() else "Nothing in the paper yet."
-	GodUI.text_in(self, GodUI.serif(true), Vector2(r.position.x + 16, r.position.y + 150), "THE LAST HEADLINE", 11, Color(ink, 0.7))
-	GodUI.para_in(self, GodUI.serif(true), Vector2(r.position.x + 16, r.position.y + 170), headline, 15, r.size.x - 32, ink, 1.15)
+	var heard: String = meta.clippings[-1] if not meta.clippings.is_empty() else "Nothing overheard yet."
+	GodUI.text_in(self, GodUI.serif(true), Vector2(r.position.x + 16, r.position.y + 150), "OVERHEARD AT THE GAZ BAR", 11, Color(ink, 0.7))
+	GodUI.para_in(self, GodUI.serif(false, true), Vector2(r.position.x + 16, r.position.y + 170), heard, 14, r.size.x - 32, ink, 1.15)
 	GodUI.text_in(self, GodUI.serif(true), Vector2(r.position.x + 16, r.position.y + 214), "POSTCARDS FROM \"UN PÊCHEUR\"", 11, Color(ink, 0.7))
-	for i in Newspaper.POSTCARDS.size():
-		var pc: Array = Newspaper.POSTCARDS[i]
+	for i in Visitors.POSTCARDS.size():
+		var pc: Array = Visitors.POSTCARDS[i]
 		var slot := Rect2(r.position.x + 16 + i * 86, r.position.y + 224, 78, 52)
 		if pc[0] in meta.postcards:
 			draw_rect(slot.grow(2), Color(0.98, 0.97, 0.93))
-			var tex := GodUI.sprite(pc[3])
+			var tex := GodUI.sprite(pc[2])
 			if tex:
 				draw_texture_rect(tex, slot.grow(-3), false)
 		else:

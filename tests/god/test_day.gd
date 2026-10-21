@@ -353,3 +353,30 @@ func test_fast_cars_stay_on_the_lot() -> void:
 		assert_true(GodPump.LOT.has_point(car.position), "still on the lot at step %d" % i)
 		if not car.accepts_fuel():
 			break
+
+
+# --- Round 9: the lore drives in and chats -----------------------------------------------------
+
+func test_a_visitor_drives_in_chats_and_leaves() -> void:
+	game.visit = Visitors.beat_for(2)
+	game.start_day(_mods({"close_hour": 23.0}), 800.0, 2, ["sedan"])
+	game.visit = Visitors.beat_for(2)  # start_day keeps the visit GodGame set
+	var seen := []
+	for i in 600:
+		game.step(0.05)
+		var said: String = game.chat_line.get("text", "") if not game.chat_line.is_empty() else (game.quip_text if game.quip_t > 0.0 else "")
+		if said != "" and not said in seen:
+			seen.append(said)
+		if game._visit_done:
+			break
+	assert_true(game._visit_done, "the chat finished")
+	assert_true(seen.any(func(s: String) -> bool: return s.begins_with("Gaétan:")), "the visitor spoke")
+	assert_true(seen.any(func(s: String) -> bool: return s.begins_with("Ti-Guy:")), "a regular answered")
+	assert_eq(game.visitor_car.phase, ProtoCar.Phase.LEAVING)
+
+
+func test_the_postcards_come_with_the_mail_carrier() -> void:
+	for d in [10, 20, 30, 40]:
+		assert_eq(Visitors.beat_for(d).get("postcard", 0), d)
+		assert_eq(Visitors.beat_for(d).who, "facteur")
+	assert_true(Visitors.beat_for(3).is_empty(), "not every day")

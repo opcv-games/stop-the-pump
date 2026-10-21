@@ -3,7 +3,7 @@ extends Node
 ## GOD PUMP from title to credits (docs/GOD_PUMP_PLAN.md). Runs the flow between screens and owns the
 ## run and the meta; the day itself is GodPump (the lot, the cars, the God Pump), which this node
 ## starts each morning and listens to each evening.
-##   TITLE → (first time: INTRO → NAMING) → DAY → REPORT → NIGHT (shop, truck → TRUCK → CARDS) → PAPER → DAY ...
+##   TITLE → (first time: INTRO → NAMING) → DAY → REPORT → NIGHT (shop, truck → TRUCK → CARDS) → DAY ...
 ##   → bankrupt: RUN_OVER → GARAGE → new run   ·   day 50: REPORT → ENDING → RUN_OVER → GARAGE
 ## Designer keys: F1 opens the dev configurator (DevPanel), F3 ends the day, F4 gives $100, F6 gives
 ## 1000 XP.
@@ -29,7 +29,6 @@ var cards: CardPickScreen
 var run_over: RunOverScreen
 var garage: GarageScreen
 var truck_scene: TruckScene
-var paper: NewspaperScreen
 var _last_report := {}
 
 
@@ -58,8 +57,7 @@ func _ready() -> void:
 	garage = GarageScreen.new()
 	truck_scene = TruckScene.new()
 	truck_scene.sound_on = sound_on
-	paper = NewspaperScreen.new()
-	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene, paper]:
+	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene]:
 		s.visible = false
 		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # crisp pixel icons
 		ui.add_child(s)
@@ -72,7 +70,6 @@ func _ready() -> void:
 	report_screen.done.connect(_after_report)
 	night.truck_called.connect(call_truck)
 	truck_scene.finished.connect(_after_truck)
-	paper.done.connect(func() -> void: if state == "paper": start_day())
 	night.open_pressed.connect(open_next_day)
 	cards.picked.connect(func(_id: String) -> void: _show_night())
 	run_over.done.connect(show_garage)
@@ -85,7 +82,7 @@ func _ready() -> void:
 
 
 func _hide_all() -> void:
-	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene, paper]:
+	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene]:
 		s.visible = false
 
 
@@ -162,6 +159,10 @@ func start_day() -> void:
 	day.perks = meta.perk_tiers.duplicate()  # Garage perks stand on the lot every day
 	day.bling = meta.equipped_bling.duplicate()  # and the bling hangs off the nozzle
 	day.bling_owned = meta.owned_bling.duplicate()  # every piece owned: a ring on the handle
+	day.visit = Visitors.beat_for(run.day)  # round 9: the lore drives in and chats
+	if not day.visit.is_empty():
+		var first: Array = day.visit.lines[0]
+		meta.clip("%s: %s" % [Visitors.speaker_name(first[0]), first[1]], day.visit.get("postcard", 0))
 	day.start_day(run.mods(), run.tank, run.day, meta.unlocked_cars())
 	if run.day >= GodData.FINAL_DAY:
 		var dad := day.park_customer(30.0, Vector2(GodPump.ENTRANCE.x + 60, GodPump.LOT.position.y + 70))
@@ -221,21 +222,11 @@ func _after_truck() -> void:
 	cards.show_offer(run)
 
 
-## OPEN: the next morning starts with L'Écho de Saint-Clin-Clin, about yesterday (round 8).
 func open_next_day() -> void:
 	if run.tank < 1.0:
 		return
 	run.next_day()
-	show_paper()
-
-
-func show_paper() -> void:
-	var ed := Newspaper.edition(run, meta, _last_report)
-	meta.clip(ed.headline, ed.postcard.get("day", 0))
-	state = "paper"
-	_hide_all()
-	_hud(false)
-	paper.show_paper(ed)
+	start_day()
 
 
 func _show_run_over() -> void:
