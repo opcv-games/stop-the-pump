@@ -98,11 +98,16 @@ func call_truck() -> bool:
 	if price_frozen:
 		price_frozen = false
 	else:
-		var rise := GodData.PRICE_RISE * (2.0 if "devil" in cards else 1.0)
-		price *= 1.0 + rise
+		price *= 1.0 + price_rise()
 	rerolls_left = int(mods().rerolls)
 	offer = draw_cards(int(mods().cards_offered)) if share >= 0.5 else []
 	return true
+
+
+## How much the wholesale price rises with each delivery (the supplier's contract slows it, the
+## devil doubles it).
+func price_rise() -> float:
+	return GodData.PRICE_RISE * mods().price_rise_mult * (2.0 if "devil" in cards else 1.0)
 
 
 ## Out of gas and can't afford even a small delivery: the run is over.

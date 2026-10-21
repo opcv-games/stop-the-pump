@@ -18,3 +18,4 @@ Thumbs.db
 .vscode/
 .idea/
 docs/balance/results.csv
+docs/video/*.avi

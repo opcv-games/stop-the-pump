@@ -6,7 +6,8 @@
 
 ## Now (committed, top = highest priority)
 - [x] **GOD PUMP overnight batch** (docs/GOD_PUMP_PLAN.md, #37, v0.40.0, awaiting playtest): HD-2D polish, grades and day report, the run with the fuel-truck bill and cards, the night tree, car types, drones and auto-aim, Papa's Garage, title, intro and ending, sound, balance bot, old game retired. Morning report: docs/MORNING_REPORT.md
-- [ ] Playtest v0.40: a full run from the title; the fuel-truck tension; card variety; car types; the garage; the intro and ending
+- [x] Playtest v0.40 (playtest 7): forgot-the-truck dead end fixed, dev mode, day 50 needs ~2 h of Garage, OPCV Games credits, 45 s demo video (v0.41.0)
+- [ ] Playtest v0.41: does the night warning and partial delivery feel fair? Do several runs feel like progress toward day 50? Is the F1 dev panel enough for testing?
 - [x] `[innovation]` **God-pump prototype: a giant nozzle pours from the sky onto cars driving around the lot** (#36, kept: this is the game now)
 - [x] `[art]` **Scene view for the god pump: isometric tried, three-quarter top-down kept; dépanneur, neon, regulars, vintage pump, tip jar** (#36, v0.32.0, kept)
 - [ ] `[art]` **HD-2D try: pixel art in a lit 3D scene (shadows, bloom, tilt-shift)** (#36, v0.33.0, awaiting playtest)

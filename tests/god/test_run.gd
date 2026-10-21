@@ -206,3 +206,16 @@ func test_the_run_knows_when_the_tank_wont_last() -> void:
 	r.cash = 500.0
 	assert_true(r.purchase_risky(400.0), "leaves less than the truck costs")
 	assert_false(r.purchase_risky(10.0))
+
+
+func test_the_suppliers_contract_slows_the_price_rise() -> void:
+	var r := _run()
+	var plain := r.price_rise()
+	r.meta.perk_tiers = {"contract": 2}
+	assert_almost_eq(r.price_rise(), plain * 0.64, 0.0001)
+
+
+func test_premium_gas_makes_sales_pay_more() -> void:
+	var r := _run()
+	r.meta.perk_tiers = {"premium": 3}
+	assert_almost_eq(r.mods().sale_mult, 1.331, 0.001)

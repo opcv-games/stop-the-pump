@@ -92,5 +92,7 @@ I("reroll", capsule(3, 8, 1.5, 8, 3, 1.5, "b"), capsule(8, 3, 1.5, 13, 8, 1.5, "
 I("morning_rush", circ(8, 11, 4, "y"), hline(1, 13, 14, "o"), line(8, 1, 8, 4, "y"), line(2, 5, 4, 7, "y"), line(14, 5, 12, 7, "y"))
 I("jackpot", rect(1, 3, 14, 10, "r"), rect(2, 5, 3, 6, "w"), rect(6, 5, 3, 6, "w"), rect(10, 5, 3, 6, "w"), px(3, 8, "r"), px(7, 8, "r"), px(11, 8, "r"))
 I("slot", rect(3, 3, 10, 10, "K"), hline(5, 8, 6, "y"), vline(8, 5, 6, "y"))
+I("contract", ...paper("K"), line(6, 13, 12, 11, "b"), poly([11, 1, 15, 5, 13, 7, 9, 3], "y"))
+I("premium", rect(4, 3, 8, 12, "r"), rect(5, 5, 6, 4, "w"), text(8, 5, "S", "r", { align: "c" }), rect(12, 5, 2, 6, "K"), rect(6, 1, 4, 2, "K"))
 I("head_start", ...drone("g"), poly([12, 1, 15, 3, 12, 5], "y"))
 I("nest_egg", poly([5, 2, 11, 2, 11, 9, 14, 12, 12, 15, 5, 15, 5, 9], "r"), hline(5, 4, 6, "w"), text(8, 9, "$", "y", { align: "c" }))

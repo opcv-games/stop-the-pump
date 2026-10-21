@@ -2,6 +2,14 @@
 
 One entry per hypothesis. Newest first.
 
+## 2026-10-21 — GOD PUMP v0.40: the overnight build  (#37)
+Hypothesis: The full GOD PUMP loop (days, fuel truck and cards, night tree, car types, Papa's Garage, intro and ending) makes a game worth replaying.
+Variable: v0.40.0 (the whole overnight batch)
+Sessions: 1 (self: 1, others: 0)
+Observed: Lost a run by forgetting to refuel: stretched the tank, invested in upgrades, then couldn't afford a delivery. New car types read as a difficulty ladder that adds variety (intended). Wants day 50 to be impossible at first and to take about two hours of permanent upgrades. Asked for a dev mode with a configurator (free money, skip to the next night), credits to OPCV Games, and a 45 s demo video.
+Biggest weakness: the forgotten-truck dead end (a run lost to a missing warning, not to skill).
+Decision: KEPT the loop. Fixed the dead end (warning, second-click buy, partial deliveries); F1 dev panel; balance retuned with a campaign bot (v0.41.0).
+
 ## 2026-10-20 — God pump, round 6: HD-2D  (#36)
 Hypothesis: Pixel art in a lit 3D scene (HD-2D) gives the gaz bar the look it deserves.
 Variable: three-quarter pixel view → HD-2D (shadows, bloom, tilt-shift)

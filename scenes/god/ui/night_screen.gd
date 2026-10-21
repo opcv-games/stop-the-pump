@@ -114,7 +114,7 @@ func _draw_truck() -> void:
 	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 28), "Gas: $%.0f / $%.0f" % [run.tank, cap], 15, GodUI.CREAM, true)
 	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 50), "≈ %.1f day%s left" % [days, "s" if days >= 2.0 else ""], 15, GodUI.RED if days < 1.5 else GodUI.CREAM, true)
 	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 82), "Price: $%.2f / L" % run.price, 15, GodUI.CREAM, true)
-	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 102), "+%d%% every delivery" % int(GodData.PRICE_RISE * 100.0 * (2.0 if "devil" in run.cards else 1.0)), 13, Color(GodUI.CREAM, 0.6), true)
+	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 102), "+%d%% every delivery" % roundi(run.price_rise() * 100.0), 13, Color(GodUI.CREAM, 0.6), true)
 	var cost := run.delivery_cost()
 	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 134), "Delivery: $%.0f" % cost, 18, GodUI.GOLD if run.cash >= cost else GodUI.RED, true)
 	GodUI.text(self, Vector2(r.get_center().x, gauge.end.y + 156), "+ choose 1 of 3 cards", 13, Color(GodUI.GOLD, 0.7), true)

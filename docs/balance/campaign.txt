@@ -1,0 +1,26 @@
+GOD PUMP bot campaign: 12 players from a fresh save, up to 4 h each
+player 1: first day 50 at 4.6 h; runs (days): 33 46 46 44 41 50*
+    garage: { "contract": 3, "premium": 2, "nest_egg": 3, "lucky": 1, "truck_friend": 2 }, nozzle classique, bling ["receipt"]
+player 2: first day 50 at 3.7 h; runs (days): 37 39 44 39 50* 50*
+    garage: { "contract": 3, "premium": 3, "nest_egg": 3, "lucky": 1, "truck_friend": 1 }, nozzle classique, bling ["receipt"]
+player 3: first day 50 at 3.1 h; runs (days): 33 47 47 50* 50*
+    garage: { "contract": 3, "premium": 3, "nest_egg": 3, "truck_friend": 1 }, nozzle classique, bling ["receipt"]
+player 4: first day 50 at 2.8 h; runs (days): 33 40 40 50* 50* 50*
+    garage: { "contract": 3, "premium": 3, "nest_egg": 3, "lucky": 1, "truck_friend": 1 }, nozzle classique, bling ["receipt"]
+player 5: first day 50 at 2.2 h; runs (days): 34 43 50* 50* 50*
+    garage: { "contract": 3, "premium": 3, "nest_egg": 3, "truck_friend": 1 }, nozzle classique, bling ["receipt"]
+player 6: first day 50 at 3.9 h; runs (days): 45 33 46 47 50* 50*
+    garage: { "contract": 3, "premium": 3, "nest_egg": 3, "lucky": 1, "truck_friend": 1 }, nozzle classique, bling ["receipt"]
+player 7: first day 50 at 2.9 h; runs (days): 34 41 44 50* 50* 50*
+    garage: { "contract": 3, "premium": 3, "nest_egg": 3, "lucky": 1, "truck_friend": 2 }, nozzle classique, bling ["receipt"]
+player 8: first day 50 at 1.5 h; runs (days): 35 50* 50* 50* 50*
+    garage: { "contract": 3, "premium": 3, "nest_egg": 2, "lucky": 1, "truck_friend": 1 }, nozzle classique, bling ["receipt"]
+player 9: first day 50 at 3.9 h; runs (days): 41 43 42 41 50* 50*
+    garage: { "contract": 3, "premium": 3, "nest_egg": 3, "truck_friend": 2 }, nozzle classique, bling ["receipt"]
+player 10: first day 50 at 3.1 h; runs (days): 35 41 48 50* 50*
+    garage: { "contract": 3, "premium": 3, "nest_egg": 2, "lucky": 1 }, nozzle classique, bling ["receipt"]
+player 11: first day 50 at 2.7 h; runs (days): 28 39 42 50* 50* 50*
+    garage: { "contract": 3, "nest_egg": 3, "premium": 3, "truck_friend": 2 }, nozzle classique, bling ["receipt"]
+player 12: first day 50 at 2.6 h; runs (days): 32 30 44 50* 50* 50*
+    garage: { "contract": 3, "nest_egg": 3, "premium": 3, "truck_friend": 1 }, nozzle classique, bling ["receipt"]
+first day 50: 12 of 12 players; median 3.1 h

@@ -4,7 +4,7 @@
 > fuel-truck bill, cards, car types and Papa's Garage, is **docs/GOD_PUMP_PLAN.md**. Sections below that
 > describe the key-per-pump game are history.
 
-> **Current phase:** 5 — Vertical Slice (GOD PUMP v0.40.0: the full loop, awaiting playtest)
+> **Current phase:** 5 — Vertical Slice (GOD PUMP v0.41.0: playtest 7 fixes, awaiting playtest)
 > **Last updated:** 2026-10-20
 > This file is the Committee's memory. Read it before every Godot or Blender action. Update it after every approved decision.
 
@@ -208,3 +208,7 @@ Failure is cheap early: a miss costs a little money and teaches the rule.
 | 2026-10-20 | HD-2D try (default view; I cycles HD-2D, three-quarter pixel, flat): the same high three-quarter camera on a lit 3D scene built from the claude-pxl textures and sprites; cars as 16 stacked flat slices that catch light and cast shadows; a low warm sun, SSAO, emissive neon with bloom and a red light on the lot, tilt-shift depth of field, a vignette. Also: no tip when overfilled, the nozzle without the hand, no funnels, cash lies 3 s longer | "The three quarter angle is wonderful"; "not happy with the aesthetic, I would like to try HD-2D" | God-pump playtest 5 (#36) |
 | 2026-10-20 | Title GOD PUMP. The bill is the fuel truck (price +12% a delivery, a choice of 1 of 3 premium cards per delivery); the clock limits the day; a run ends bankrupt or on day 50 (Dad drives in); drone nozzles are the automation; car types unlock over time; XP buys nozzles, bling and perks; key-per-pump game retired | Designer's overnight brief | docs/GOD_PUMP_PLAN.md |
 | 2026-10-21 | GOD PUMP v0.40.0 built overnight: run loop, fuel truck + cards, night tree, 9 car types, drones, Papa's Garage, intro and ending, sound, balance bot; key-per-pump game retired | Designer's overnight brief | docs/MORNING_REPORT.md (#37) |
+| 2026-10-21 | No dead end when you forget the truck: a red night warning when the tank won't last tomorrow, a second click to buy an upgrade that would leave too little for the truck, and partial deliveries (whatever your cash buys, $20 minimum; under half a tank deals no cards). Bankrupt = dry tank and under $20 | "I painted myself in a corner": forgot to refuel, invested, couldn't afford a full delivery, lost the run | Playtest 7 (#37) |
+| 2026-10-21 | New car types are a difficulty ladder: they add variety and make days harder; the Garage is what answers them | Designer | Playtest 7 (#37) |
+| 2026-10-21 | Day 50 is impossible on a fresh save and takes about 2 h of Garage upgrades: the gas price rises 25% a delivery (was 8%); two new perks push the wall back: Contrat du fournisseur (prices rise 20% slower a tier) and Super sans plomb (sales pay 10% more a tier), 350 XP a tier | Designer: "you need to equip approximately two hours of perma upgrades". Bot: fresh 0/80 reach day 50 (best day 47); campaign median first day 50 at 3.1 h of play (≈2 h of earning, then the winning run) | docs/balance/GOD_PUMP_BALANCE.md (#37) |
+| 2026-10-21 | The game is by OPCV Games (intro card, title screen, credits); a 45 s demo video recorded from the real game (tools/demo/director.gd) | Designer | #37 |

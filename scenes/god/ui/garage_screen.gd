@@ -38,8 +38,8 @@ func items() -> Array:
 
 
 func item_rect(i: int) -> Rect2:
-	var cols := 5
-	var w := 206.0
+	var cols := 5 if items().size() <= 10 else 6  # 11 perks: six to a row
+	var w := (1068.0 - (cols - 1) * 10.0) / cols
 	var h := 200.0
 	return Rect2(42 + (i % cols) * (w + 10), 150 + (i / cols) * (h + 12), w, h)
 
@@ -133,7 +133,7 @@ func _draw() -> void:
 		var tex := GodUI.icon(it.id)
 		if tex:
 			draw_texture_rect(tex, Rect2(Vector2(r.get_center().x - 32, r.position.y + 12), Vector2(64, 64)), false, Color.WHITE if st != "shop" or meta.xp >= p else Color(0.55, 0.55, 0.55))
-		GodUI.text(self, Vector2(r.get_center().x, r.position.y + 98), it.name, 16, GodUI.GOLD, true)
+		GodUI.text(self, Vector2(r.get_center().x, r.position.y + 98), it.name, 16 if r.size.x > 200.0 else 14, GodUI.GOLD, true)
 		GodUI.para(self, Vector2(r.get_center().x, r.position.y + 122), it.helps, 13, r.size.x - 20)
 		var foot := ""
 		match st:

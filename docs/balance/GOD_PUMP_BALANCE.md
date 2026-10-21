@@ -9,25 +9,37 @@ tank, vibe. Cards are picked from a fixed preference list.
 
     godot --headless -s tools/sim/god_bot.gd -- 20 fresh      (fresh | mid | late)
 
+## Target (playtest 7, 2026-10-21)
+- **Day 50 is impossible on a fresh save.**
+- **It takes about 2 hours of Papa's Garage upgrades.** The first win comes around hour 3: about 2 h of earning XP, then the winning run.
+- **New car types are a difficulty ladder:** unlocking them makes days harder; the Garage answers them.
+
 ## Chosen economy
-- **Wholesale price:** starts at $1.20/L against a $2.00 pump price (was $1.00) and rises 8% per delivery (was 12%).
-- **Tank:** $700 of gas (was $800), full at the start.
+- **Wholesale price:** starts at $1.20/L against a $2.00 pump price and rises **25% per delivery** (was 8%).
+- **Tank:** $700 of gas, full at the start.
+- **The truck sells partial deliveries:** whatever your cash buys, at least $20. Bankrupt means a dry tank and under $20.
+- **Two Garage perks push the wall back,** each 350 XP a tier (350, 700, 1050), 3 tiers:
+  - **Contrat du fournisseur:** prices rise 20% slower per tier.
+  - **Super sans plomb:** sales pay 10% more per tier.
 
-Tried along the way:
-- **$1.00 + 7%:** too easy; fresh runs reached day 50 6 times in 10.
-- **$1.40–$1.50 + 18–20%:** too hard; gas sells at a loss after three deliveries, and the Garage can't help.
+Why: with 8% and full deliveries only, most runs ended in the trap the designer hit (enough money, not enough for a *full* delivery). Once partial deliveries were in, even a fresh save reached day 50 every time. The rising price is the wall. Growing the business doesn't beat it on its own: more sales mean more deliveries, so more rises. The fully kitted "late" save without the two perks dies around day 28. So the Garage needed levers aimed at the wall.
 
-## Results (20 runs per meta level)
-    GOD PUMP bot: 20 runs, meta fresh, 6 s
-    days survived: median 13, mean 15.2, min 7, max 50; reached day 50: 1
-    mean per day: loot $141, gas used $116, cars 9.8
-    GOD PUMP bot: 20 runs, meta mid, 6 s
-    days survived: median 12, mean 13.3, min 7, max 48; reached day 50: 0
-    mean per day: loot $139, gas used $118, cars 9.9
-    GOD PUMP bot: 20 runs, meta late, 25 s
-    days survived: median 36, mean 33.6, min 7, max 50; reached day 50: 4
-    mean per day: loot $432, gas used $288, cars 15.7
+Tried along the way (price rise per delivery, fresh save):
+- **14%:** 22 of 30 reach day 50.
+- **20%:** 2 of 30.
+- **26%:** 0 of 30, median day 34.
+- **32–40%:** median day 27–29.
+- **Perk tiers at 200 XP:** half the bot players won in their second run (1.5 h).
 
-- **fresh:** no Garage purchases. **mid:** 400 cars filled (unlocks the pickup, Cadillac, bazou, racer and sweeper) and a few perks and bling, no nozzle. **late:** everything unlocked, the Laser nozzle, strong perks, three bling.
-- **mid isn't better than fresh:** the car types it unlocks (a pickup that pays 80%, the slow bazou, the fast racer) make days harder, and its perks are weak. Real players at that stage would also own a nozzle. Worth watching in playtests: new car types should feel like a challenge, not a punishment.
-- **The bot is better than a person:** perfect tracking, instant reactions, a guaranteed even split. People will likely go bust earlier, so the ending should take many runs, as intended (about 50).
+## Results
+    fresh (80 runs):  days survived median 34, mean 34.9, min 27, max 47; reached day 50: 0
+                      mean per run: XP 871, play time 35.8 min -> 1462 XP per hour of play
+    mid (20 runs):    median 33, max 43; reached day 50: 0
+    late (20 runs):   median 28, max 31; reached day 50: 0   (everything unlocked, no contract or premium gas)
+
+    campaign: 12 players from a fresh save, buying contract and premium gas first
+    first day 50: 12 of 12 players; median 3.1 h (earliest 1.5 h, latest 4.6 h)
+    (full log: docs/balance/campaign.txt)
+
+- **Play time** counts each day's clock plus about 25 s for the report and the night.
+- **The bot is better than a person:** perfect tracking, instant reactions, a guaranteed even split. People will probably need longer than 3 h, and should still be able to find the contract and premium gas.

@@ -14,7 +14,7 @@ const FX_OPS := {
 	"happy_hour": "max", "twin_stream": "max", "golden_chance": "add", "recycle": "max", "first_car_tip_mult": "max",
 	"combo_lock": "max", "overfill_saves": "add", "refund_every": "max", "upgrade_discount": "add",
 	"jackpot_chance": "add", "first_delivery_discount": "add", "cards_offered": "add", "rerolls": "add",
-	"bling_slots": "add",
+	"bling_slots": "add", "price_rise_mult": "mul", "sale_mult": "mul",
 }
 
 ## The defaults a day runs on before anything is bought.
@@ -25,7 +25,7 @@ const BASE := {
 	"tip_mult": 1.0, "patience_mult": 1.0, "spill_mult": 1.0, "happy_hour": 0, "twin_stream": 0,
 	"golden_chance": 0.0, "recycle": 0, "first_car_tip_mult": 1.0, "combo_lock": 0, "overfill_saves": 0,
 	"refund_every": 0, "upgrade_discount": 0.0, "jackpot_chance": 0.0, "first_delivery_discount": 0.0,
-	"cards_offered": 3, "rerolls": 0, "bling_slots": 1,
+	"cards_offered": 3, "rerolls": 0, "bling_slots": 1, "price_rise_mult": 1.0, "sale_mult": 1.0,
 }
 
 # --- The night shop (cash, always available) ----------------------------------------------------
@@ -141,6 +141,8 @@ const PERKS := [
 	{"id": "jackpot", "name": "Jackpot", "helps": "3% of fills tip ×4", "price": 700, "tiers": 2, "fx": {"jackpot_chance": 0.03}},
 	{"id": "slot", "name": "Place pour bling", "helps": "one more bling slot", "price": 500, "tiers": 2, "fx": {"bling_slots": 1}},
 	{"id": "head_start", "name": "Longueur d'avance", "helps": "start each run with a drone nozzle", "price": 2000, "tiers": 1, "fx": {"drones": 1}},
+	{"id": "contract", "name": "Contrat du fournisseur", "helps": "gas prices rise 20% slower", "price": 350, "tiers": 3, "fx": {"price_rise_mult": 0.8}},
+	{"id": "premium", "name": "Super sans plomb", "helps": "premium gas: every sale pays 10% more", "price": 350, "tiers": 3, "fx": {"sale_mult": 1.1}},
 	{"id": "nest_egg", "name": "Bas de laine", "helps": "start each run with $40 more", "price": 200, "tiers": 3, "fx": {"start_cash": 40.0}},
 ]
 
@@ -152,7 +154,7 @@ const OPEN_HOUR := 7.0
 ## Gas price: pump price per litre, and the wholesale price the truck starts at, rising per delivery.
 const PUMP_PRICE := 2.0
 const WHOLESALE_START := 1.2  # balance bot (#37): fresh runs reach about day 13
-const PRICE_RISE := 0.08
+const PRICE_RISE := 0.25  # balance bot campaign (#37): day 50 takes about 2 h of Garage upgrades
 
 
 static func branch(id: String) -> Dictionary:

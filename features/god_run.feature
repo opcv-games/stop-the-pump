@@ -37,3 +37,10 @@ Feature: A GOD PUMP run  (#37, docs/GOD_PUMP_PLAN.md)
     Then the truck brings as much gas as my cash buys
     And a partial delivery under half a tank deals no cards
     And the run is only over when the tank is dry and I have under $20
+
+  Scenario: Day 50 needs about two hours of Papa's Garage  (playtest 7)
+    Given a fresh save
+    Then the gas price climbs 25% a delivery and no run reaches day 50
+    When I own the supplier's contract (prices rise 20% slower a tier)
+    And premium gas (every sale pays 10% more a tier)
+    Then day 50 is within reach (balance bot: about 2 h of XP, then the winning run)

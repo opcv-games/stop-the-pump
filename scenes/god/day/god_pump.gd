@@ -615,7 +615,7 @@ func _settle(car: ProtoCar) -> void:
 	if mods.loto_chance > 0.0 and rng.randf() < mods.loto_chance * (1.0 + mods.luck / 100.0):
 		car.tip += 20.0
 		_floaters.append({"text": "LOTO! +$20", "pos": scr(car.position) + Vector2(0, -110), "life": 1.6, "color": Color(1, 0.9, 0.3), "size": 22})
-	var sale: float = minf(car.amount, car.target) * car.pay_share + mods.per_car_bonus
+	var sale: float = minf(car.amount, car.target) * car.pay_share * mods.get("sale_mult", 1.0) + mods.per_car_bonus
 	_cars_today += 1
 	if int(mods.refund_every) > 0 and _cars_today % int(mods.refund_every) == 0:
 		tank += car.amount  # rabbit's foot: this car's gas goes back in the tank
@@ -932,7 +932,7 @@ func _step_patience(dt: float) -> void:
 				_settle(car)
 				continue
 			_count(car, ScoreTiers.MISS)
-			var partial := minf(car.amount, car.target) * car.pay_share
+			var partial: float = minf(car.amount, car.target) * car.pay_share * mods.get("sale_mult", 1.0)
 			round_earned += partial
 			round_sales += partial
 			cash += partial
