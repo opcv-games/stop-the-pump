@@ -38,6 +38,9 @@ func test_the_truck_deals_cards_and_opening_starts_day_2() -> void:
 	g.run.tank = 100.0
 	g.run.cash = 5000.0
 	g.call_truck()
+	assert_eq(g.state, "truck", "the delivery plays first")
+	assert_true(g.truck_scene.visible)
+	g.truck_scene.skip()
 	assert_eq(g.state, "cards")
 	assert_eq(g.run.offer.size(), 3)
 	var id: String = g.run.offer[0]
@@ -112,6 +115,7 @@ func test_a_small_partial_delivery_stays_on_the_night() -> void:
 	g.run.tank = 0.0
 	g.run.cash = 30.0
 	g.call_truck()
+	g.truck_scene.skip()
 	assert_eq(g.state, "night")
 	assert_gt(g.run.tank, 0.0)
 
@@ -127,3 +131,17 @@ func test_dev_mode_skips_to_the_next_night() -> void:
 	g.dev_next_night()
 	assert_eq(g.state, "night")
 	assert_eq(g.run.day, 2)
+
+
+func test_the_delivery_plays_out_on_its_own() -> void:
+	g.day.end_round()
+	g._after_report()
+	g.run.tank = 100.0
+	g.run.cash = 5000.0
+	g.call_truck()
+	assert_eq(g.truck_scene.info.tank_from, 100.0)
+	assert_eq(g.truck_scene.info.tank_to, g.run.tank_capacity())
+	for i in int(TruckScene.duration() * 20.0) + 4:
+		g.truck_scene._process(0.05)
+	assert_false(g.truck_scene.visible)
+	assert_eq(g.state, "cards")

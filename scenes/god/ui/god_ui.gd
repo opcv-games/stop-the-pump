@@ -76,6 +76,24 @@ static func icon(id: String) -> Texture2D:
 	return tex
 
 
+static var _sprites := {}
+
+
+## A game sprite (assets/art/pixel/out/sprites/<name>.png) for the UI layer, rebuilt the same way as
+## the icons above.
+static func sprite(name: String) -> Texture2D:
+	if _sprites.has(name):
+		return _sprites[name]
+	var path := "res://assets/art/pixel/out/sprites/%s.png" % name
+	var tex: Texture2D = null
+	if ResourceLoader.exists(path):
+		var img: Image = (load(path) as Texture2D).get_image()
+		if img:
+			tex = ImageTexture.create_from_image(img)
+	_sprites[name] = tex
+	return tex
+
+
 ## A gold-bordered button in the house style.
 static func button(label: String, size := Vector2(220, 46), font_size := 20) -> Button:
 	var b := Button.new()

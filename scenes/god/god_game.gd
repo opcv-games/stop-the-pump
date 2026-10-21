@@ -3,7 +3,7 @@ extends Node
 ## GOD PUMP from title to credits (docs/GOD_PUMP_PLAN.md). Runs the flow between screens and owns the
 ## run and the meta; the day itself is GodPump (the lot, the cars, the God Pump), which this node
 ## starts each morning and listens to each evening.
-##   TITLE → (first time: INTRO → NAMING) → DAY → REPORT → NIGHT (shop, truck → CARDS) → DAY ...
+##   TITLE → (first time: INTRO → NAMING) → DAY → REPORT → NIGHT (shop, truck → TRUCK → CARDS) → DAY ...
 ##   → bankrupt: RUN_OVER → GARAGE → new run   ·   day 50: REPORT → ENDING → RUN_OVER → GARAGE
 ## Designer keys: F1 opens the dev configurator (DevPanel), F3 ends the day, F4 gives $100, F6 gives
 ## 1000 XP.
@@ -28,6 +28,7 @@ var night: NightScreen
 var cards: CardPickScreen
 var run_over: RunOverScreen
 var garage: GarageScreen
+var truck_scene: TruckScene
 var _last_report := {}
 
 
@@ -54,7 +55,9 @@ func _ready() -> void:
 	cards = CardPickScreen.new()
 	run_over = RunOverScreen.new()
 	garage = GarageScreen.new()
-	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic]:
+	truck_scene = TruckScene.new()
+	truck_scene.sound_on = sound_on
+	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene]:
 		s.visible = false
 		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # crisp pixel icons
 		ui.add_child(s)
@@ -66,6 +69,7 @@ func _ready() -> void:
 	naming.named.connect(_on_named)
 	report_screen.done.connect(_after_report)
 	night.truck_called.connect(call_truck)
+	truck_scene.finished.connect(_after_truck)
 	night.open_pressed.connect(open_next_day)
 	cards.picked.connect(func(_id: String) -> void: _show_night())
 	run_over.done.connect(show_garage)
@@ -78,7 +82,7 @@ func _ready() -> void:
 
 
 func _hide_all() -> void:
-	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic]:
+	for s in [title, report_screen, night, cards, run_over, garage, naming, cinematic, truck_scene]:
 		s.visible = false
 
 
@@ -188,13 +192,26 @@ func _show_night() -> void:
 	night.show_night(run)
 
 
+## The truck comes: the delivery plays over the night screen, then the cards (none for a small one).
 func call_truck() -> void:
+	var before := {"tank_from": run.tank, "price_from": run.price, "cash": run.cash}
 	if run.call_truck():
-		day._play("truck")
+		state = "truck"
 		night.refresh()
-		if not run.offer.is_empty():  # a small partial delivery deals no cards
-			state = "cards"
-			cards.show_offer(run)
+		truck_scene.play({"tank_from": before.tank_from, "tank_to": run.tank, "capacity": run.tank_capacity(),
+			"cost": before.cash - run.cash, "price_from": before.price_from, "price_to": run.price,
+			"cards": not run.offer.is_empty()})
+
+
+func _after_truck() -> void:
+	if state != "truck":
+		return
+	if run.offer.is_empty():  # a small partial delivery deals no cards
+		state = "night"
+		night.refresh()
+		return
+	state = "cards"
+	cards.show_offer(run)
 
 
 func open_next_day() -> void:
@@ -305,7 +322,8 @@ func dev_next_night() -> void:
 			_after_report()
 		"report":
 			_after_report()
-		"night", "cards":
+		"night", "cards", "truck":
+			truck_scene.visible = false
 			run.offer = []
 			run.next_day()
 			run.end_day({"tank_left": run.tank})

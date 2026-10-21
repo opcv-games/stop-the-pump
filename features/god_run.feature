@@ -15,6 +15,13 @@ Feature: A GOD PUMP run  (#37, docs/GOD_PUMP_PLAN.md)
     And the gas price rises 12% for the next delivery
     And I choose 1 of 3 cards
 
+  Scenario: The gas tank and the delivery  (round 8)
+    Given the night screen
+    Then the GAS TANK panel shows an industrial tank whose sight glass and dial show the gas left
+    When I call the truck
+    Then the tanker rolls in, its hose fills the tank, the price per litre ticks up, and it leaves
+    And then I choose my card (a click skips the animation)
+
   Scenario: Bankrupt
     Given an empty tank and too little cash for a delivery
     Then the run is over
